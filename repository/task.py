@@ -2,7 +2,7 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.orm import Session
 
 from database import Categories, Tasks
-from schemas.Task import CreateTaskSchema
+from schemas.Task import CreateTaskSchema, UpdateTaskSchema
 
 
 class TaskRepository:
@@ -53,10 +53,15 @@ class TaskRepository:
             tasks = session.execute(query).scalars().all()
             return tasks
 
-    def update_task_name(self, task_id: int, new_name: str) -> Tasks:
+    def update_task_name(
+            self,
+            task_id: int,
+            update_data: UpdateTaskSchema
+    ) -> Tasks:
+        update_dict = update_data.model_dump(exclude_unset=True)
         query = update(Tasks).where(
             Tasks.id == task_id
-        ).values(name=new_name)
+        ).values(**update_dict)
         with self.db_session() as session:
             session.execute(query)
             session.commit()

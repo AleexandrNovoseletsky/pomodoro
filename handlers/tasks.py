@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 
 from database.models import Tasks
 from dependecy import get_task_service
-from schemas.Task import CreateTaskSchema, ResponseTaskSchema
+from schemas.Task import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
 from services.task_service import TaskService
 
 router = APIRouter(prefix='/tasks', tags=['tasks'])
@@ -23,10 +23,13 @@ async def create_task(
 @router.patch('/', response_model=ResponseTaskSchema)
 async def update_task(
     task_id: int,
-    name: str,
+    update_data: UpdateTaskSchema,
     task_service: TaskService = Depends(get_task_service)
 ) -> Tasks:
-    return await task_service.update_task_name(task_id, name)
+    return await task_service.update_task(
+        task_id,
+        update_data
+    )
 
 @router.delete('/{task_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(

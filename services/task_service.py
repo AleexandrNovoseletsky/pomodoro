@@ -1,7 +1,7 @@
 from typing import List
 from repository.task import TaskRepository
 from repository.cache_tasks import TaskCacheRepository
-from schemas.Task import ResponseTaskSchema, CreateTaskSchema
+from schemas.Task import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
 from database.models import Tasks
 
 
@@ -38,8 +38,15 @@ class TaskService:
         await self.cache_repo.set_all_tasks(task_schema)
         return new_task
 
-    async def update_task_name(self, task_id: int, name: str) -> Tasks:
-        updated_task = self.task_repo.update_task_name(task_id, name)
+    async def update_task(
+            self,
+            task_id: int,
+            update_data: UpdateTaskSchema
+    ) -> Tasks:
+        updated_task = self.task_repo.update_task_name(
+            task_id,
+            update_data
+        )
         # Обновляем кэш при обновлении
         db_tasks = self.task_repo.get_tasks()
         task_schema = [
