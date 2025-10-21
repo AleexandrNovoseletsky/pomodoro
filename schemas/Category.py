@@ -1,8 +1,11 @@
 from fastapi.utils import BaseModel
 
 
-class CreateCategory(BaseModel):
+class CreateCategorySchema(BaseModel):
     name: str
 
-class ResponseCategory(CreateCategory):
+class ResponseCategorySchema(CreateCategorySchema):
     id: int
+
+    class Config:
+        from_attributes = True

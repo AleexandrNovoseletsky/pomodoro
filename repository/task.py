@@ -53,10 +53,10 @@ class TaskRepository:
             tasks = session.execute(query).scalars().all()
             return tasks
 
-    def update_task_name(self, task_id: int, name: str) -> CreateTaskSchema:
-        query = update(Tasks).where(Tasks.id == task_id).values(
-            name=name,
-        )
+    def update_task_name(self, task_id: int, new_name: str) -> Tasks:
+        query = update(Tasks).where(
+            Tasks.id == task_id
+        ).values(name=new_name)
         with self.db_session() as session:
             session.execute(query)
             session.commit()

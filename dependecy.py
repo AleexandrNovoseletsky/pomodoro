@@ -4,6 +4,7 @@ from database import get_db_session
 from repository.category import CategoryRepository
 from repository.task import TaskRepository
 from repository.cache_tasks import TaskCacheRepository
+from services.category_service import CategoryService
 from services.task_service import TaskService
 
 
@@ -25,3 +26,8 @@ async def get_task_service(
 async def get_category_repository() -> CategoryRepository:
     db_session = get_db_session()
     return CategoryRepository(db_session)
+
+async def get_category_service(
+        category_repo: CategoryRepository = Depends(get_category_repository)
+) -> CategoryService:
+    return CategoryService(category_repo)
