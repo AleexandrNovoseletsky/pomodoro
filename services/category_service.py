@@ -2,7 +2,7 @@ from typing import List
 
 from database.models import Categories
 from repository.category import CategoryRepository
-from schemas.Category import ResponseCategorySchema, CreateCategorySchema
+from schemas.Category import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
 
 
 class CategoryService:
@@ -25,10 +25,12 @@ class CategoryService:
         return new_category
 
     def update_category(
-            self, category_id: int, new_name: str
+            self,
+            category_id: int,
+            update_data: UpdateCategorySchema
     ) -> Categories:
-        updated_category = self.category_repo.update_category_name(
-            category_id, new_name
+        updated_category = self.category_repo.update_category(
+            category_id, update_data
         )
         return updated_category
 
