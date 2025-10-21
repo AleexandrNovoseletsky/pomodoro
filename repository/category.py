@@ -2,7 +2,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.orm import Session
 
 from database import Categories, Tasks, get_db_session
-from schemas.Category import CreateCategorySchema
+from schemas.Category import CreateCategorySchema, UpdateCategorySchema
 
 
 class CategoryRepository:
@@ -31,12 +31,19 @@ class CategoryRepository:
             session.refresh(category_orm)
             return category_orm
 
-    def update_category_name(
-            self, category_id: int, new_name: str
+    def update_category(
+            self,
+            category_id: int,
+            update_data: UpdateCategorySchema
     ) -> Categories:
+        # Преобразуем Pydantic модель в словарь, исключая значения,
+        # которые не были переданы
+        update_dict = update_data.model_dump(exclude_unset=True)
+        if not update_dict:
+            return self.get_category(category_id)
         query = update(Categories).where(
             Categories.id == category_id
-        ).values(name=new_name)
+        ).values(**update_dict)
         with self.db_session() as session:
             session.execute(query)
             session.commit()
