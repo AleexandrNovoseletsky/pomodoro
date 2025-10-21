@@ -1,7 +1,8 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select, update, delete
 from sqlalchemy.orm import Session
 
 from database import Categories, Tasks, get_db_session
+from schemas.Category import CreateCategorySchema
 
 
 class CategoryRepository:
@@ -20,11 +21,26 @@ class CategoryRepository:
             categories = session.execute(query).scalars().all()
             return categories
 
-    def create_category(self, category: Categories) -> Categories:
+    def create_category(self, category: CreateCategorySchema) -> Categories:
+        category_orm = Categories(
+            name=category.name
+        )
         with self.db_session() as session:
-            session.add(category)
+            session.add(category_orm)
             session.commit()
-            session.refresh(category)
+            session.refresh(category_orm)
+            return category_orm
+
+    def update_category_name(
+            self, category_id: int, new_name: str
+    ) -> Categories:
+        query = update(Categories).where(
+            Categories.id == category_id
+        ).values(name=new_name)
+        with self.db_session() as session:
+            session.execute(query)
+            session.commit()
+            category = self.get_category(category_id)
             return category
 
     def delete_category(self, category_id) -> None:

@@ -28,4 +28,4 @@ class Settings(BaseSettings):
     CACHE_HOST: str = os.getenv('CACHE_HOST')
     CACHE_PORT: int = os.getenv('CACHE_PORT')
     CACHE_DB_NAME: int = os.getenv('CACHE_DB_NAME')
-    CACHE_LIFESPAN: int = 60 # in seconds
+    CACHE_LIFESPAN: int = 600 # in seconds

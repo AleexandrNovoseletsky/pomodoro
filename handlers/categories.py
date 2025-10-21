@@ -1,26 +1,33 @@
 from fastapi import APIRouter, Depends, status
 
 from database.models import Categories
-from dependecy import get_category_repository
-from schemas.Category import CreateCategory, ResponseCategory
+from dependecy import get_category_repository, get_category_service
+from schemas.Category import CreateCategorySchema, ResponseCategorySchema
 
 router = APIRouter(prefix='/categories', tags=['categories'])
 
-@router.get('/', response_model=list[ResponseCategory])
-async def get_categories(repo = Depends(get_category_repository)):
-    return repo.get_categories()
+@router.get('/', response_model=list[ResponseCategorySchema])
+async def get_categories(category_service = Depends(get_category_service)):
+    return category_service.get_all_categories()
 
-@router.post('/', response_model=ResponseCategory)
+@router.post('/', response_model=ResponseCategorySchema)
 async def create_category(
-        category: CreateCategory,
-        repo = Depends(get_category_repository)
+        new_category: CreateCategorySchema,
+        category_service = Depends(get_category_service)
 ):
-    category_orm = Categories(name=category.name)
-    return repo.create_category(category_orm)
+    return category_service.create_category(new_category)
+
+@router.patch('/', response_model=ResponseCategorySchema)
+async def update_category(
+        category_id: int,
+        new_name: str,
+        category_service = Depends(get_category_service)
+):
+    return category_service.update_category(category_id, new_name)
 
 @router.delete('/{category_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
         category_id: int,
-        repo = Depends(get_category_repository)
+        category_service = Depends(get_category_service)
 ) -> None:
-    return repo.delete_category(category_id)
+    return category_service.delete_category(category_id)
