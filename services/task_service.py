@@ -22,7 +22,7 @@ class TaskService:
             return cache_tasks
 
         # Если нет в кэше - получаем из БД и сохраняем в кэш
-        db_tasks = self.task_repo.get_tasks()
+        db_tasks = await self.task_repo.get_tasks()
         task_schema = [
             ResponseTaskSchema.model_validate(task) for task in db_tasks
         ]
@@ -30,9 +30,9 @@ class TaskService:
         return task_schema
 
     async def create_task(self, task_data: CreateTaskSchema) -> Tasks:
-        new_task = self.task_repo.create_task(task_data)
+        new_task = await self.task_repo.create_task(task_data)
         # Обновляем кэш при создании новой задачи
-        db_tasks = self.task_repo.get_tasks()
+        db_tasks = await self.task_repo.get_tasks()
         task_schema = [
             ResponseTaskSchema.model_validate(task) for task in db_tasks
         ]
@@ -44,7 +44,7 @@ class TaskService:
             task_id: int,
             update_data: UpdateTaskSchema
     ) -> ResponseTaskSchema:
-        updated_task = self.task_repo.update_task(
+        updated_task = await self.task_repo.update_task(
             task_id,
             update_data
         )
@@ -54,7 +54,7 @@ class TaskService:
                 detail=f'Задача с id={task_id} не найдена.'
             )
         # Обновляем кэш при обновлении
-        db_tasks = self.task_repo.get_tasks()
+        db_tasks = await self.task_repo.get_tasks()
         task_schema = [
             ResponseTaskSchema.model_validate(task) for task in db_tasks
         ]
@@ -62,14 +62,14 @@ class TaskService:
         return updated_task
 
     async def delete_task(self, task_id: int) -> None:
-        deleted = self.task_repo.delete_task(task_id)
+        deleted = await self.task_repo.delete_task(task_id)
         if not deleted:
             raise HTTPException(
                 status_code=404,
                 detail=f'Задача с id={task_id} не найдена.'
             )
         # Обновляем кэш при удалении
-        db_tasks = self.task_repo.get_tasks()
+        db_tasks = await self.task_repo.get_tasks()
         task_schema = [
             ResponseTaskSchema.model_validate(task) for task in db_tasks
         ]

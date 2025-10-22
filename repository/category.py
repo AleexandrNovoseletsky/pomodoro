@@ -10,18 +10,18 @@ class CategoryRepository:
     def __init__(self, db_session: Session):
         self.db_session = db_session
 
-    def get_category(self, category_id: int) -> Categories | None:
+    async def get_category(self, category_id: int) -> Categories | None:
         query = select(Categories).where(Categories.id == category_id)
         with self.db_session() as session:
             return session.execute(query).scalars().one_or_none()
 
-    def get_categories(self) -> list[Categories]:
+    async def get_categories(self) -> list[Categories]:
         query = select(Categories)
         with self.db_session() as session:
             categories = session.execute(query).scalars().all()
             return categories
 
-    def create_category(self, category: CreateCategorySchema) -> Categories:
+    async def create_category(self, category: CreateCategorySchema) -> Categories:
         category_orm = Categories(
             name=category.name
         )
@@ -31,7 +31,7 @@ class CategoryRepository:
             session.refresh(category_orm)
             return category_orm
 
-    def update_category(
+    async def update_category(
             self,
             category_id: int,
             update_data: UpdateCategorySchema
@@ -50,7 +50,7 @@ class CategoryRepository:
             session.refresh(category)
             return category
 
-    def delete_category(self, category_id) -> bool:
+    async def delete_category(self, category_id) -> bool:
         query = delete(Categories).where(Categories.id == category_id)
         with self.db_session() as session:
             result = session.execute(query)
