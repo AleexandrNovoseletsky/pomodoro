@@ -1,5 +1,7 @@
 from typing import List
 
+from fastapi import HTTPException
+
 from database.models import Categories
 from repository.category import CategoryRepository
 from schemas.Category import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
@@ -32,7 +34,18 @@ class CategoryService:
         updated_category = self.category_repo.update_category(
             category_id, update_data
         )
+        if updated_category is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f'категория с id={category_id} не найдена.'
+            )
         return updated_category
 
     def delete_category(self, category_id: int) -> None:
-        return self.category_repo.delete_category(category_id)
+        deleted = self.category_repo.delete_category(category_id)
+        if not deleted:
+            raise HTTPException(
+                status_code=404,
+                detail=f'категория с id={category_id} не найдена.'
+            )
+        return None

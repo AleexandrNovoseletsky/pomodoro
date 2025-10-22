@@ -25,7 +25,7 @@ async def update_task(
     task_id: int,
     update_data: UpdateTaskSchema,
     task_service: TaskService = Depends(get_task_service)
-) -> Tasks:
+) -> ResponseTaskSchema:
     return await task_service.update_task(
         task_id,
         update_data

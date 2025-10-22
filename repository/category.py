@@ -35,23 +35,24 @@ class CategoryRepository:
             self,
             category_id: int,
             update_data: UpdateCategorySchema
-    ) -> Categories:
+    ) -> Categories | None:
         # Преобразуем Pydantic модель в словарь, исключая значения,
         # которые не были переданы
-        update_dict = update_data.model_dump(exclude_unset=True)
-        if not update_dict:
-            return self.get_category(category_id)
-        query = update(Categories).where(
-            Categories.id == category_id
-        ).values(**update_dict)
+        query = select(Categories).where(Categories.id == category_id)
+
         with self.db_session() as session:
-            session.execute(query)
+            category = session.execute(query).scalar_one_or_none()
+            if category is None:
+                return None
+            for key, value in update_data.model_dump(exclude_unset=True).items():
+                setattr(category, key, value)
             session.commit()
-            category = self.get_category(category_id)
+            session.refresh(category)
             return category
 
-    def delete_category(self, category_id) -> None:
+    def delete_category(self, category_id) -> bool:
         query = delete(Categories).where(Categories.id == category_id)
         with self.db_session() as session:
-            session.execute(query)
+            result = session.execute(query)
             session.commit()
+            return result.rowcount > 0
