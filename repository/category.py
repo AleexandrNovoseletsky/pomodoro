@@ -1,7 +1,7 @@
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from database import Categories, Tasks, get_db_session
+from database import Categories
 from schemas.Category import CreateCategorySchema, UpdateCategorySchema
 
 
