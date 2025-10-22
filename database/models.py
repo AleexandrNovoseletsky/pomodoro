@@ -1,10 +1,11 @@
-from typing import Optional
-
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
+from settings import Settings
+
 
 Base = declarative_base()
+settings = Settings()
 
 class Categories(Base):
     __tablename__ = 'Categories'
@@ -13,7 +14,9 @@ class Categories(Base):
         primary_key=True, autoincrement=True
     )
     name: Mapped[str] = mapped_column(
-        String(10), unique=True, nullable=False
+        String(settings.MAX_CATEGORY_NAME_LENGTH),
+        unique=True,
+        nullable=False
     )
 
 class Tasks(Base):
@@ -23,7 +26,9 @@ class Tasks(Base):
         primary_key=True, autoincrement=True
     )
     name:  Mapped[str] = mapped_column(
-        String(25), unique=True, nullable=False
+        String(settings.MAX_TASK_NAME_LENGTH),
+        unique=True,
+        nullable=False
     )
     pomodoro_count: Mapped[int]
     category_id: Mapped[int] = mapped_column(ForeignKey(Categories.id))

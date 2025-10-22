@@ -9,7 +9,7 @@ PROD: bool = not DEV
 if DEV is True:
     load_dotenv('.dev_env')
 elif PROD is True:
-    load_dotenv('.prod_env')
+    load_dotenv('.env')
 
 
 class Settings(BaseSettings):
@@ -29,3 +29,10 @@ class Settings(BaseSettings):
     CACHE_PORT: int = os.getenv('CACHE_PORT')
     CACHE_DB_NAME: int = os.getenv('CACHE_DB_NAME')
     CACHE_LIFESPAN: int = 600 # in seconds
+
+    MIN_CATEGORY_NAME_LENGTH: int = 1
+    MAX_CATEGORY_NAME_LENGTH: int = 30
+    MIN_TASK_NAME_LENGTH: int = 1
+    MAX_TASK_NAME_LENGTH: int = 30
+    MIN_POMODORO_COUNT: int = 1
+    MAX_POMODORO_COUNT: int = 1000
