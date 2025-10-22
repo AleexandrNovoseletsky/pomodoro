@@ -34,36 +34,25 @@ class TaskRepository:
             session.refresh(task_orm)
             return task_orm
 
-    def delete_task(self, task_id: int) -> None:
-        query = delete(Tasks).where(Tasks.id == task_id)
-        with self.db_session() as session:
-            session.execute(query)
-            session.commit()
-
-    def get_tasks_by_category_name(
-            self, category_name: str
-    ) -> list[Tasks]:
-
-        with self.db_session() as session:
-            query = (
-                select(Tasks)
-                .join(Categories, Tasks.category_id == Categories.id)
-                .where(Categories.name == category_name)
-            )
-            tasks = session.execute(query).scalars().all()
-            return tasks
-
-    def update_task_name(
+    def update_task(
             self,
             task_id: int,
             update_data: UpdateTaskSchema
-    ) -> Tasks:
-        update_dict = update_data.model_dump(exclude_unset=True)
-        query = update(Tasks).where(
-            Tasks.id == task_id
-        ).values(**update_dict)
+    ) -> Tasks | None:
+        query = select(Tasks).where(Tasks.id == task_id)
         with self.db_session() as session:
-            session.execute(query)
+            task = session.execute(query).scalar_one_or_none()
+            if task is None:
+                return None
+            for key, value in update_data.model_dump(exclude_unset=True).items():
+                setattr(task, key, value)
             session.commit()
-            task = self.get_task(task_id)
+            session.refresh(task)
             return task
+
+    def delete_task(self, task_id: int) -> bool:
+        query = delete(Tasks).where(Tasks.id == task_id)
+        with self.db_session() as session:
+            result = session.execute(query)
+            session.commit()
+            return result.rowcount > 0
