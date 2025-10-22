@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
-from database.models import Categories
-from dependecy import get_category_repository, get_category_service
+from dependecy import get_category_service
 from schemas.Category import CreateCategorySchema, ResponseCategorySchema, UpdateCategorySchema
 
 router = APIRouter(prefix='/categories', tags=['categories'])

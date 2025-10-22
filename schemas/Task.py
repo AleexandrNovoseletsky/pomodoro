@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from settings import Settings
 
@@ -37,4 +37,3 @@ class ResponseTaskSchema(CreateTaskSchema):
 
     class Config:
         from_attributes = True
-
