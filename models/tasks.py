@@ -1,27 +1,17 @@
 from sqlalchemy import String, ForeignKey
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
+from database import Base
+from models import Categories
 from settings import Settings
 
 
-Base = declarative_base()
 settings = Settings()
 
-class Categories(Base):
-    __tablename__ = 'Categories'
-
-    id: Mapped[int] = mapped_column(
-        primary_key=True, autoincrement=True
-    )
-    name: Mapped[str] = mapped_column(
-        String(settings.MAX_CATEGORY_NAME_LENGTH),
-        unique=True,
-        nullable=False
-    )
 
 class Tasks(Base):
     __tablename__ = 'Tasks'
-
+    print(f"Model Base.metadata id: {id(Base.metadata)}")
     id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True
     )

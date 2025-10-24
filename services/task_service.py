@@ -1,9 +1,11 @@
-from fastapi import HTTPException
 from typing import List
-from repository.task import TaskRepository
-from repository.cache_tasks import TaskCacheRepository
-from schemas.Task import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
-from database.models import Tasks
+
+from fastapi import HTTPException
+
+from repositories import TaskRepository
+from repositories import TaskCacheRepository
+from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
+from models import Tasks
 
 
 class TaskService:

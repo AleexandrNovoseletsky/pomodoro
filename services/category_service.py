@@ -2,36 +2,36 @@ from typing import List
 
 from fastapi import HTTPException
 
-from database.models import Categories
-from repository.category import CategoryRepository
-from schemas.Category import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
+from models.categories import Categories
+from repositories import CategoryRepository
+from schemas import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
 
 
 class CategoryService:
     def __init__(self, category_repo: CategoryRepository):
         self.category_repo = category_repo
 
-    def get_all_categories(self) -> List[ResponseCategorySchema]:
-        db_categories = self.category_repo.get_categories()
+    async def get_all_categories(self) -> List[ResponseCategorySchema]:
+        db_categories = await self.category_repo.get_categories()
         category_schema = [
             ResponseCategorySchema.model_validate(category)
             for category in db_categories
         ]
         return category_schema
 
-    def create_category(
+    async def create_category(
             self,
             category_data: CreateCategorySchema
     ) -> Categories:
-        new_category = self.category_repo.create_category(category_data)
+        new_category = await self.category_repo.create_category(category_data)
         return new_category
 
-    def update_category(
+    async def update_category(
             self,
             category_id: int,
             update_data: UpdateCategorySchema
     ) -> Categories:
-        updated_category = self.category_repo.update_category(
+        updated_category = await self.category_repo.update_category(
             category_id, update_data
         )
         if updated_category is None:
@@ -41,8 +41,8 @@ class CategoryService:
             )
         return updated_category
 
-    def delete_category(self, category_id: int) -> None:
-        deleted = self.category_repo.delete_category(category_id)
+    async def delete_category(self, category_id: int) -> None:
+        deleted = await self.category_repo.delete_category(category_id)
         if not deleted:
             raise HTTPException(
                 status_code=404,
