@@ -1,8 +1,8 @@
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from database import Tasks
-from schemas.Task import CreateTaskSchema, UpdateTaskSchema
+from models import Tasks
+from schemas import CreateTaskSchema, UpdateTaskSchema
 
 
 class TaskRepository:

@@ -5,8 +5,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from database.models import Base
-
+# Чтобы модели подхватывались автоматически при их добавлении.
+from models import *
+from database import Base
 from settings import Settings
 
 
@@ -69,6 +70,8 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    print(f"Base.metadata id: {id(Base.metadata)}")
+    print(f"Target metadata id: {id(target_metadata)}")
     connectable = create_engine(
         url=db_path,
         poolclass=pool.NullPool

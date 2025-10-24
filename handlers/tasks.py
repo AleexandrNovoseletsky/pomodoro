@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, status
 
-from database.models import Tasks
+from models import Tasks
 from dependecy import get_task_service
-from schemas.Task import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
-from services.task_service import TaskService
+from schemas import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
+from services import TaskService
+
 
 router = APIRouter(prefix='/tasks', tags=['tasks'])
 
@@ -26,10 +27,7 @@ async def update_task(
     update_data: UpdateTaskSchema,
     task_service: TaskService = Depends(get_task_service)
 ) -> ResponseTaskSchema:
-    return await task_service.update_task(
-        task_id,
-        update_data
-    )
+    return await task_service.update_task(task_id,update_data)
 
 @router.delete('/{task_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(

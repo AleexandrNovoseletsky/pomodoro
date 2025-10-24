@@ -2,9 +2,9 @@ from typing import List
 
 from fastapi import HTTPException
 
-from database.models import Categories
-from repository.category import CategoryRepository
-from schemas.Category import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
+from models.categories import Categories
+from repositories import CategoryRepository
+from schemas import ResponseCategorySchema, CreateCategorySchema, UpdateCategorySchema
 
 
 class CategoryService:

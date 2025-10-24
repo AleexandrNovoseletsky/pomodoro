@@ -1,7 +1,7 @@
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from database import Categories
+from models.categories import Categories
 from schemas.Category import CreateCategorySchema, UpdateCategorySchema
 
 
