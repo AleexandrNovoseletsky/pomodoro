@@ -2,8 +2,7 @@ import json
 
 from redis import Redis
 
-from schemas.Task import ResponseTaskSchema
-
+from schemas.task import ResponseTaskSchema
 from settings import Settings
 
 settings = Settings()
@@ -32,7 +31,8 @@ class TaskCacheRepository:
     ) -> None:
         tasks_json = json.dumps(
             [task.model_dump() for task in tasks],
-            ensure_ascii=False
+            ensure_ascii=False,
+            default=str,
         )
         await self.cache_session.set(
             key,
