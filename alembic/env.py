@@ -1,15 +1,12 @@
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import create_engine
 from sqlalchemy import pool
 
-from alembic import context
-
 # Чтобы модели подхватывались автоматически при их добавлении.
-from models import *
 from database import Base
 from settings import Settings
-
 
 settings = Settings()
 db_path = settings.DB_PATH

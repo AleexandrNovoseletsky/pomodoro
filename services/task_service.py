@@ -1,79 +1,97 @@
 from typing import List
 
-from fastapi import HTTPException
-
-from repositories import TaskRepository
-from repositories import TaskCacheRepository
-from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
+from auth.permissions import require_owner, require_roles
+from exceptions import AccessDenied
+from exceptions.object_not_found import ObjectNotFoundError
 from models import Tasks
+from repositories import TaskCacheRepository
+from repositories import TaskRepository
+from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
+from schemas.task import CreateTaskORM
+from services.crud import CRUDService
 
 
-class TaskService:
+class TaskService(CRUDService):
     def __init__(
             self,
             task_repo: TaskRepository,
             cache_repo: TaskCacheRepository
     ):
-        self.task_repo = task_repo
+        super().__init__(
+            repository=task_repo, response_schema=ResponseTaskSchema
+        )
         self.cache_repo = cache_repo
+        self.task_repo = task_repo
 
-    async def get_all_tasks(self) -> List[ResponseTaskSchema]:
-        # Пытаемся получить из кэша
+    async def get_all_objects(self) -> List[ResponseTaskSchema]:
+        # 1️⃣ Пытаемся получить задачи из кэша
         cache_tasks = await self.cache_repo.get_all_tasks()
         if cache_tasks is not None:
             return cache_tasks
 
-        # Если нет в кэше - получаем из БД и сохраняем в кэш
-        db_tasks = await self.task_repo.get_tasks()
-        task_schema = [
-            ResponseTaskSchema.model_validate(task) for task in db_tasks
-        ]
-        await self.cache_repo.set_all_tasks(task_schema)
-        return task_schema
+        # 2️⃣ Если нет — получаем из БД через базовый CRUD
+        db_tasks = await super().get_all_objects()
+        await self.cache_repo.set_all_tasks(db_tasks)
+        return db_tasks
 
-    async def create_task(self, task_data: CreateTaskSchema) -> Tasks:
-        new_task = await self.task_repo.create_task(task_data)
-        # Обновляем кэш при создании новой задачи
-        db_tasks = await self.task_repo.get_tasks()
-        task_schema = [
-            ResponseTaskSchema.model_validate(task) for task in db_tasks
-        ]
-        await self.cache_repo.set_all_tasks(task_schema)
+    async def create_object(
+            self,
+            object_data: CreateTaskSchema,
+            current_user_data: dict | None = None,
+    ) -> Tasks:
+        user_id = current_user_data['user_id']
+        task_data = object_data.model_dump()
+        task_data['author_id'] = user_id
+        create_object_data = CreateTaskORM(**task_data)
+        new_task = await super().create_object(
+            object_data=create_object_data
+        )
+        # после создания обновляем кэш
+        await self._refresh_cache()
         return new_task
 
-    async def update_task(
+    async def update_object(
             self,
-            task_id: int,
-            update_data: UpdateTaskSchema
-    ) -> ResponseTaskSchema:
-        updated_task = await self.task_repo.update_task(
-            task_id,
-            update_data
+            object_id: int,
+            update_data: UpdateTaskSchema,
+            current_user: dict | None = None
+    ) -> Tasks:
+        updated_task = await self.task_repo.get_object(
+            object_id=object_id
+        )
+        if current_user is not None:
+            require_owner(
+                resource=updated_task, current_user=current_user
+            )
+        updated_task = await super().update_object(
+            object_id, update_data
         )
         if updated_task is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f'Задача с id={task_id} не найдена.'
-            )
-        # Обновляем кэш при обновлении
-        db_tasks = await self.task_repo.get_tasks()
-        task_schema = [
-            ResponseTaskSchema.model_validate(task) for task in db_tasks
-        ]
-        await self.cache_repo.set_all_tasks(task_schema)
+            raise ObjectNotFoundError(object_id=object_id)
+        await self._refresh_cache()
         return updated_task
 
-    async def delete_task(self, task_id: int) -> None:
-        deleted = await self.task_repo.delete_task(task_id)
-        if not deleted:
-            raise HTTPException(
-                status_code=404,
-                detail=f'Задача с id={task_id} не найдена.'
-            )
-        # Обновляем кэш при удалении
-        db_tasks = await self.task_repo.get_tasks()
+    async def delete_object(
+            self, object_id: int, current_user: dict = None
+    ) -> None:
+        deleted_task = await self.task_repo.get_object(
+            object_id=object_id
+        )
+        if current_user is None:
+            raise AccessDenied
+        if require_owner(
+                resource=deleted_task, current_user=current_user
+        ) or require_roles('root', 'admin')(current_user):
+
+            await super().delete_object(object_id)
+            await self._refresh_cache()
+        else:
+            raise AccessDenied
+
+    async def _refresh_cache(self):
+        """Приватный метод для обновления Redis-кэша."""
+        db_tasks = await self.task_repo.get_all_objects()
         task_schema = [
             ResponseTaskSchema.model_validate(task) for task in db_tasks
         ]
         await self.cache_repo.set_all_tasks(task_schema)
-        return None
