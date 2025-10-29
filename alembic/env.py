@@ -67,9 +67,6 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    print(f"Base.metadata id: {id(Base.metadata)}")
-    print(f"Target metadata id: {id(target_metadata)}")
-    print(db_path)
     connectable = create_engine(url=db_path, poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

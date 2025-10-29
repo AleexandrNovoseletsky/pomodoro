@@ -1,8 +1,7 @@
 from typing import List
 
 from auth import require_owner, require_role
-from exceptions import AccessDenied
-from exceptions.object_not_found import ObjectNotFoundError
+from custom_exceptions import AccessDenied
 from models import Tasks
 from repositories import TaskCacheRepository
 from repositories import TaskRepository
@@ -48,19 +47,15 @@ class TaskService(CRUDService):
         update_data: UpdateTaskSchema,
         current_user: dict | None = None,
     ) -> Tasks:
-        updated_task = await self.task_repo.get_object(object_id=object_id)
-        # Если в запросе передан ID несуществующей записи,
-        # выбрасываем исключение.
-        if updated_task is None:
-            raise ObjectNotFoundError(object_id=object_id)
+        updatable_task = await super().get_one_object(object_id=object_id)
 
         # Если пользователь не передан, выбрасываем исключение.
         if current_user is None:
             raise AccessDenied()
 
-        # Проверяем является ли current_user владельцем updated_task
+        # Проверяем является ли current_user владельцем обновляемой задачи
         access_owner = await require_owner(
-            resource=updated_task, current_user=current_user
+            resource=updatable_task, current_user=current_user
         )
 
         # Проверяем разрешение на редактирование по роли пользователя.
@@ -75,19 +70,15 @@ class TaskService(CRUDService):
         raise AccessDenied()
 
     async def delete_object(self, object_id: int, current_user: dict = None) -> None:
-        deleted_task = await self.task_repo.get_object(object_id=object_id)
-        # Если в запросе передан ID несуществующей записи,
-        # выбрасываем исключение.
-        if deleted_task is None:
-            raise ObjectNotFoundError(object_id=object_id)
+        deletable_task = await super().get_one_object(object_id=object_id)
 
         # Если пользователь не передан, выбрасываем исключение.
         if current_user is None:
             raise AccessDenied()
 
-        # Проверяем является ли current_user владельцем updated_task
+        # Проверяем является ли current_user владельцем удаляемой задачи
         access_owner = await require_owner(
-            resource=deleted_task, current_user=current_user
+            resource=deletable_task, current_user=current_user
         )
 
         # Проверяем разрешение на редактирование по роли пользователя.

@@ -1,13 +1,9 @@
 from typing import Callable
-from fastapi import Depends, HTTPException
-from sqlalchemy.util import await_only
+from fastapi import Depends
 
 from auth import require_role, require_owner
+from custom_exceptions import AccessDenied
 from dependencies.user import get_current_user
-
-access_denied = HTTPException(
-    status_code=403, detail="Доступ к этому ресурсу запрещён!"
-)
 
 
 def require_roles(allowed_roles: tuple[str, ...]) -> Callable:
@@ -16,7 +12,7 @@ def require_roles(allowed_roles: tuple[str, ...]) -> Callable:
     async def _dep(current_user: dict = Depends(get_current_user)):
         if await require_role(current_user, allowed_roles):
             return current_user
-        raise access_denied
+        raise AccessDenied()
 
     return _dep
 
@@ -39,6 +35,6 @@ def require_owner_or_roles(
             return current_user
         if await require_owner(resource, current_user):
             return current_user
-        raise access_denied
+        raise AccessDenied()
 
     return _dep
