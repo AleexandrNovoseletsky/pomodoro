@@ -3,4 +3,4 @@ class UserNotFoundError(Exception):
         self.phone = phone
 
     def __str__(self):
-        return f' Пользователь с телефоном {self.phone} не зарегистрирован.'
+        return f" Пользователь с телефоном {self.phone} не зарегистрирован."

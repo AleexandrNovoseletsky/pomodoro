@@ -9,18 +9,15 @@ from settings import Settings
 settings = Settings()
 
 name_field_params: dict = {
-    'min_length': settings.MIN_USER_NAME_LENGTH,
-    'max_length': settings.MAX_USER_NAME_LENGTH,
-    'description': 'имя, фамилия, или отчество пользователя',
+    "min_length": settings.MIN_USER_NAME_LENGTH,
+    "max_length": settings.MAX_USER_NAME_LENGTH,
+    "description": "имя, фамилия, или отчество пользователя",
 }
 
 
 class BaseUserSchema(BaseModel):
     phone: str = Field(
-        ...,
-        min_length=12,
-        max_length=12,
-        description='+7 999 999 99 99'
+        ..., min_length=12, max_length=12, description="+7 999 999 99 99"
     )
 
     first_name: str = Field(..., **name_field_params)
@@ -55,29 +52,21 @@ class ResponseUserSchema(CreateUserORM):
 
 class UpdateUserSchema(BaseModel):
     phone: Optional[str] = Field(
-        None,
-        min_length=12,
-        max_length=12,
-        description='+7 999 999 99 99'
+        None, min_length=12, max_length=12, description="+7 999 999 99 99"
     )
 
     patronymic: Optional[str] = Field(
         None,
         min_length=settings.MIN_USER_NAME_LENGTH,
         max_length=settings.MAX_USER_NAME_LENGTH,
-        description='отчество'
+        description="отчество",
     )
 
     birthday: Optional[date]
-    email: Optional[str] = Field(
-        None,
-        max_length=settings.MAX_EMAIL_LENGTH
-    )
+    email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
 
     about: Optional[str] = Field(
-        None,
-        max_length=settings.MAX_USER_ABOUT_LENGTH,
-        description='о пользователе'
+        None, max_length=settings.MAX_USER_ABOUT_LENGTH, description="о пользователе"
     )
 
 

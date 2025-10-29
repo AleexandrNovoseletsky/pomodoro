@@ -10,19 +10,17 @@ from services.crud import CRUDService
 
 
 class UserProfileService(CRUDService):
-    def __init__(self, repository: UserRepository, ):
-        super().__init__(
-            repository=repository,
-            response_schema=ResponseUserSchema
-        )
+    def __init__(
+        self,
+        repository: UserRepository,
+    ):
+        super().__init__(repository=repository, response_schema=ResponseUserSchema)
 
-    async def register_user(
-            self, user_data: CreateUserSchema
-    ) -> UserProfile:
+    async def register_user(self, user_data: CreateUserSchema) -> UserProfile:
         hashed_password = get_password_hash(user_data.password)
         user_dict = user_data.model_dump()
-        user_dict['hashed_password'] = hashed_password
-        del user_dict['password']
+        user_dict["hashed_password"] = hashed_password
+        del user_dict["password"]
 
         new_user_data = CreateUserORM(**user_dict)
         new_user = await self.repository.create_object(data=new_user_data)
@@ -33,12 +31,10 @@ class UserProfileService(CRUDService):
         if user_or_none is None:
             raise UserNotFoundError(phone=login_data.phone)
 
-        verify = verify_password(
-            login_data.password, user_or_none.hashed_password
-        )
+        verify = verify_password(login_data.password, user_or_none.hashed_password)
         if not verify:
             raise PasswordVerifyError
         access_token = create_access_token(
-            {'sub': str(user_or_none.id), 'role': user_or_none.role}
+            {"sub": str(user_or_none.id), "role": user_or_none.role}
         )
         return access_token

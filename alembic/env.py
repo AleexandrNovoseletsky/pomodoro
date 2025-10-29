@@ -6,6 +6,7 @@ from sqlalchemy import pool
 
 # Чтобы модели подхватывались автоматически при их добавлении.
 from database import Base
+from models import *
 from settings import Settings
 
 settings = Settings()
@@ -48,7 +49,6 @@ def run_migrations_offline() -> None:
     if url is None:
         url = db_path
 
-
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -69,14 +69,10 @@ def run_migrations_online() -> None:
     """
     print(f"Base.metadata id: {id(Base.metadata)}")
     print(f"Target metadata id: {id(target_metadata)}")
-    connectable = create_engine(
-        url=db_path,
-        poolclass=pool.NullPool
-    )
+    print(db_path)
+    connectable = create_engine(url=db_path, poolclass=pool.NullPool)
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

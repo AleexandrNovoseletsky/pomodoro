@@ -13,33 +13,27 @@ settings = Settings()
 
 
 class UserRole(enum.StrEnum):
-    ROOT = 'root'
-    ADMIN = 'admin'
-    USER = 'user'
+    ROOT = "root"
+    ADMIN = "admin"
+    USER = "user"
 
 
 class UserProfile(Base):
-    __tablename__ = 'user_profiles'
+    __tablename__ = "user_profiles"
 
-    id: Mapped[int] = mapped_column(
-        primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     phone: Mapped[Optional[str]] = mapped_column(
         String(12), nullable=False, unique=True
     )
 
-    phone_verified: Mapped[bool] = mapped_column(
-        nullable=False, default=False
-    )
+    phone_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     first_name: Mapped[str] = mapped_column(
-        String(settings.MAX_USER_NAME_LENGTH),
-        nullable=False
+        String(settings.MAX_USER_NAME_LENGTH), nullable=False
     )
     last_name: Mapped[str] = mapped_column(
-        String(settings.MAX_USER_NAME_LENGTH),
-        nullable=False
+        String(settings.MAX_USER_NAME_LENGTH), nullable=False
     )
     patronymic: Mapped[Optional[str]] = mapped_column(
         String(settings.MAX_USER_NAME_LENGTH)
@@ -55,32 +49,18 @@ class UserProfile(Base):
         String(settings.MAX_EMAIL_LENGTH), unique=True
     )
 
-    email_verified: Mapped[bool] = mapped_column(
-        nullable=False, default=False
-    )
+    email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    hashed_password: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    photo_path: Mapped[Optional[str]] = mapped_column(
-        String(255)
-    )
+    photo_path: Mapped[Optional[str]] = mapped_column(String(255))
 
-    about: Mapped[Optional[str]] = mapped_column(
-        String(settings.MAX_USER_ABOUT_LENGTH)
-    )
+    about: Mapped[Optional[str]] = mapped_column(String(settings.MAX_USER_ABOUT_LENGTH))
 
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     role: Mapped[UserRole] = mapped_column(
-        String(10),
-        nullable=False,
-        default=UserRole.USER.value
+        String(10), nullable=False, default=UserRole.USER.value
     )
 
-    __table_args__ = (
-        make_check_in(enum_cls=UserRole, column_name='role'),
-    )
+    __table_args__ = (make_check_in(enum_cls=UserRole, column_name="role"),)
