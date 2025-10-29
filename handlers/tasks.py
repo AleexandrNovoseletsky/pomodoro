@@ -24,6 +24,7 @@ async def get_tasks(
 @router.post(
     path="/",
     response_model=ResponseTaskSchema,
+    status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(require_roles(allowed_roles=("root", "admin", "user")))],
 )
 async def create_task(

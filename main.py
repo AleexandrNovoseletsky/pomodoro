@@ -1,16 +1,14 @@
-from fastapi import FastAPI, Request
-from sqlalchemy.exc import IntegrityError
+from fastapi import FastAPI
 
+from custom_exceptions.base import AppException
+from custom_exceptions.handlers import app_exception_handler, default_exception_handler
 from handlers import routers
-from services.integrity_exception_service import IntegrityExceptionService
+
 
 app = FastAPI()
 
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(Exception, default_exception_handler)
+
 for router in routers:
     app.include_router(router)
-
-
-@app.exception_handler(IntegrityError)
-async def integrity_error_handler(request: Request, exc: IntegrityError):
-    service = IntegrityExceptionService(exc)
-    return service.get_json_to_exception()

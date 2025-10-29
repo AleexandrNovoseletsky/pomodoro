@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from dependencies import get_user_service
 from models import UserProfile
@@ -17,7 +17,11 @@ async def get_users(
     return await user_service.get_all_objects()
 
 
-@router.post(path="/register", response_model=ResponseUserSchema)
+@router.post(
+    path="/register",
+    response_model=ResponseUserSchema,
+    status_code=status.HTTP_201_CREATED,
+)
 async def register_user(
     body: CreateUserSchema,
     user_service: Annotated[UserProfileService, Depends(get_user_service)],

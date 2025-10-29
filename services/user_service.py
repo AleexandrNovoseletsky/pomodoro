@@ -1,7 +1,7 @@
 from jose import jwt
 
 from auth.security import get_password_hash, verify_password, create_access_token
-from exceptions import UserNotFoundError, PasswordVerifyError
+from custom_exceptions import UserNotFoundError, PasswordVerifyError
 from models import UserProfile
 from repositories import UserRepository
 from schemas import CreateUserSchema, ResponseUserSchema, LoginUserSchema

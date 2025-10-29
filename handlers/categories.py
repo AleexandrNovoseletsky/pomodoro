@@ -20,6 +20,7 @@ async def get_categories(
 @router.post(
     path="/",
     response_model=ResponseCategorySchema,
+    status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(allowed_roles)],
 )
 async def create_category(
