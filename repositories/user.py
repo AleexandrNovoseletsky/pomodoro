@@ -10,8 +10,6 @@ class UserRepository(CRUDRepository):
         super().__init__(db_session, UserProfile)
 
     async def get_by_phone(self, user_phone: str) -> UserProfile:
-        query = select(UserProfile).where(
-            UserProfile.phone == user_phone
-        )
+        query = select(UserProfile).where(UserProfile.phone == user_phone)
         user = self.db_session.execute(query).scalar_one_or_none()
         return user

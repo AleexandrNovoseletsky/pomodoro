@@ -1,28 +1,15 @@
-from typing import Any, Callable
-
-from fastapi import Depends, HTTPException, status
+from typing import Any
 
 
-def require_roles(*allowed_roles: str) -> Callable:
-    from dependencies.user import get_current_user
-    async def checker(current_user: dict = Depends(get_current_user)) -> dict:
-        if current_user.get('role') not in allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f'Access denied: requires one of roles {allowed_roles}'
-            )
-        return current_user
-
-    return checker
+async def require_owner(resource: Any, current_user: dict) -> bool:
+    """Проверяет, является ли current_user владельцем resource."""
+    if resource.author_id == current_user["user_id"]:
+        return True
+    return False
 
 
-def require_owner(resource: Any, current_user: dict) -> bool:
-    if not resource:
-        raise HTTPException(status_code=404, detail='Resource not found')
-    owner_id = getattr(resource, 'author_id', None)
-    if owner_id != current_user.get('user_id'):
-        raise HTTPException(
-            status_code=403,
-            detail='Access denied: not the owner of this resource'
-        )
-    return True
+async def require_role(current_user: dict, allowed_roles: tuple[str, ...]) -> bool:
+    """Проверяет, является ли роль current_user допустимой."""
+    if current_user["role"] in allowed_roles:
+        return True
+    return False

@@ -4,8 +4,8 @@ from services.crud import CRUDService
 
 
 class CategoryService(CRUDService):
-    def __init__(self, repository: CategoryRepository, ):
-        super().__init__(
-            repository=repository,
-            response_schema=ResponseCategorySchema
-        )
+    def __init__(
+        self,
+        repository: CategoryRepository,
+    ):
+        super().__init__(repository=repository, response_schema=ResponseCategorySchema)

@@ -8,14 +8,16 @@ from settings import Settings
 settings = Settings()
 
 name_field_params: dict = {
-    'min_length': settings.MIN_CATEGORY_NAME_LENGTH,
-    'max_length': settings.MAX_CATEGORY_NAME_LENGTH,
-    'description': 'название категории'
+    "min_length": settings.MIN_CATEGORY_NAME_LENGTH,
+    "max_length": settings.MAX_CATEGORY_NAME_LENGTH,
+    "description": "название категории",
 }
+
 
 class CreateCategorySchema(BaseModel):
     name: str = Field(..., **name_field_params)
     is_active: bool
+
 
 class ResponseCategorySchema(CreateCategorySchema):
     id: int
@@ -27,7 +29,5 @@ class ResponseCategorySchema(CreateCategorySchema):
 
 
 class UpdateCategorySchema(BaseModel):
-    name: Optional[str] = Field(
-        None,
-        **name_field_params
-    )
+    name: Optional[str] = Field(None, **name_field_params)
+    is_active: Optional[bool]

@@ -25,7 +25,9 @@ class CRUDRepository:
     async def get_all_objects(self):
         return self.db_session.execute(select(self.orm_model)).scalars().all()
 
-    async def update_object(self, object_id: int, update_data: BaseModel) -> Optional[DeclarativeBase]:
+    async def update_object(
+        self, object_id: int, update_data: BaseModel
+    ) -> Optional[DeclarativeBase]:
         obj = self.db_session.execute(
             select(self.orm_model).where(self.orm_model.id == object_id)
         ).scalar_one_or_none()

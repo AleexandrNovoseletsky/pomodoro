@@ -9,6 +9,7 @@ app = FastAPI()
 for router in routers:
     app.include_router(router)
 
+
 @app.exception_handler(IntegrityError)
 async def integrity_error_handler(request: Request, exc: IntegrityError):
     service = IntegrityExceptionService(exc)
