@@ -7,11 +7,7 @@ from repositories.crud import CRUDRepository
 
 
 class CRUDService:
-    def __init__(
-        self,
-        repository: CRUDRepository,
-        response_schema
-    ):
+    def __init__(self, repository: CRUDRepository, response_schema):
         self.repository = repository
         self.response_schema = response_schema
 
@@ -19,7 +15,7 @@ class CRUDService:
         db_object = await self.repository.get_object(object_id=object_id)
         if db_object is None:
             raise ObjectNotFoundError(object_id=object_id)
-        return db_object
+        return self.response_schema.model_validate(obj=db_object)
 
     async def get_all_objects(self):
         db_objects = await self.repository.get_all_objects()
@@ -31,7 +27,7 @@ class CRUDService:
             new_object = await self.repository.create_object(data=object_data)
         except IntegrityError as e:
             raise IntegrityDBError(exc=e)
-        return new_object
+        return self.response_schema.model_validate(obj=new_object)
 
     async def update_object(self, object_id: int, update_data: BaseModel):
         try:
@@ -42,10 +38,10 @@ class CRUDService:
             raise IntegrityDBError(exc=e)
         if updated_object_or_none is None:
             raise ObjectNotFoundError(object_id=object_id)
-        return updated_object_or_none
+        return self.response_schema.model_validate(obj=updated_object_or_none)
 
     async def delete_object(self, object_id: int) -> None:
-        deleted = await self.repository.delete_object(object_id)
+        deleted = await self.repository.delete_object(object_id=object_id)
         if not deleted:
             raise ObjectNotFoundError(object_id=object_id)
         return None

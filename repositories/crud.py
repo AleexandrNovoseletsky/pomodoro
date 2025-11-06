@@ -1,3 +1,4 @@
+from datetime import datetime, UTC
 from typing import Type, Optional
 
 from pydantic import BaseModel
@@ -12,9 +13,9 @@ class CRUDRepository:
 
     async def create_object(self, data: BaseModel):
         obj = self.orm_model(**data.model_dump())
-        self.db_session.add(obj)
+        self.db_session.add(instance=obj)
         self.db_session.commit()
-        self.db_session.refresh(obj)
+        self.db_session.refresh(instance=obj)
         return obj
 
     async def get_object(self, object_id: int):
@@ -37,9 +38,9 @@ class CRUDRepository:
 
         for key, value in update_data.model_dump(exclude_unset=True).items():
             setattr(obj, key, value)
-
+        obj.updated_at = datetime.now(UTC)
         self.db_session.commit()
-        self.db_session.refresh(obj)
+        self.db_session.refresh(instance=obj)
         return obj
 
     async def delete_object(self, object_id: int) -> bool:

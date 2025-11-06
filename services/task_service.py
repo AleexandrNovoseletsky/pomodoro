@@ -24,7 +24,7 @@ class TaskService(CRUDService):
 
         # Если нет — получаем из БД через базовый CRUD
         db_tasks = await super().get_all_objects()
-        await self.cache_repo.set_all_tasks(db_tasks)
+        await self.cache_repo.set_all_tasks(tasks=db_tasks)
         return db_tasks
 
     async def create_object(
@@ -64,7 +64,9 @@ class TaskService(CRUDService):
         )
 
         if access_owner or access_admin:
-            updated_task = await super().update_object(object_id, update_data)
+            updated_task = await super().update_object(
+                object_id=object_id, update_data=update_data
+            )
             await self._refresh_cache()
             return updated_task
         raise AccessDenied()
@@ -87,7 +89,7 @@ class TaskService(CRUDService):
         )
 
         if access_owner or access_admin:
-            await super().delete_object(object_id)
+            await super().delete_object(object_id=object_id)
             await self._refresh_cache()
         else:
             raise AccessDenied()
