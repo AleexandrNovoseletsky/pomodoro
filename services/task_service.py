@@ -7,7 +7,7 @@ from repositories import TaskCacheRepository
 from repositories import TaskRepository
 from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
 from schemas.task import CreateTaskORM
-from services.crud import CRUDService
+from services.base_crud import CRUDService
 
 
 class TaskService(CRUDService):

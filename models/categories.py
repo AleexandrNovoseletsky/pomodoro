@@ -2,8 +2,8 @@ from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
-from mixins.active_flag import ActiveFlagMixin
-from mixins.timestamp import TimestampMixin
+from mixins import ActiveFlagMixin
+from mixins import TimestampMixin
 from settings import Settings
 
 settings = Settings()

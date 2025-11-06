@@ -2,8 +2,8 @@ from sqlalchemy import String, ForeignKey, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
-from mixins.active_flag import ActiveFlagMixin
-from mixins.timestamp import TimestampMixin
+from mixins import ActiveFlagMixin
+from mixins import TimestampMixin
 from models.categories import Categories
 from models.users import UserProfile
 from settings import Settings

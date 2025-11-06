@@ -1,14 +1,13 @@
 import enum
-from datetime import datetime, date, UTC
+from datetime import date
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Boolean
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
 
 from database import Base
-from mixins.active_flag import ActiveFlagMixin
-from mixins.timestamp import TimestampMixin
+from mixins import ActiveFlagMixin
+from mixins import TimestampMixin
 from settings import Settings
 from utils import make_check_in
 
