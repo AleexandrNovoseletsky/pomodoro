@@ -6,7 +6,7 @@ from models import UserProfile
 from repositories import UserRepository
 from schemas import CreateUserSchema, ResponseUserSchema, LoginUserSchema
 from schemas.user import CreateUserORM
-from services.crud import CRUDService
+from services.base_crud import CRUDService
 
 
 class UserProfileService(CRUDService):

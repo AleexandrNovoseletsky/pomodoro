@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from custom_exceptions.integrity import IntegrityDBError
 from custom_exceptions.object_not_found import ObjectNotFoundError
-from repositories.crud import CRUDRepository
+from repositories.base_crud import CRUDRepository
 
 
 class CRUDService:

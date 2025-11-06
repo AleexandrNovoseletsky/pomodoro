@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models import UserProfile
-from repositories.crud import CRUDRepository
+from repositories.base_crud import CRUDRepository
 
 
 class UserRepository(CRUDRepository):

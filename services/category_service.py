@@ -1,6 +1,6 @@
 from repositories import CategoryRepository
 from schemas import ResponseCategorySchema
-from services.crud import CRUDService
+from services.base_crud import CRUDService
 
 
 class CategoryService(CRUDService):

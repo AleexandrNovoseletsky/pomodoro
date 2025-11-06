@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from models import Categories
-from repositories.crud import CRUDRepository
+from repositories.base_crud import CRUDRepository
 
 
 class CategoryRepository(CRUDRepository):
