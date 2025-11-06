@@ -1,15 +1,15 @@
-from datetime import datetime, UTC
-
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
+from mixins.active_flag import ActiveFlagMixin
+from mixins.timestamp import TimestampMixin
 from settings import Settings
 
 settings = Settings()
 
 
-class Categories(Base):
+class Categories(TimestampMixin, ActiveFlagMixin, Base):
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -19,7 +19,3 @@ class Categories(Base):
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(UTC), nullable=False
-    )

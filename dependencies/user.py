@@ -14,22 +14,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 async def get_user_repository(db: Session = Depends(get_db_session)) -> UserRepository:
-    return UserRepository(db)
+    return UserRepository(db_session=db)
 
 
 async def get_user_service(
-    user_repo: UserRepository = Depends(get_user_repository),
+    user_repo: UserRepository = Depends(dependency=get_user_repository),
 ) -> UserProfileService:
     return UserProfileService(repository=user_repo)
 
 
 async def get_current_user(
-    service=Depends(get_user_service),
-    token: str = Depends(oauth2_scheme),
-):
+    service=Depends(dependency=get_user_service),
+    token: str = Depends(dependency=oauth2_scheme),
+) -> dict:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Не удалось подтвердить учетные данные",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -38,7 +38,8 @@ async def get_current_user(
             key=settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-        user_id: str = payload.get("sub")
+
+        user_id: str = payload["sub"]
         current_user: UserProfile = await service.get_one_object(object_id=int(user_id))
         if user_id is None or current_user is None:
             raise credentials_exception

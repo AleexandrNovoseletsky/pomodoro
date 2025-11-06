@@ -1,9 +1,9 @@
-from datetime import datetime, UTC
-
-from sqlalchemy import Boolean, DateTime, String, ForeignKey, SmallInteger
+from sqlalchemy import String, ForeignKey, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
+from mixins.active_flag import ActiveFlagMixin
+from mixins.timestamp import TimestampMixin
 from models.categories import Categories
 from models.users import UserProfile
 from settings import Settings
@@ -11,7 +11,7 @@ from settings import Settings
 settings = Settings()
 
 
-class Tasks(Base):
+class Tasks(ActiveFlagMixin, TimestampMixin, Base):
     __tablename__ = "tasks"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(
@@ -25,9 +25,3 @@ class Tasks(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey(UserProfile.id), nullable=False)
 
     author = relationship(argument="UserProfile", backref="tasks")
-
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.now(UTC), nullable=False
-    )

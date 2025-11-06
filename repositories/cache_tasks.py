@@ -16,11 +16,11 @@ class TaskCacheRepository:
     async def get_all_tasks(
         self, key: str = "all_tasks"
     ) -> list[ResponseTaskSchema] | None:
-        tasks_json = await self.cache_session.get(key)
+        tasks_json = await self.cache_session.get(name=key)
         if tasks_json is None:
             return None
         return [
-            ResponseTaskSchema.model_validate(task) for task in json.loads(tasks_json)
+            ResponseTaskSchema.model_validate(task) for task in json.loads(s=tasks_json)
         ]
 
     async def set_all_tasks(
@@ -31,4 +31,6 @@ class TaskCacheRepository:
             ensure_ascii=False,
             default=str,
         )
-        await self.cache_session.set(key, tasks_json, ex=settings.CACHE_LIFESPAN)
+        await self.cache_session.set(
+            name=key, value=tasks_json, ex=settings.CACHE_LIFESPAN
+        )

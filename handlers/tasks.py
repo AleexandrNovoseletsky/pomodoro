@@ -8,15 +8,19 @@ from models import Tasks
 from schemas import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
 from services import TaskService
 
-owner_or_admin = require_owner_or_roles(
-    resource_getter=get_task_resource, allowed_roles=("root", "admin")
+current_user_annotated = Annotated[dict, Depends(get_current_user)]
+owner_or_admin_depends = Depends(
+    require_owner_or_roles(
+        resource_getter=get_task_resource, allowed_roles=("root", "admin")
+    )
 )
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+task_service_annotated = Annotated[TaskService, Depends(dependency=get_task_service)]
 
 
 @router.get(path="/", response_model=list[ResponseTaskSchema])
 async def get_tasks(
-    task_service: Annotated[TaskService, Depends(get_task_service)],
+    task_service: task_service_annotated,
 ) -> list[ResponseTaskSchema]:
     return await task_service.get_all_objects()
 
@@ -29,8 +33,8 @@ async def get_tasks(
 )
 async def create_task(
     body: CreateTaskSchema,
-    task_service: Annotated[TaskService, Depends(get_task_service)],
-    current_user: dict = Depends(get_current_user),
+    task_service: task_service_annotated,
+    current_user: current_user_annotated,
 ) -> Tasks:
     return await task_service.create_object(current_user=current_user, object_data=body)
 
@@ -38,13 +42,13 @@ async def create_task(
 @router.patch(
     path="/",
     response_model=ResponseTaskSchema,
-    dependencies=[Depends(owner_or_admin)],
+    dependencies=[owner_or_admin_depends],
 )
 async def update_task(
     task_id: int,
     body: UpdateTaskSchema,
-    task_service: Annotated[TaskService, Depends(get_task_service)],
-    current_user: dict = Depends(get_current_user),
+    task_service: task_service_annotated,
+    current_user: current_user_annotated,
 ):
     return await task_service.update_object(
         object_id=task_id,
@@ -56,11 +60,13 @@ async def update_task(
 @router.delete(
     path="/",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(owner_or_admin)],
+    dependencies=[owner_or_admin_depends],
 )
 async def delete_task(
     task_id: int,
-    task_service: Annotated[TaskService, Depends(get_task_service)],
-    current_user: dict = Depends(get_current_user),
+    task_service: task_service_annotated,
+    current_user: current_user_annotated,
 ) -> None:
-    return await task_service.delete_object(task_id, current_user=current_user)
+    return await task_service.delete_object(
+        object_id=task_id, current_user=current_user
+    )
