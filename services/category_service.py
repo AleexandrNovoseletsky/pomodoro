@@ -8,4 +8,4 @@ class CategoryService(CRUDService):
         self,
         repository: CategoryRepository,
     ):
-        super().__init__(repository=repository, response_schema=ResponseCategorySchema)
+        super().__init__(repository=repository)

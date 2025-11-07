@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, status
 
 from dependencies import require_owner_or_roles, require_roles, get_task_resource
 from dependencies import get_task_service, get_current_user
-from models import Tasks
-from schemas import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
+from models import Task
+from schemas import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema, ResponseUserProfileSchema
 from services import TaskService
 
-current_user_annotated = Annotated[dict, Depends(get_current_user)]
+current_user_annotated = Annotated[ResponseUserProfileSchema, Depends(get_current_user)]
 owner_or_admin_depends = Depends(
     require_owner_or_roles(
         resource_getter=get_task_resource, allowed_roles=("root", "admin")
@@ -35,7 +35,7 @@ async def create_task(
     body: CreateTaskSchema,
     task_service: task_service_annotated,
     current_user: current_user_annotated,
-) -> Tasks:
+) -> Task:
     return await task_service.create_object(current_user=current_user, object_data=body)
 
 

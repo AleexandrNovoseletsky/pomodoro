@@ -5,20 +5,20 @@ from schemas.category import (
 )
 from schemas.task import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema
 from schemas.user import (
-    CreateUserSchema,
+    CreateUserProfileSchema,
     LoginUserSchema,
-    ResponseUserSchema,
+    ResponseUserProfileSchema,
     UpdateUserSchema,
 )
 
 __all__ = [
     "CreateCategorySchema",
     "CreateTaskSchema",
-    "CreateUserSchema",
+    "CreateUserProfileSchema",
     "LoginUserSchema",
     "ResponseCategorySchema",
     "ResponseTaskSchema",
-    "ResponseUserSchema",
+    "ResponseUserProfileSchema",
     "UpdateCategorySchema",
     "UpdateTaskSchema",
     "UpdateUserSchema",

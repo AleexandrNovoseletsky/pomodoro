@@ -20,6 +20,7 @@ dependencies = [
     "passlib (>=1.7.4,<2.0.0)",
     "argon2-cffi (>=25.1.0,<26.0.0)",
     "black (>=25.9.0,<26.0.0)",
+    "python-multipart (>=0.0.20,<0.0.21)",
 ]
 
 [tool.poetry]

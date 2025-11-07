@@ -2,17 +2,17 @@ from typing import List
 
 from auth import require_owner, require_role
 from custom_exceptions import AccessDenied
-from models import Tasks
+from models import Task
 from repositories import TaskCacheRepository
 from repositories import TaskRepository
-from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema
+from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema, ResponseUserProfileSchema
 from schemas.task import CreateTaskORM
 from services.base_crud import CRUDService
 
 
 class TaskService(CRUDService):
     def __init__(self, task_repo: TaskRepository, cache_repo: TaskCacheRepository):
-        super().__init__(repository=task_repo, response_schema=ResponseTaskSchema)
+        super().__init__(repository=task_repo)
         self.cache_repo = cache_repo
         self.task_repo = task_repo
 
@@ -30,9 +30,9 @@ class TaskService(CRUDService):
     async def create_object(
         self,
         object_data: CreateTaskSchema,
-        current_user: dict | None = None,
-    ) -> Tasks:
-        user_id = current_user["user_id"]
+        current_user: ResponseUserProfileSchema | None = None,
+    ) -> Task:
+        user_id = current_user.id
         task_data = object_data.model_dump()
         task_data["author_id"] = user_id
         create_object_data = CreateTaskORM(**task_data)
@@ -45,8 +45,8 @@ class TaskService(CRUDService):
         self,
         object_id: int,
         update_data: UpdateTaskSchema,
-        current_user: dict | None = None,
-    ) -> Tasks:
+        current_user: ResponseUserProfileSchema | None = None,
+    ) -> Task:
         updatable_task = await super().get_one_object(object_id=object_id)
 
         # Если пользователь не передан, выбрасываем исключение.

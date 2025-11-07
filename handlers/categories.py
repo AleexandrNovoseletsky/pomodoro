@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from dependencies import get_category_service, require_roles
-from models import Categories
+from models import Category
 from schemas import CreateCategorySchema, ResponseCategorySchema, UpdateCategorySchema
 from services import CategoryService
 
@@ -30,7 +30,7 @@ async def get_categories(
 async def create_category(
     body: CreateCategorySchema,
     category_service: category_service_annotated,
-) -> Categories:
+) -> Category:
     return await category_service.create_object(object_data=body)
 
 
@@ -43,7 +43,7 @@ async def update_category(
     category_id: int,
     body: UpdateCategorySchema,
     category_service: category_service_annotated,
-) -> Categories:
+) -> Category:
     return await category_service.update_object(object_id=category_id, update_data=body)
 
 

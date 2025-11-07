@@ -1,5 +1,5 @@
-from models.categories import Categories
-from models.tasks import Tasks
+from models.categories import Category
+from models.tasks import Task
 from models.users import UserProfile
 
-__all__ = ["Categories", "Tasks", "UserProfile"]
+__all__ = ["Category", "Task", "UserProfile"]

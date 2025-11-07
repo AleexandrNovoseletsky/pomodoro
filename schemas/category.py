@@ -31,4 +31,4 @@ class ResponseCategorySchema(CreateCategorySchema):
 
 class UpdateCategorySchema(BaseModel):
     name: Optional[str] = Field(None, **name_field_params)
-    is_active: Optional[bool]
+    is_active: Optional[bool] = None
