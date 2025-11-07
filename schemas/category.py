@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from schemas.task import name_field
 from settings import Settings
 
 settings = Settings()
@@ -15,7 +16,7 @@ name_field_params: dict = {
 
 
 class CreateCategorySchema(BaseModel):
-    name: str = Field(..., **name_field_params)
+    name: str = name_field(...)
     is_active: bool
 
 
@@ -30,5 +31,5 @@ class ResponseCategorySchema(CreateCategorySchema):
 
 
 class UpdateCategorySchema(BaseModel):
-    name: Optional[str] = Field(None, **name_field_params)
+    name: Optional[str] = name_field(None)
     is_active: Optional[bool] = None

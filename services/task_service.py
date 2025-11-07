@@ -1,18 +1,18 @@
-from typing import List
+from typing import List, TypeVar
 
-from auth import require_owner, require_role
-from custom_exceptions import AccessDenied
-from models import Task
+from pydantic import BaseModel
+
 from repositories import TaskCacheRepository
 from repositories import TaskRepository
 from schemas import (
     ResponseTaskSchema,
-    CreateTaskSchema,
-    UpdateTaskSchema,
     ResponseUserProfileSchema,
 )
-from schemas.task import CreateTaskORM
 from services.base_crud import CRUDService
+
+
+TCreate = TypeVar("TCreate", bound=BaseModel)
+TUpdate = TypeVar("TUpdate", bound=BaseModel)
 
 
 class TaskService(CRUDService):
@@ -34,74 +34,31 @@ class TaskService(CRUDService):
         await self.cache_repo.set_all_tasks(tasks=db_tasks)
         return db_tasks
 
-    async def create_object(
+    async def create_with_author(
         self,
-        object_data: CreateTaskSchema,
-        current_user: ResponseUserProfileSchema | None = None,
-    ) -> Task:
-        user_id = current_user.id
-        task_data = object_data.model_dump()
-        task_data["author_id"] = user_id
-        create_object_data = CreateTaskORM(**task_data)
-        new_task = await super().create_object(object_data=create_object_data)
-        # после создания обновляем кэш
+        object_data: TCreate,
+        current_user: ResponseUserProfileSchema,
+    ):
+        new_task = await self.create_with_author(object_data, current_user)
         await self._refresh_cache()
         return new_task
 
     async def update_object(
         self,
         object_id: int,
-        update_data: UpdateTaskSchema,
-        current_user: ResponseUserProfileSchema | None = None,
-    ) -> Task:
-        updatable_task = await super().get_one_object(object_id=object_id)
-
-        # Если пользователь не передан, выбрасываем исключение.
-        if current_user is None:
-            raise AccessDenied()
-
-        # Проверяем является ли current_user владельцем обновляемой задачи
-        access_owner = await require_owner(
-            resource=updatable_task, current_user=current_user
+        update_data: TUpdate,
+    ) -> ResponseTaskSchema:
+        updated_task = await super().update_object(
+            object_id=object_id, update_data=update_data
         )
+        # после обновления обновляем кэш
+        await self._refresh_cache()
+        return updated_task
 
-        # Проверяем разрешение на редактирование по роли пользователя.
-        access_admin = await require_role(
-            current_user=current_user, allowed_roles=("root", "admin")
-        )
-
-        if access_owner or access_admin:
-            updated_task = await super().update_object(
-                object_id=object_id, update_data=update_data
-            )
-            await self._refresh_cache()
-            return updated_task
-        raise AccessDenied()
-
-    async def delete_object(
-        self, object_id: int, current_user: dict = None
-    ) -> None:
-        deletable_task = await super().get_one_object(object_id=object_id)
-
-        # Если пользователь не передан, выбрасываем исключение.
-        if current_user is None:
-            raise AccessDenied()
-
-        # Проверяем является ли current_user владельцем удаляемой задачи
-        access_owner = await require_owner(
-            resource=deletable_task, current_user=current_user
-        )
-
-        # Проверяем разрешение на редактирование по роли пользователя.
-        access_admin = await require_role(
-            current_user=current_user, allowed_roles=("root", "admin")
-        )
-
-        if access_owner or access_admin:
-            await super().delete_object(object_id=object_id)
-            await self._refresh_cache()
-        else:
-            raise AccessDenied()
+    async def delete_object(self, object_id: int) -> None:
+        await super().delete_object(object_id=object_id)
+        # после удаления обновляем кэш
+        await self._refresh_cache()
 
     async def _refresh_cache(self):
         """Приватный метод для обновления Redis-кэша."""

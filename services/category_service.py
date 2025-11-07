@@ -1,5 +1,4 @@
 from repositories import CategoryRepository
-from schemas import ResponseCategorySchema
 from services.base_crud import CRUDService
 
 

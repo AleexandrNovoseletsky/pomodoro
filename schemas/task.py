@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -7,20 +7,25 @@ from settings import Settings
 
 settings = Settings()
 
-name_field_params: dict = {
-    "min_length": settings.MIN_TASK_NAME_LENGTH,
-    "max_length": settings.MAX_TASK_NAME_LENGTH,
-    "description": "название задачи",
-}
-pomodoro_count_field_params: dict = {
-    "ge": settings.MIN_POMODORO_COUNT,
-    "le": settings.MAX_POMODORO_COUNT,
-}
+
+def name_field(default: Any):
+    return Field(default,
+                 min_length=settings.MIN_TASK_NAME_LENGTH,
+                 max_length=settings.MAX_TASK_NAME_LENGTH,
+                 description="название задачи"
+                 )
+
+
+def p_count_field(default: Any):
+    return Field(default,
+                 ge=settings.MIN_POMODORO_COUNT,
+                 le=settings.MAX_POMODORO_COUNT
+                 )
 
 
 class CreateTaskSchema(BaseModel):
-    name: str = Field(..., **name_field_params)
-    pomodoro_count: int = Field(..., **pomodoro_count_field_params)
+    name: str = name_field(...)
+    pomodoro_count: int = p_count_field(...)
     category_id: int
     is_active: bool
 
@@ -41,7 +46,7 @@ class ResponseTaskSchema(CreateTaskSchema):
 
 
 class UpdateTaskSchema(BaseModel):
-    name: Optional[str] = Field(None, **name_field_params)
-    pomodoro_count: Optional[int] = Field(None, **pomodoro_count_field_params)
+    name: Optional[str] = name_field(None)
+    pomodoro_count: Optional[int] = p_count_field(None)
     category_id: Optional[int] = None
     is_active: Optional[bool] = None

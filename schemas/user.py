@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from models.users import UserRole
+from schemas.task import name_field
 from settings import Settings
 
 settings = Settings()
@@ -20,8 +21,8 @@ class BaseUserProfileSchema(BaseModel):
         ..., min_length=12, max_length=12, description="+7 999 999 99 99"
     )
 
-    first_name: str = Field(..., **name_field_params)
-    last_name: str = Field(..., **name_field_params)
+    first_name: str = name_field(...)
+    last_name: str = name_field(...)
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
@@ -54,7 +55,8 @@ class UpdateUserSchema(BaseModel):
     phone: Optional[str] = Field(
         None, min_length=12, max_length=12, description="+7 999 999 99 99"
     )
-
+    first_name: Optional[str] = name_field(None)
+    last_name: Optional[str] = name_field(None)
     patronymic: Optional[str] = Field(
         None,
         min_length=settings.MIN_USER_NAME_LENGTH,

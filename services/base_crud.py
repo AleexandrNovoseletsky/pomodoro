@@ -1,13 +1,15 @@
+from typing import Type
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
 from custom_exceptions.integrity import IntegrityDBError
 from custom_exceptions.object_not_found import ObjectNotFoundError
 from repositories.base_crud import CRUDRepository
+from schemas.user import ResponseUserProfileSchema
 
 
 class CRUDService:
-    response_schema = None
+    response_schema: Type[BaseModel] | None = None
 
     def __init__(self, repository: CRUDRepository):
         self.repository = repository
@@ -29,7 +31,8 @@ class CRUDService:
             print(f"{schema_name=}  {schema_cls=}")
             raise RuntimeError(
                 f"Схема {schema_name} не найдена. "
-                f"Либо создай {schema_name}, либо явно укажи response_schema в сервисе."
+                f"Либо создай {schema_name}, "
+                "либо явно укажи response_schema в сервисе."
             )
         return schema_cls
 
@@ -37,6 +40,7 @@ class CRUDService:
         db_object = await self.repository.get_object(object_id=object_id)
         if db_object is None:
             raise ObjectNotFoundError(object_id=object_id)
+        assert self.response_schema is not None
         return self.response_schema.model_validate(obj=db_object)
 
     async def get_all_objects(self):
@@ -51,6 +55,22 @@ class CRUDService:
             new_object = await self.repository.create_object(data=object_data)
         except IntegrityError as e:
             raise IntegrityDBError(exc=e)
+        assert self.response_schema is not None
+        return self.response_schema.model_validate(obj=new_object)
+
+    async def create_object_with_author(
+            self,
+            object_data: BaseModel,
+            current_user: ResponseUserProfileSchema
+            ):
+        try:
+            setattr(object_data, "author_id", current_user.id)
+            new_object = await self.repository.create_object(
+                data=object_data
+            )
+        except IntegrityError as e:
+            raise IntegrityDBError(exc=e)
+        assert self.response_schema is not None
         return self.response_schema.model_validate(obj=new_object)
 
     async def update_object(self, object_id: int, update_data: BaseModel):
@@ -62,6 +82,7 @@ class CRUDService:
             raise IntegrityDBError(exc=e)
         if updated_object_or_none is None:
             raise ObjectNotFoundError(object_id=object_id)
+        assert self.response_schema is not None
         return self.response_schema.model_validate(obj=updated_object_or_none)
 
     async def delete_object(self, object_id: int) -> None:
