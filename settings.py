@@ -15,7 +15,7 @@ elif PROD:
 
 class Settings(BaseSettings):
     DB_HOST: str = os.getenv("DB_HOST")
-    DB_PORT: int = os.getenv("DB_PORT")
+    DB_PORT: str = os.getenv("DB_PORT")
     DB_NAME: str = os.getenv("DB_NAME")
     DB_USERNAME: str = os.getenv("DB_USERNAME")
     DB_PASSWORD: str = os.getenv("DB_PASSWORD")
