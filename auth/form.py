@@ -1,5 +1,6 @@
 from fastapi import Form
 
+
 class OAuth2PhoneRequestForm:
     def __init__(
         self,

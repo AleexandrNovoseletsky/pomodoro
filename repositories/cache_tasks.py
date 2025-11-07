@@ -20,7 +20,8 @@ class TaskCacheRepository:
         if tasks_json is None:
             return None
         return [
-            ResponseTaskSchema.model_validate(task) for task in json.loads(s=tasks_json)
+            ResponseTaskSchema.model_validate(task)
+            for task in json.loads(s=tasks_json)
         ]
 
     async def set_all_tasks(

@@ -8,4 +8,6 @@ class ObjectNotFoundError(AppException):
     error_type = "ObjectNotFoundError"
 
     def __init__(self, object_id: int):
-        super().__init__(detail=f"Объект с id={object_id} не найден в базе данных.")
+        super().__init__(
+            detail=f"Объект с id={object_id} не найден в базе данных."
+        )

@@ -14,7 +14,9 @@ settings = Settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 
-async def get_user_repository(db: Session = Depends(get_db_session)) -> UserRepository:
+async def get_user_repository(
+    db: Session = Depends(get_db_session),
+) -> UserRepository:
     return UserRepository(db_session=db)
 
 

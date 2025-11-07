@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 
 from custom_exceptions.base import AppException
-from custom_exceptions.handlers import app_exception_handler, default_exception_handler
+from custom_exceptions.handlers import (
+    app_exception_handler,
+    default_exception_handler,
+)
 from handlers import routers
 
 

@@ -8,6 +8,7 @@ from repositories.base_crud import CRUDRepository
 
 class CRUDService:
     response_schema = None
+
     def __init__(self, repository: CRUDRepository):
         self.repository = repository
         if self.response_schema is None:
@@ -19,7 +20,7 @@ class CRUDService:
         Example: UserProfile -> ResponseUserProfileSchema
         """
         orm_name = self.repository.orm_model.__name__
-        schema_name = f'Response{orm_name}Schema'
+        schema_name = f"Response{orm_name}Schema"
 
         from schemas import __dict__ as schemas_namespace
 
@@ -27,8 +28,8 @@ class CRUDService:
         if schema_cls is None:
             print(f"{schema_name=}  {schema_cls=}")
             raise RuntimeError(
-                f'Схема {schema_name} не найдена. '
-                f'Либо создай {schema_name}, либо явно укажи response_schema в сервисе.'
+                f"Схема {schema_name} не найдена. "
+                f"Либо создай {schema_name}, либо явно укажи response_schema в сервисе."
             )
         return schema_cls
 
@@ -40,7 +41,9 @@ class CRUDService:
 
     async def get_all_objects(self):
         db_objects = await self.repository.get_all_objects()
-        object_schema = [self.response_schema.model_validate(row) for row in db_objects]
+        object_schema = [
+            self.response_schema.model_validate(row) for row in db_objects
+        ]
         return object_schema
 
     async def create_object(self, object_data: BaseModel):
