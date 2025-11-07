@@ -3,38 +3,39 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from dependencies import get_user_service, get_current_user
+from forms.auth import OAuth2PhoneRequestForm
 from models import UserProfile
-from schemas import CreateUserSchema, ResponseUserSchema, LoginUserSchema
+from schemas import CreateUserProfileSchema, ResponseUserProfileSchema, LoginUserSchema
 from services.user_service import UserProfileService
 
-current_user_annotated = Annotated[dict, Depends(dependency=get_current_user)]
+current_user_annotated = Annotated[ResponseUserProfileSchema, Depends(dependency=get_current_user)]
 router = APIRouter(prefix="/users", tags=["users"])
 user_service_annotated = Annotated[
     UserProfileService, Depends(dependency=get_user_service)
 ]
 
 
-@router.get(path="/", response_model=list[ResponseUserSchema])
+@router.get(path="/", response_model=list[ResponseUserProfileSchema])
 async def get_users(
     user_service: user_service_annotated,
-) -> list[ResponseUserSchema]:
+) -> list[ResponseUserProfileSchema]:
     return await user_service.get_all_objects()
 
 
-@router.get(path="/me", response_model=ResponseUserSchema)
+@router.get(path="/me", response_model=ResponseUserProfileSchema)
 async def get_me(
-    user_service: user_service_annotated, current_user: current_user_annotated
+    current_user: current_user_annotated
 ):
-    return await user_service.get_one_object(object_id=current_user["user_id"])
+    return current_user
 
 
 @router.post(
     path="/register",
-    response_model=ResponseUserSchema,
+    response_model=ResponseUserProfileSchema,
     status_code=status.HTTP_201_CREATED,
 )
 async def register_user(
-    body: CreateUserSchema,
+    body: CreateUserProfileSchema,
     user_service: user_service_annotated,
 ) -> UserProfile:
     return await user_service.register_user(user_data=body)
@@ -42,7 +43,12 @@ async def register_user(
 
 @router.post(path="/login")
 async def login_user(
-    body: LoginUserSchema,
-    user_service: user_service_annotated,
+    form_data: OAuth2PhoneRequestForm = Depends(),
+    user_service: user_service_annotated = user_service_annotated,
 ):
-    return await user_service.login(login_data=body)
+    return await user_service.login(
+        login_data=LoginUserSchema(
+            phone=form_data.phone,
+            password=form_data.password
+        )
+    )

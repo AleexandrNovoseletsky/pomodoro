@@ -15,7 +15,7 @@ name_field_params: dict = {
 }
 
 
-class BaseUserSchema(BaseModel):
+class BaseUserProfileSchema(BaseModel):
     phone: str = Field(
         ..., min_length=12, max_length=12, description="+7 999 999 99 99"
     )
@@ -24,15 +24,15 @@ class BaseUserSchema(BaseModel):
     last_name: str = Field(..., **name_field_params)
 
 
-class CreateUserSchema(BaseUserSchema):
+class CreateUserProfileSchema(BaseUserProfileSchema):
     password: str = Field(..., min_length=settings.MIN_PASSWORD_LENGTH)
 
 
-class CreateUserORM(BaseUserSchema):
+class CreateUserProfileORM(BaseUserProfileSchema):
     hashed_password: str
 
 
-class ResponseUserSchema(CreateUserORM):
+class ResponseUserProfileSchema(CreateUserProfileORM):
     id: int
     phone_verified: bool
     patronymic: str | None

@@ -7,9 +7,30 @@ from repositories.base_crud import CRUDRepository
 
 
 class CRUDService:
-    def __init__(self, repository: CRUDRepository, response_schema):
+    response_schema = None
+    def __init__(self, repository: CRUDRepository):
         self.repository = repository
-        self.response_schema = response_schema
+        if self.response_schema is None:
+            self.response_schema = self._autodetect_schema()
+
+    def _autodetect_schema(self):
+        """
+        ищем схему по имени ORM-модели
+        Example: UserProfile -> ResponseUserProfileSchema
+        """
+        orm_name = self.repository.orm_model.__name__
+        schema_name = f'Response{orm_name}Schema'
+
+        from schemas import __dict__ as schemas_namespace
+
+        schema_cls = schemas_namespace.get(schema_name)
+        if schema_cls is None:
+            print(f"{schema_name=}  {schema_cls=}")
+            raise RuntimeError(
+                f'Схема {schema_name} не найдена. '
+                f'Либо создай {schema_name}, либо явно укажи response_schema в сервисе.'
+            )
+        return schema_cls
 
     async def get_one_object(self, object_id: int):
         db_object = await self.repository.get_object(object_id=object_id)

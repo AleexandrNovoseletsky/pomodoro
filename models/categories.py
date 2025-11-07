@@ -9,7 +9,7 @@ from settings import Settings
 settings = Settings()
 
 
-class Categories(TimestampMixin, ActiveFlagMixin, Base):
+class Category(TimestampMixin, ActiveFlagMixin, Base):
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
