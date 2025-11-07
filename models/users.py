@@ -53,7 +53,9 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
 
     photo_path: Mapped[Optional[str]] = mapped_column(String(255))
 
-    about: Mapped[Optional[str]] = mapped_column(String(settings.MAX_USER_ABOUT_LENGTH))
+    about: Mapped[Optional[str]] = mapped_column(
+        String(settings.MAX_USER_ABOUT_LENGTH)
+    )
 
     role: Mapped[UserRole] = mapped_column(
         String(10), nullable=False, default=UserRole.USER.value

@@ -2,20 +2,33 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from dependencies import require_owner_or_roles, require_roles, get_task_resource
+from dependencies import (
+    require_owner_or_roles,
+    require_roles,
+    get_task_resource,
+)
 from dependencies import get_task_service, get_current_user
 from models import Task
-from schemas import CreateTaskSchema, ResponseTaskSchema, UpdateTaskSchema, ResponseUserProfileSchema
+from schemas import (
+    CreateTaskSchema,
+    ResponseTaskSchema,
+    UpdateTaskSchema,
+    ResponseUserProfileSchema,
+)
 from services import TaskService
 
-current_user_annotated = Annotated[ResponseUserProfileSchema, Depends(get_current_user)]
+current_user_annotated = Annotated[
+    ResponseUserProfileSchema, Depends(get_current_user)
+]
 owner_or_admin_depends = Depends(
     require_owner_or_roles(
         resource_getter=get_task_resource, allowed_roles=("root", "admin")
     )
 )
 router = APIRouter(prefix="/tasks", tags=["tasks"])
-task_service_annotated = Annotated[TaskService, Depends(dependency=get_task_service)]
+task_service_annotated = Annotated[
+    TaskService, Depends(dependency=get_task_service)
+]
 
 
 @router.get(path="/", response_model=list[ResponseTaskSchema])
@@ -29,14 +42,18 @@ async def get_tasks(
     path="/",
     response_model=ResponseTaskSchema,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_roles(allowed_roles=("root", "admin", "user")))],
+    dependencies=[
+        Depends(require_roles(allowed_roles=("root", "admin", "user")))
+    ],
 )
 async def create_task(
     body: CreateTaskSchema,
     task_service: task_service_annotated,
     current_user: current_user_annotated,
 ) -> Task:
-    return await task_service.create_object(current_user=current_user, object_data=body)
+    return await task_service.create_object(
+        current_user=current_user, object_data=body
+    )
 
 
 @router.patch(

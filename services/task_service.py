@@ -5,13 +5,20 @@ from custom_exceptions import AccessDenied
 from models import Task
 from repositories import TaskCacheRepository
 from repositories import TaskRepository
-from schemas import ResponseTaskSchema, CreateTaskSchema, UpdateTaskSchema, ResponseUserProfileSchema
+from schemas import (
+    ResponseTaskSchema,
+    CreateTaskSchema,
+    UpdateTaskSchema,
+    ResponseUserProfileSchema,
+)
 from schemas.task import CreateTaskORM
 from services.base_crud import CRUDService
 
 
 class TaskService(CRUDService):
-    def __init__(self, task_repo: TaskRepository, cache_repo: TaskCacheRepository):
+    def __init__(
+        self, task_repo: TaskRepository, cache_repo: TaskCacheRepository
+    ):
         super().__init__(repository=task_repo)
         self.cache_repo = cache_repo
         self.task_repo = task_repo
@@ -71,7 +78,9 @@ class TaskService(CRUDService):
             return updated_task
         raise AccessDenied()
 
-    async def delete_object(self, object_id: int, current_user: dict = None) -> None:
+    async def delete_object(
+        self, object_id: int, current_user: dict = None
+    ) -> None:
         deletable_task = await super().get_one_object(object_id=object_id)
 
         # Если пользователь не передан, выбрасываем исключение.
@@ -97,5 +106,7 @@ class TaskService(CRUDService):
     async def _refresh_cache(self):
         """Приватный метод для обновления Redis-кэша."""
         db_tasks = await self.task_repo.get_all_objects()
-        task_schema = [ResponseTaskSchema.model_validate(task) for task in db_tasks]
+        task_schema = [
+            ResponseTaskSchema.model_validate(task) for task in db_tasks
+        ]
         await self.cache_repo.set_all_tasks(task_schema)

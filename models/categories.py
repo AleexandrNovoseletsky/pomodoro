@@ -18,4 +18,6 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
         String(settings.MAX_CATEGORY_NAME_LENGTH), unique=True, nullable=False
     )
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )

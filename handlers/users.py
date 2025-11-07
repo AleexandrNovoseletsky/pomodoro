@@ -3,12 +3,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from dependencies import get_user_service, get_current_user
-from forms.auth import OAuth2PhoneRequestForm
+from auth import OAuth2PhoneRequestForm
 from models import UserProfile
-from schemas import CreateUserProfileSchema, ResponseUserProfileSchema, LoginUserSchema
+from schemas import (
+    CreateUserProfileSchema,
+    ResponseUserProfileSchema,
+    LoginUserSchema,
+)
 from services.user_service import UserProfileService
 
-current_user_annotated = Annotated[ResponseUserProfileSchema, Depends(dependency=get_current_user)]
+current_user_annotated = Annotated[
+    ResponseUserProfileSchema, Depends(dependency=get_current_user)
+]
 router = APIRouter(prefix="/users", tags=["users"])
 user_service_annotated = Annotated[
     UserProfileService, Depends(dependency=get_user_service)
@@ -23,9 +29,7 @@ async def get_users(
 
 
 @router.get(path="/me", response_model=ResponseUserProfileSchema)
-async def get_me(
-    current_user: current_user_annotated
-):
+async def get_me(current_user: current_user_annotated):
     return current_user
 
 
@@ -43,12 +47,11 @@ async def register_user(
 
 @router.post(path="/login")
 async def login_user(
-    form_data: OAuth2PhoneRequestForm = Depends(),
-    user_service: user_service_annotated = user_service_annotated,
+    user_service: user_service_annotated,
+    form_data: OAuth2PhoneRequestForm = Depends()
 ):
     return await user_service.login(
         login_data=LoginUserSchema(
-            phone=form_data.phone,
-            password=form_data.password
+            phone=form_data.phone, password=form_data.password
         )
     )

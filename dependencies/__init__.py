@@ -7,7 +7,11 @@ from dependencies.task import (
     get_task_resource,
     get_task_service,
 )
-from dependencies.user import get_current_user, get_user_repository, get_user_service
+from dependencies.user import (
+    get_current_user,
+    get_user_repository,
+    get_user_service,
+)
 
 __all__ = [
     "get_current_user",

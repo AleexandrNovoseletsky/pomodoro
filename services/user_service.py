@@ -1,10 +1,15 @@
-from jose import jwt
-
-from auth.security import get_password_hash, verify_password, create_access_token
+from auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+)
 from custom_exceptions import UserNotFoundError, PasswordVerifyError
 from models import UserProfile
 from repositories import UserRepository
-from schemas import CreateUserProfileSchema, ResponseUserProfileSchema, LoginUserSchema
+from schemas import (
+    CreateUserProfileSchema,
+    LoginUserSchema,
+)
 from schemas.user import CreateUserProfileORM
 from services.base_crud import CRUDService
 
@@ -16,7 +21,9 @@ class UserProfileService(CRUDService):
     ):
         super().__init__(repository=repository)
 
-    async def register_user(self, user_data: CreateUserProfileSchema) -> UserProfile:
+    async def register_user(
+        self, user_data: CreateUserProfileSchema
+    ) -> UserProfile:
         hashed_password = get_password_hash(password=user_data.password)
         user_dict = user_data.model_dump()
         user_dict["hashed_password"] = hashed_password
@@ -26,8 +33,10 @@ class UserProfileService(CRUDService):
         new_user = await self.repository.create_object(data=new_user_data)
         return new_user
 
-    async def login(self, login_data: LoginUserSchema) -> jwt:
-        user_or_none = await self.repository.get_by_phone(user_phone=login_data.phone)
+    async def login(self, login_data: LoginUserSchema) -> dict:
+        user_or_none = await self.repository.get_by_phone(
+            user_phone=login_data.phone
+        )
         if user_or_none is None:
             raise UserNotFoundError(phone=login_data.phone)
 

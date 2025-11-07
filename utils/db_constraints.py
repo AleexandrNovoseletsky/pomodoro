@@ -3,7 +3,9 @@ import enum
 from sqlalchemy import CheckConstraint
 
 
-def make_check_in(enum_cls: type[enum.StrEnum], column_name: str) -> CheckConstraint:
+def make_check_in(
+    enum_cls: type[enum.StrEnum], column_name: str
+) -> CheckConstraint:
     """
     Создаёт SQL CHECK constraint для поля, ограниченного значениями enum.
 
@@ -15,4 +17,6 @@ def make_check_in(enum_cls: type[enum.StrEnum], column_name: str) -> CheckConstr
         sqlalchemy.CheckConstraint
     """
     values = ", ".join(f"'{e.value}'" for e in enum_cls)
-    return CheckConstraint(f"{column_name} IN ({values})", name=f"check_{column_name}")
+    return CheckConstraint(
+        f"{column_name} IN ({values})", name=f"check_{column_name}"
+    )

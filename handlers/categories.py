@@ -4,10 +4,16 @@ from fastapi import APIRouter, Depends, status
 
 from dependencies import get_category_service, require_roles
 from models import Category
-from schemas import CreateCategorySchema, ResponseCategorySchema, UpdateCategorySchema
+from schemas import (
+    CreateCategorySchema,
+    ResponseCategorySchema,
+    UpdateCategorySchema,
+)
 from services import CategoryService
 
-category_service_annotated = Annotated[CategoryService, Depends(get_category_service)]
+category_service_annotated = Annotated[
+    CategoryService, Depends(get_category_service)
+]
 require_roles_depends = Depends(
     dependency=require_roles(allowed_roles=("root", "admin"))
 )
@@ -44,7 +50,9 @@ async def update_category(
     body: UpdateCategorySchema,
     category_service: category_service_annotated,
 ) -> Category:
-    return await category_service.update_object(object_id=category_id, update_data=body)
+    return await category_service.update_object(
+        object_id=category_id, update_data=body
+    )
 
 
 @router.delete(

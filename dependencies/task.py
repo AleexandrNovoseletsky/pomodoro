@@ -8,7 +8,9 @@ from repositories import TaskRepository
 from services import TaskService
 
 
-async def get_task_repository(db: Session = Depends(get_db_session)) -> TaskRepository:
+async def get_task_repository(
+    db: Session = Depends(get_db_session),
+) -> TaskRepository:
     return TaskRepository(db)
 
 

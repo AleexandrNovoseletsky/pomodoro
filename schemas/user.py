@@ -66,7 +66,9 @@ class UpdateUserSchema(BaseModel):
     email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
 
     about: Optional[str] = Field(
-        None, max_length=settings.MAX_USER_ABOUT_LENGTH, description="о пользователе"
+        None,
+        max_length=settings.MAX_USER_ABOUT_LENGTH,
+        description="о пользователе",
     )
 
 
