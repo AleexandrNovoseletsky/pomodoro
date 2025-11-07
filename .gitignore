@@ -10,6 +10,9 @@ __pycache__/
 
 debug*
 
+.env
+.github/
+
 # Database
 *.sqlite
 *.db
