@@ -1,6 +1,6 @@
 import json
 
-from redis import Redis
+from redis.asyncio import Redis
 
 from schemas.task import ResponseTaskSchema
 from settings import Settings

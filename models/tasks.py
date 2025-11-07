@@ -13,6 +13,7 @@ settings = Settings()
 
 class Task(ActiveFlagMixin, TimestampMixin, Base):
     __tablename__ = "tasks"
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(
         String(settings.MAX_TASK_NAME_LENGTH), unique=True, nullable=False

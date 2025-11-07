@@ -48,7 +48,7 @@ async def register_user(
 @router.post(path="/login")
 async def login_user(
     user_service: user_service_annotated,
-    form_data: OAuth2PhoneRequestForm = Depends()
+    form_data: OAuth2PhoneRequestForm = Depends(),
 ):
     return await user_service.login(
         login_data=LoginUserSchema(

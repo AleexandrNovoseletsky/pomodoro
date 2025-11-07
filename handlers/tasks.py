@@ -8,13 +8,13 @@ from dependencies import (
     get_task_resource,
 )
 from dependencies import get_task_service, get_current_user
-from models import Task
 from schemas import (
     CreateTaskSchema,
     ResponseTaskSchema,
     UpdateTaskSchema,
     ResponseUserProfileSchema,
 )
+from schemas.task import CreateTaskORM
 from services import TaskService
 
 current_user_annotated = Annotated[
@@ -50,9 +50,12 @@ async def create_task(
     body: CreateTaskSchema,
     task_service: task_service_annotated,
     current_user: current_user_annotated,
-) -> Task:
-    return await task_service.create_object(
-        current_user=current_user, object_data=body
+) -> ResponseTaskSchema:
+    create_task_orm = CreateTaskORM(
+        **body.model_dump(), author_id=current_user.id
+        )
+    return await task_service.create_object_with_author(
+        current_user=current_user, object_data=create_task_orm
     )
 
 
@@ -64,14 +67,11 @@ async def create_task(
 async def update_task(
     task_id: int,
     body: UpdateTaskSchema,
-    task_service: task_service_annotated,
-    current_user: current_user_annotated,
+    task_service: task_service_annotated
 ):
     return await task_service.update_object(
-        object_id=task_id,
-        update_data=body,
-        current_user=current_user,
-    )
+        object_id=task_id, update_data=body
+        )
 
 
 @router.delete(
@@ -84,6 +84,4 @@ async def delete_task(
     task_service: task_service_annotated,
     current_user: current_user_annotated,
 ) -> None:
-    return await task_service.delete_object(
-        object_id=task_id, current_user=current_user
-    )
+    return await task_service.delete_object(object_id=task_id)

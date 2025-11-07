@@ -4,8 +4,8 @@ from auth import (
     create_access_token,
 )
 from custom_exceptions import UserNotFoundError, PasswordVerifyError
-from models import UserProfile
 from repositories import UserRepository
+from repositories.base_crud import HasId
 from schemas import (
     CreateUserProfileSchema,
     LoginUserSchema,
@@ -15,6 +15,8 @@ from services.base_crud import CRUDService
 
 
 class UserProfileService(CRUDService):
+    repository: UserRepository
+
     def __init__(
         self,
         repository: UserRepository,
@@ -23,7 +25,7 @@ class UserProfileService(CRUDService):
 
     async def register_user(
         self, user_data: CreateUserProfileSchema
-    ) -> UserProfile:
+    ) -> HasId:
         hashed_password = get_password_hash(password=user_data.password)
         user_dict = user_data.model_dump()
         user_dict["hashed_password"] = hashed_password

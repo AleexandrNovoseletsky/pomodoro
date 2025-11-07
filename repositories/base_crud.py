@@ -1,17 +1,22 @@
 from datetime import datetime, UTC
-from typing import Type, Optional
+from typing import Protocol, Type
 
 from pydantic import BaseModel
 from sqlalchemy import select, delete
-from sqlalchemy.orm import Session, DeclarativeBase
+from sqlalchemy.orm import Session, Mapped
+
+
+class HasId(Protocol):
+    id: Mapped[int]
+    updated_at: Mapped[datetime]
 
 
 class CRUDRepository:
-    def __init__(self, db_session: Session, orm_model: Type[DeclarativeBase]):
+    def __init__(self, db_session: Session, orm_model: Type[HasId]):
         self.db_session = db_session
         self.orm_model = orm_model
 
-    async def create_object(self, data: BaseModel):
+    async def create_object(self, data: BaseModel) -> HasId:
         obj = self.orm_model(**data.model_dump())
         self.db_session.add(instance=obj)
         self.db_session.commit()
@@ -28,7 +33,7 @@ class CRUDRepository:
 
     async def update_object(
         self, object_id: int, update_data: BaseModel
-    ) -> Optional[DeclarativeBase]:
+    ) -> HasId | None:
         obj = self.db_session.execute(
             select(self.orm_model).where(self.orm_model.id == object_id)
         ).scalar_one_or_none()
@@ -48,4 +53,4 @@ class CRUDRepository:
             delete(self.orm_model).where(self.orm_model.id == object_id)
         )
         self.db_session.commit()
-        return result.rowcount > 0
+        return result.rowcount > 0  # type: ignore[attr-defined]
