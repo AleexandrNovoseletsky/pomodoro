@@ -1,0 +1,271 @@
+{
+  "start_ts": "2025-11-08T19:29:25.486878Z",
+  "success": true,
+  "error": null,
+  "error_traceback": null,
+  "created_user_ids": [
+    17,
+    18,
+    19
+  ],
+  "created_category_ids": [
+    23,
+    24
+  ],
+  "created_task_ids": [
+    36,
+    37,
+    38
+  ],
+  "steps": [
+    {
+      "ts": "2025-11-08T19:29:25.487463Z",
+      "ok": true,
+      "message": "Подготовка пользователей в БД...",
+      "details": null,
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.126670Z",
+      "ok": true,
+      "message": "Успешный вход всех трёх пользователей",
+      "details": null,
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.183770Z",
+      "ok": true,
+      "message": "Вход с неверными учётными данными отклонён (ожидаемо)",
+      "details": {
+        "status_code": 401
+      },
+      "request": {
+        "url": "http://127.0.0.1:8000/users/login",
+        "data": {
+          "username": "+70000000001",
+          "password": "wrong"
+        }
+      },
+      "response": {
+        "status_code": 401,
+        "text": "{\"error\":\"InvalidCredentials\",\"detail\":\"Неверный логин или пароль.\"}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.201555Z",
+      "ok": true,
+      "message": "Root создал категорию",
+      "details": {
+        "id": 23
+      },
+      "request": {
+        "url": "http://127.0.0.1:8000/categories/",
+        "json": {
+          "name": "root-cat"
+        }
+      },
+      "response": {
+        "status_code": 201
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.243396Z",
+      "ok": true,
+      "message": "Admin создал категорию",
+      "details": {
+        "id": 24
+      },
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.248237Z",
+      "ok": true,
+      "message": "Создание категории с уже существующим именем отклонено (ожидаемо)",
+      "details": null,
+      "request": {
+        "url": "http://127.0.0.1:8000/categories/",
+        "json": {
+          "name": "root-cat",
+          "is_active": true
+        }
+      },
+      "response": {
+        "status_code": 409,
+        "text": "{\"error\":\"IntegrityDBError\",\"detail\":\"Объект с таким уникальным значением уже существует.\",\"db_error\":\"<class 'asyncpg.exceptions.uniqueviolationerror'>: duplicate key value violates unique constraint \\\"categories_name_key\\\"\\ndetail:  key (name)=(root-cat) already exists.\"}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.255262Z",
+      "ok": true,
+      "message": "Переименование категории на уже существующее имя отклонено (ожидаемо)",
+      "details": null,
+      "request": {
+        "url": "http://127.0.0.1:8000/categories/?category_id=24",
+        "json": {
+          "name": "root-cat"
+        }
+      },
+      "response": {
+        "status_code": 409,
+        "text": "{\"error\":\"IntegrityDBError\",\"detail\":\"Объект с таким уникальным значением уже существует.\",\"db_error\":\"<class 'asyncpg.exceptions.uniqueviolationerror'>: duplicate key value violates unique constraint \\\"categories_name_key\\\"\\ndetail:  key (name)=(root-cat) already exists.\"}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.266195Z",
+      "ok": true,
+      "message": "Создана задача",
+      "details": {
+        "phone": "+70000000001",
+        "id": 36
+      },
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.272025Z",
+      "ok": true,
+      "message": "Создана задача",
+      "details": {
+        "phone": "+70000000002",
+        "id": 37
+      },
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.278488Z",
+      "ok": true,
+      "message": "Создана задача",
+      "details": {
+        "phone": "+70000000003",
+        "id": 38
+      },
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.282635Z",
+      "ok": true,
+      "message": "Создание задачи с дублирующимся именем отклонено (ожидаемо)",
+      "details": null,
+      "request": {
+        "url": "http://127.0.0.1:8000/tasks/",
+        "json": {
+          "name": "task-+70000000001",
+          "pomodoro_count": 1,
+          "category_id": 23,
+          "is_active": true
+        }
+      },
+      "response": {
+        "status_code": 409,
+        "text": "{\"error\":\"IntegrityDBError\",\"detail\":\"Объект с таким уникальным значением уже существует.\",\"db_error\":\"<class 'asyncpg.exceptions.uniqueviolationerror'>: duplicate key value violates unique constraint \\\"tasks_name_key\\\"\\ndetail:  key (name)=(task-+70000000001) already exists.\"}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.289267Z",
+      "ok": true,
+      "message": "GET /tasks без авторизации работает (ожидаемо)",
+      "details": null,
+      "request": null,
+      "response": null
+    },
+    {
+      "ts": "2025-11-08T19:29:26.290131Z",
+      "ok": true,
+      "message": "Создание пользователя с существующим телефоном отклонено (ожидаемо)",
+      "details": null,
+      "request": {
+        "url": "http://127.0.0.1:8000/users/",
+        "json": {
+          "phone": "+70000000001",
+          "first_name": "Dup",
+          "last_name": "User",
+          "password": "x"
+        }
+      },
+      "response": {
+        "status_code": 405,
+        "text": "{\"detail\":\"Method Not Allowed\"}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.293608Z",
+      "ok": true,
+      "message": "Создание категории с очень длинным именем отклонено (ожидаемо)",
+      "details": null,
+      "request": {
+        "url": "http://127.0.0.1:8000/categories/",
+        "json": {
+          "name_len": 1025
+        }
+      },
+      "response": {
+        "status_code": 422,
+        "text": "{\"detail\":[{\"type\":\"string_too_long\",\"loc\":[\"body\",\"name\"],\"msg\":\"String should have at most 30 characters\",\"input\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"ctx\":{\"max_length\":30}}]}"
+      }
+    },
+    {
+      "ts": "2025-11-08T19:29:26.293621Z",
+      "ok": true,
+      "message": "E2E: все проверки выполнены (частично).",
+      "details": null,
+      "request": null,
+      "response": null
+    }
+  ],
+  "cleanup": {
+    "users": [
+      {
+        "id": 17,
+        "deleted": true
+      },
+      {
+        "id": 18,
+        "deleted": true
+      },
+      {
+        "id": 19,
+        "deleted": true
+      }
+    ],
+    "categories": [
+      {
+        "id": 23,
+        "deleted": true
+      },
+      {
+        "id": 24,
+        "deleted": true
+      }
+    ],
+    "tasks": [
+      {
+        "id": 36,
+        "deleted": true
+      },
+      {
+        "id": 37,
+        "deleted": true
+      },
+      {
+        "id": 38,
+        "deleted": true
+      }
+    ]
+  },
+  "cleanup_human": [
+    "Удалено: task id=36",
+    "Удалено: task id=37",
+    "Удалено: task id=38",
+    "Удалено: categorie id=23",
+    "Удалено: categorie id=24",
+    "Удалено: user id=17",
+    "Удалено: user id=18",
+    "Удалено: user id=19"
+  ],
+  "end_ts": "2025-11-08T19:29:26.339472Z"
+}

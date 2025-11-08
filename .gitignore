@@ -12,6 +12,7 @@ debug*
 
 .env
 .github/
+structure.txt
 
 # Database
 *.sqlite

@@ -2,7 +2,7 @@ from typing import Callable
 from fastapi import Depends
 
 from app.auth.permissions import require_role, require_owner
-from app.auth.exceptions.acces_denied import AccessDenied
+from app.core.exceptions.acces_denied import AccessDenied
 from app.user.dependencies.user import get_current_user
 from app.user.schemas.user import ResponseUserProfileSchema
 

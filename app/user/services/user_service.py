@@ -41,7 +41,7 @@ class UserProfileService(CRUDService):
         user_or_none = await self.repository.get_by_phone(
             user_phone=login_data.phone
         )
-        if user_or_none is None:
+        if user_or_none is None or user_or_none.is_active is False:
             raise UserNotFoundError(phone=login_data.phone)
 
         verify = verify_password(
