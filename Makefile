@@ -4,7 +4,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8000
 
 run: ## Run the application using uvicorn with provided arguments or defaults
-	poetry run uvicorn main:app --host $(HOST) --port $(PORT) --reload
+	poetry run uvicorn app.main:app --host $(HOST) --port $(PORT) --reload
 
 migrations: ## Make migrations using alembic
 	@echo "Make migrations $(MESSAGE)"
