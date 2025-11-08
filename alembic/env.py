@@ -5,11 +5,15 @@ from sqlalchemy import create_engine
 from sqlalchemy import pool
 
 # Чтобы модели подхватывались автоматически при их добавлении.
-from database import Base
-from models import *
-from settings import Settings
+from app.database.database import Base
+# Explicitly import model modules so SQLAlchemy metadata is populated.
+from app.task.models.tasks import Task  # noqa: F401
+from app.task.models.categories import Category  # noqa: F401
+from app.user.models.users import UserProfile  # noqa: F401
+from app.core.settings import Settings
 
 settings = Settings()
+# Use synchronous DB URL for Alembic (alembic uses SQLAlchemy sync engine).
 db_path = settings.DB_PATH
 
 # this is the Alembic Config object, which provides
