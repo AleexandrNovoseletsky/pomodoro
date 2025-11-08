@@ -21,12 +21,12 @@ class Task(ActiveFlagMixin, TimestampMixin, Base):
     pomodoro_count: Mapped[int] = mapped_column(SmallInteger())
 
     category_id: Mapped[int] = mapped_column(
-        ForeignKey(Category.id), nullable=False
+        ForeignKey(Category.id, ondelete="CASCADE"), nullable=False
     )
-    category = relationship(argument="Category", backref="tasks")
+    category = relationship("Category", back_populates="tasks")
 
     author_id: Mapped[int] = mapped_column(
-        ForeignKey(UserProfile.id), nullable=False
+        ForeignKey(UserProfile.id, ondelete="CASCADE"), nullable=False
     )
 
-    author = relationship(argument="UserProfile", backref="tasks")
+    author = relationship("UserProfile", back_populates="tasks")

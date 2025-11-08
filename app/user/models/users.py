@@ -3,7 +3,7 @@ from datetime import date
 from typing import Optional
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.database import Base
 from app.core.mixins.active_flag import ActiveFlagMixin
@@ -60,5 +60,10 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
     role: Mapped[UserRole] = mapped_column(
         String(10), nullable=False, default=UserRole.USER.value
     )
+    tasks = relationship(
+        "Task",
+        back_populates="author",
+        cascade="all, delete-orphan",
+        )
 
     __table_args__ = (make_check_in(enum_cls=UserRole, column_name="role"),)

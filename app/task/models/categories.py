@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.database import Base
 from app.core.mixins.active_flag import ActiveFlagMixin
@@ -21,3 +21,8 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, nullable=False
     )
+    tasks = relationship(
+        "Task",
+        back_populates="category",
+        cascade="all, delete-orphan",
+        )
