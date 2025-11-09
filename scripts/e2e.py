@@ -7,7 +7,7 @@ import sys
 import json
 import traceback
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import time
 
 import httpx
@@ -116,7 +116,7 @@ def request_with_retries(
     Повторяет при httpx.RequestError и (опционально) при статусах >=500.
     Возвращает последний ответ или перебрасывает последнее исключение.
     """
-    last_exc = None
+    last_exc: Optional[BaseException] = None
     for attempt in range(1, retries + 1):
         try:
             resp = client.request(method, url, **kwargs)
@@ -137,6 +137,9 @@ def request_with_retries(
             raise
     if last_exc:
         raise last_exc
+    # Fallback: should not be reachable
+    # because we either returned or raised above
+    raise RuntimeError("Request failed without exception")
 
 
 def cleanup_db(
@@ -145,16 +148,16 @@ def cleanup_db(
     category_ids: List[int],
     task_ids: List[int],
 ) -> Dict[str, List[Dict]]:
-    results = {"users": [], "categories": [], "tasks": []}
+    results: dict = {"users": [], "categories": [], "tasks": []}
     engine = create_engine(settings.DB_PATH)
     Session = sessionmaker(bind=engine)
     session = Session()
     try:
         for tid in task_ids:
             try:
-                obj = session.get(Task, tid)
-                if obj:
-                    session.delete(obj)
+                task_obj = session.get(Task, tid)
+                if task_obj:
+                    session.delete(task_obj)
                     session.commit()
                     results["tasks"].append({"id": tid, "deleted": True})
                 else:
@@ -169,9 +172,9 @@ def cleanup_db(
 
         for cid in category_ids:
             try:
-                obj = session.get(Category, cid)
-                if obj:
-                    session.delete(obj)
+                category_obj = session.get(Category, cid)
+                if category_obj:
+                    session.delete(category_obj)
                     session.commit()
                     results["categories"].append({"id": cid, "deleted": True})
                 else:
@@ -205,7 +208,7 @@ def cleanup_db(
     return results
 
 
-def main() -> Dict[str, List[int]]:
+def main() -> Dict[str, Any]:
     settings = Settings()
     steps: List[Dict] = []
 
@@ -299,7 +302,8 @@ def main() -> Dict[str, List[int]]:
                 request={"url": f"{BASE}/users/login", "data": bad_data},
             )
 
-        # Создаём категории root/admin через API, чтобы далее тестировать дубли и переименования
+        # Создаём категории root/admin через API,
+        # чтобы далее тестировать дубли и переименования
         try:
             r = request_with_retries(
                 client,
@@ -369,7 +373,8 @@ def main() -> Dict[str, List[int]]:
             )
             if r_dup.status_code >= 400:
                 ok(
-                    "Создание категории с уже существующим именем отклонено (ожидаемо)",
+                    "Создание категории с уже существующим именем отклонено "
+                    "(ожидаемо)",
                     request={
                         "url": f"{BASE}/categories/",
                         "json": dup_payload,
@@ -410,9 +415,11 @@ def main() -> Dict[str, List[int]]:
             )
             if r_rename.status_code >= 400:
                 ok(
-                    "Переименование категории на уже существующее имя отклонено (ожидаемо)",
+                    "Переименование категории на уже существующее имя "
+                    "отклонено (ожидаемо)",
                     request={
-                        "url": f"{BASE}/categories/?category_id={admin_cat['id']}",
+                        "url": f"{BASE}/categories/"
+                        f"?category_id={admin_cat['id']}",
                         "json": rename_payload,
                     },
                     response={
@@ -422,9 +429,11 @@ def main() -> Dict[str, List[int]]:
                 )
             else:
                 fail(
-                    "Переименование категории на дублирующее имя прошло (неожиданно)",
+                    "Переименование категории на дублирующее имя прошло "
+                    "(неожиданно)",
                     request={
-                        "url": f"{BASE}/categories/?category_id={admin_cat['id']}",
+                        "url": f"{BASE}/categories/"
+                        f"?category_id={admin_cat['id']}",
                         "json": rename_payload,
                     },
                     response={
@@ -504,7 +513,8 @@ def main() -> Dict[str, List[int]]:
             )
             if r_dup_task.status_code >= 400:
                 ok(
-                    "Создание задачи с дублирующимся именем отклонено (ожидаемо)",
+                    "Создание задачи с дублирующимся именем отклонено "
+                    "(ожидаемо)",
                     request={
                         "url": f"{BASE}/tasks/",
                         "json": dup_task_payload,
@@ -563,7 +573,8 @@ def main() -> Dict[str, List[int]]:
             )
             if r_dup_user.status_code >= 400:
                 ok(
-                    "Создание пользователя с существующим телефоном отклонено (ожидаемо)",
+                    "Создание пользователя с существующим телефоном отклонено "
+                    "(ожидаемо)",
                     request={
                         "url": f"{BASE}/users/",
                         "json": dup_user_payload,
@@ -575,7 +586,8 @@ def main() -> Dict[str, List[int]]:
                 )
             else:
                 fail(
-                    "Сервер разрешил создание пользователя с дублирующимся телефоном (неожиданно)",
+                    "Сервер разрешил создание пользователя с дублирующимся "
+                    "телефоном (неожиданно)",
                     request={
                         "url": f"{BASE}/users/",
                         "json": dup_user_payload,
@@ -605,7 +617,8 @@ def main() -> Dict[str, List[int]]:
             )
             if r_long.status_code >= 400:
                 ok(
-                    "Создание категории с очень длинным именем отклонено (ожидаемо)",
+                    "Создание категории с очень длинным именем отклонено "
+                    "(ожидаемо)",
                     request={
                         "url": f"{BASE}/categories/",
                         "json": {"name_len": len(long_name)},
@@ -620,7 +633,8 @@ def main() -> Dict[str, List[int]]:
                 if isinstance(cat, dict) and cat.get("id"):
                     created_category_ids.append(cat["id"])
                     fail(
-                        "Сервер разрешил слишком длинное имя категории (неожиданно)",
+                        "Сервер разрешил слишком длинное имя категории "
+                        "(неожиданно)",
                         response={"id": cat["id"]},
                     )
         except Exception as exc:
@@ -677,7 +691,8 @@ if __name__ == "__main__":
                 (
                     f"Удалено: {m[:-1]} id={it['id']}"
                     if it.get("deleted")
-                    else f"Не удалено: {m[:-1]} id={it.get('id')} ({it.get('reason') or it.get('error')})"
+                    else f"Не удалено: {m[:-1]} id={it.get('id')} "
+                    f"({it.get('reason') or it.get('error')})"
                 )
                 for m in ("tasks", "categories", "users")
                 for it in cleanup_res.get(m, [])

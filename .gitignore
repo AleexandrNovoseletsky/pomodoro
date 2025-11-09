@@ -13,6 +13,7 @@ debug*
 .env
 .github/
 structure.txt
+git.txt
 
 # Database
 *.sqlite
