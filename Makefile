@@ -25,4 +25,7 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $1, $2}'
 
 e2e: ## Run e2e smoke tests (requires app running and DB migrated)
-	PYTHONPATH=. python scripts/e2e.py
+	PYTHONPATH=. poetry run python scripts/e2e.py
+
+create-root: ## Create a superuser in the application
+	PYTHONPATH=. poetry run python scripts/create_root.py

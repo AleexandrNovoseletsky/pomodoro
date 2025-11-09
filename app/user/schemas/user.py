@@ -18,11 +18,19 @@ name_field_params: dict = {
 
 class BaseUserProfileSchema(BaseModel):
     phone: str = Field(
-        ..., min_length=12, max_length=12, description="+7 999 999 99 99"
+        ..., min_length=12, max_length=12, description="+79999999999"
     )
 
     first_name: str = name_field(...)
     last_name: str = name_field(...)
+    patronymic: Optional[str] = name_field(None)
+    birthday: Optional[date] = None
+    email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
+    about: Optional[str] = Field(
+        None,
+        max_length=settings.MAX_USER_ABOUT_LENGTH,
+        description="о пользователе",
+    )
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
