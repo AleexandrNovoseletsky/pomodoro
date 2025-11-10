@@ -6,7 +6,7 @@ Run this directly: python3 scripts/e2e.py
 import sys
 import json
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 import time
 
@@ -220,7 +220,7 @@ def main() -> Dict[str, Any]:
         response: Optional[Dict] = None,
     ) -> None:
         entry = {
-            "ts": datetime.utcnow().isoformat() + "Z",
+            "ts": datetime.now(timezone.utc).isoformat(),
             "ok": bool(ok_flag),
             "message": msg,
             "details": details,
@@ -655,7 +655,7 @@ def main() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     report: Dict = {
-        "start_ts": datetime.utcnow().isoformat() + "Z",
+        "start_ts": datetime.now(timezone.utc).isoformat(),
         "success": False,
         "error": None,
         "error_traceback": None,
@@ -701,7 +701,7 @@ if __name__ == "__main__":
             report["cleanup"] = {"error": str(e)}
             report["cleanup_human"] = [f"Ошибка очистки: {e}"]
 
-        report["end_ts"] = datetime.utcnow().isoformat() + "Z"
+        report["end_ts"] = datetime.now(timezone.utc).isoformat()
         with open("scripts/e2e_report.json", "w", encoding="utf-8") as fh:
             json.dump(report, fh, ensure_ascii=False, indent=2)
         if not report.get("success"):

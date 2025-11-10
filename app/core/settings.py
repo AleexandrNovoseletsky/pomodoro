@@ -62,3 +62,18 @@ class Settings(BaseSettings):
 
     MIN_POMODORO_COUNT: int = 1
     MAX_POMODORO_COUNT: int = 1000
+
+    YANDEX_CLIENT_ID: str = os.getenv(
+        "YANDEX_CLIENT_ID", default="YANDEX_CLIENT_ID"
+        )
+    YANDEX_CLIENT_SECRET: str = os.getenv(
+        "YANDEX_CLIENT_SECRET", default="YANDEX_CLIENT_SECRET"
+        )
+    YANDEX_REDIRECT_URI: str = "http://localhost:8000/auth/yandex"
+
+    @property
+    def get_yandex_redirect_url(self) -> str:
+        return ("https://oauth.yandex.ru/authorize?response_type=code"
+                f"&client_id={self.YANDEX_CLIENT_ID}"
+                f"&redirect_uri={self.YANDEX_REDIRECT_URI}"
+                )

@@ -17,12 +17,12 @@ name_field_params: dict = {
 
 
 class BaseUserProfileSchema(BaseModel):
-    phone: str = Field(
-        ..., min_length=12, max_length=12, description="+79999999999"
+    phone: Optional[str] = Field(
+        None, min_length=12, max_length=12, description="+79999999999"
     )
 
-    first_name: str = name_field(...)
-    last_name: str = name_field(...)
+    first_name: Optional[str] = name_field(None)
+    last_name: Optional[str] = name_field(None)
     patronymic: Optional[str] = name_field(None)
     birthday: Optional[date] = None
     email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
@@ -34,7 +34,9 @@ class BaseUserProfileSchema(BaseModel):
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
-    password: str = Field(..., min_length=settings.MIN_PASSWORD_LENGTH)
+    password: Optional[str] = Field(
+        None, min_length=settings.MIN_PASSWORD_LENGTH
+        )
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
@@ -47,6 +49,7 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
     patronymic: str | None
     birthday: date | None
     created_at: datetime
+    updated_at: datetime
     email: str | None
     email_verified: bool
     hashed_password: str

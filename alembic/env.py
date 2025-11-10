@@ -10,6 +10,7 @@ from app.database.database import Base
 from app.task.models.tasks import Task  # noqa: F401
 from app.task.models.categories import Category  # noqa: F401
 from app.user.models.users import UserProfile  # noqa: F401
+from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
 from app.core.settings import Settings
 
 settings = Settings()
