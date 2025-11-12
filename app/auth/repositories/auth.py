@@ -10,12 +10,12 @@ class AuthRepository(CRUDRepository):
         super().__init__(db_session=db_session, orm_model=OAuthAccount)
 
     async def get_by_provider_user(
-            self, provider: str, provider_user_id: str
-            ) -> OAuthAccount | None:
-        query = select(OAuthAccount).where(
-            OAuthAccount.provider == provider
-            ).where(
-                OAuthAccount.provider_user_id == provider_user_id
-                )
+        self, provider: str, provider_user_id: str
+    ) -> OAuthAccount | None:
+        query = (
+            select(OAuthAccount)
+            .where(OAuthAccount.provider == provider)
+            .where(OAuthAccount.provider_user_id == provider_user_id)
+        )
         result = await self.db_session.execute(query)
         return result.scalar_one_or_none()

@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""Clean E2E script (spaces only).
-
-Run this directly: python3 scripts/e2e.py
-"""
 import sys
 import json
 import traceback
@@ -81,7 +76,7 @@ def prepare_users(settings: Settings) -> List[int]:
 
 def login(client: httpx.Client, phone: str, password: str) -> str:
     data = {"username": phone, "password": password}
-    r = client.post(f"{BASE}/users/login", data=data)
+    r = client.post(f"{BASE}/auth/login", data=data)
     if r.status_code != 200:
         msg = f"Login failed for {phone}: {r.status_code} {r.text}"
         raise RuntimeError(msg)
@@ -274,13 +269,13 @@ def main() -> Dict[str, Any]:
         bad_data = {"username": "+70000000001", "password": "wrong"}
         try:
             r_bad = request_with_retries(
-                client, "POST", f"{BASE}/users/login", data=bad_data
+                client, "POST", f"{BASE}/auth/login", data=bad_data
             )
             if r_bad.status_code != 200:
                 ok(
                     "Вход с неверными учётными данными отклонён (ожидаемо)",
                     details={"status_code": r_bad.status_code},
-                    request={"url": f"{BASE}/users/login", "data": bad_data},
+                    request={"url": f"{BASE}/auth/login", "data": bad_data},
                     response={
                         "status_code": r_bad.status_code,
                         "text": r_bad.text,
@@ -289,7 +284,7 @@ def main() -> Dict[str, Any]:
             else:
                 fail(
                     "Вход с неверными учётными данными прошёл (неожиданно)",
-                    request={"url": f"{BASE}/users/login", "data": bad_data},
+                    request={"url": f"{BASE}/auth/login", "data": bad_data},
                     response={
                         "status_code": r_bad.status_code,
                         "text": r_bad.text,
@@ -299,7 +294,7 @@ def main() -> Dict[str, Any]:
             fail(
                 "Ошибка при проверке неверного входа",
                 details=str(exc),
-                request={"url": f"{BASE}/users/login", "data": bad_data},
+                request={"url": f"{BASE}/auth/login", "data": bad_data},
             )
 
         # Создаём категории root/admin через API,

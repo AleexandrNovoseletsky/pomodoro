@@ -22,9 +22,9 @@ def create_root() -> None:
         first_name=input("Введите имя root-пользователя: "),
         last_name=input("Введите фамилию root-пользователя: "),
         phone=input("Введите телефон root-пользователя: "),
-        hashed_password=get_password_hash(input(
-            "Введите пароль root-пользователя: ")
-            ),
+        hashed_password=get_password_hash(
+            input("Введите пароль root-пользователя: ")
+        ),
         about=None,
         email=None,
     )

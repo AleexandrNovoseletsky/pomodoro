@@ -5,8 +5,8 @@ from app.core.utils.normalize import normalize_phone, normalize_name
 
 
 def yandex_to_user_and_oauth(
-        data: YandexUserInfo
-        ) -> tuple[CreateUserProfileSchema, OAuthCreateSchema]:
+    data: YandexUserInfo,
+) -> tuple[CreateUserProfileSchema, OAuthCreateSchema]:
     phone = None
     if data.default_phone is not None:
         phone = normalize_phone(data.default_phone.number)
@@ -22,7 +22,7 @@ def yandex_to_user_and_oauth(
     )
 
     oauth = OAuthCreateSchema(
-        provider='yandex',
+        provider="yandex",
         provider_user_id=data.id,
         phone=phone,
         first_name=normalize_name(data.first_name),

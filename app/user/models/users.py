@@ -26,9 +26,7 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    phone: Mapped[Optional[str]] = mapped_column(
-        String(12), unique=True
-    )
+    phone: Mapped[Optional[str]] = mapped_column(String(12), unique=True)
 
     phone_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
@@ -65,7 +63,7 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
         "Task",
         back_populates="author",
         cascade="all, delete-orphan",
-        )
+    )
     oauth_accounts = relationship(
         "OAuthAccount",
         back_populates="user",

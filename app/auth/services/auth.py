@@ -1,12 +1,25 @@
 from app.auth.clients.yandex import YandexClient
+from app.auth.exceptions.password_incorrect import PasswordVerifyError
 from app.auth.models.oauth_accaunts import OAuthAccount
 from app.auth.repositories.auth import AuthRepository
 from app.auth.schemas.oauth import OAuthCreateORM
+from app.auth.security import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
 from app.auth.services.mappers import yandex_to_user_and_oauth
+from app.core.repositories.base_crud import HasId
 from app.core.settings import Settings
+from app.user.exceptions.user_not_found import UserNotFoundError
 from app.user.models.users import UserProfile
 from app.user.repositories.user import UserRepository
-from app.user.schemas.user import UpdateUserSchema
+from app.user.schemas.user import (
+    CreateUserProfileORM,
+    CreateUserProfileSchema,
+    LoginUserSchema,
+    UpdateUserProfileSchema,
+)
 
 
 class AuthService:
@@ -15,6 +28,33 @@ class AuthService:
         self.client = YandexClient()
         self.user_repo = user_repo
         self.auth_repo = auth_repo
+
+    async def register_user(self, user_data: CreateUserProfileSchema) -> HasId:
+        hashed_password = get_password_hash(password=user_data.password)
+        user_dict = user_data.model_dump()
+        user_dict["hashed_password"] = hashed_password
+        del user_dict["password"]
+
+        new_user_data = CreateUserProfileORM(**user_dict)
+        new_user = await self.user_repo.create_object(data=new_user_data)
+        return new_user
+
+    async def login(self, login_data: LoginUserSchema) -> dict:
+        user_or_none = await self.user_repo.get_by_phone(
+            user_phone=login_data.phone
+        )
+        if user_or_none is None or user_or_none.is_active is False:
+            raise UserNotFoundError(phone=login_data.phone)
+
+        verify = verify_password(
+            plain_password=login_data.password,
+            hashed_password=user_or_none.hashed_password,
+        )
+        if not verify:
+            raise PasswordVerifyError
+        access_token = create_access_token(data={"sub": str(user_or_none.id)})
+        response: dict[str, str] = {"access_token": access_token}
+        return response
 
     async def get_yandex_redirect_url(self) -> str:
         return self.settings.get_yandex_redirect_url
@@ -31,7 +71,7 @@ class AuthService:
 
         oauth_user = await self.auth_repo.get_by_provider_user(
             provider=oauth_schema.provider,
-            provider_user_id=oauth_schema.provider_user_id
+            provider_user_id=oauth_schema.provider_user_id,
         )
         # Если внешнего пользователя ещё нет
         if oauth_user is None:
@@ -40,13 +80,11 @@ class AuthService:
                 # Ищем у нас пользователя по номеру телефона
                 user = await self.user_repo.get_by_phone(
                     user_phone=user_schema.phone
-                    )
+                )
             # если у нас пользователь не найден, или телефон не указан,
             # создаём нового пользователя.
             if user is None:
-                user = await self.user_repo.create_object(
-                    data=user_schema
-                    )
+                user = await self.user_repo.create_object(data=user_schema)
             else:
                 # Попытка одноразового обогащения профиля: заполняем
                 # только отсутствующие поля (не перезаписываем существующие).
@@ -64,15 +102,13 @@ class AuthService:
                 if update_data:
                     await self.user_repo.update_object(
                         object_id=user.id,
-                        update_data=UpdateUserSchema(**update_data),
+                        update_data=UpdateUserProfileSchema(**update_data),
                     )
             create_data = OAuthCreateORM(
                 **oauth_schema.model_dump(), user_id=user.id
-                )
-            oauth_user = await self.auth_repo.create_object(
-                data=create_data
-                )
+            )
+            oauth_user = await self.auth_repo.create_object(data=create_data)
         else:
             user = await self.user_repo.get_object(
                 object_id=oauth_user.user_id
-                )
+            )

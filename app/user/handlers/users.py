@@ -7,23 +7,26 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
+from app.auth.dependencies.auth import require_roles
 from app.user.dependencies.user import get_user_service, get_current_user
-from app.core.repositories.base_crud import HasId
-from app.auth.form import OAuth2PhoneRequestForm
+from app.user.models.users import UserProfile, UserRole
 from app.user.schemas.user import (
-    CreateUserProfileSchema,
     ResponseUserProfileSchema,
-    LoginUserSchema,
+    UpdateUserProfileSchema,
 )
 from app.user.services.user_service import UserProfileService
 
 current_user_annotated = Annotated[
-    ResponseUserProfileSchema, Depends(dependency=get_current_user)
+    UserProfile, Depends(dependency=get_current_user)
 ]
 router = APIRouter()
+
 user_service_annotated = Annotated[
     UserProfileService, Depends(dependency=get_user_service)
 ]
+
+admin = UserRole.ADMIN
+root = UserRole.ROOT
 
 
 @router.get(path="/", response_model=list[ResponseUserProfileSchema])
@@ -38,25 +41,44 @@ async def get_me(current_user: current_user_annotated):
     return current_user
 
 
-@router.post(
-    path="/register",
-    response_model=ResponseUserProfileSchema,
-    status_code=status.HTTP_201_CREATED,
-)
-async def register_user(
-    body: CreateUserProfileSchema,
+@router.patch(path="/me", response_model=ResponseUserProfileSchema)
+async def update_me(
+    body: UpdateUserProfileSchema,
+    current_user: current_user_annotated,
     user_service: user_service_annotated,
-) -> HasId:
-    return await user_service.register_user(user_data=body)
-
-
-@router.post(path="/login")
-async def login_user(
-    user_service: user_service_annotated,
-    form_data: OAuth2PhoneRequestForm = Depends(),
 ):
-    return await user_service.login(
-        login_data=LoginUserSchema(
-            phone=form_data.phone, password=form_data.password
-        )
+    return await user_service.update_me(
+        current_user=current_user, update_data=body
     )
+
+
+@router.patch(
+    path="/{user_id}",
+    response_model=ResponseUserProfileSchema,
+    dependencies=[
+        Depends(dependency=require_roles(allowed_roles=(root, admin)))
+    ],
+)
+async def update_user(
+    user_id: int,
+    body: UpdateUserProfileSchema,
+    current_user: current_user_annotated,
+    user_service: user_service_annotated,
+):
+    return await user_service.update_user(
+        user_id=user_id,
+        current_user=current_user,
+        update_data=body
+        )
+
+
+@router.delete(
+    path="/delete/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(dependency=require_roles(allowed_roles=(root,)))],
+)
+async def delete_user(
+    user_id: int,
+    user_service: user_service_annotated,
+) -> None:
+    await user_service.delete_object(object_id=user_id)

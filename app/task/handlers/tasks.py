@@ -66,7 +66,7 @@ async def create_task(
 
 
 @router.patch(
-    path="/",
+    path="/{task_id}",
     response_model=ResponseTaskSchema,
     dependencies=[owner_or_admin_depends],
 )
@@ -79,13 +79,11 @@ async def update_task(
 
 
 @router.delete(
-    path="/",
+    path="/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[owner_or_admin_depends],
 )
 async def delete_task(
-    task_id: int,
-    task_service: task_service_annotated,
-    current_user: current_user_annotated,
+    task_id: int, task_service: task_service_annotated
 ) -> None:
     return await task_service.delete_object(object_id=task_id)

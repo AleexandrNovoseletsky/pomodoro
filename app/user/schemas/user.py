@@ -36,7 +36,7 @@ class BaseUserProfileSchema(BaseModel):
 class CreateUserProfileSchema(BaseUserProfileSchema):
     password: Optional[str] = Field(
         None, min_length=settings.MIN_PASSWORD_LENGTH
-        )
+    )
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
@@ -52,7 +52,6 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
     updated_at: datetime
     email: str | None
     email_verified: bool
-    hashed_password: str
     photo_path: str | None
     about: str | None
     is_active: bool
@@ -62,7 +61,7 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
         from_attributes = True
 
 
-class UpdateUserSchema(BaseModel):
+class UpdateUserProfileSchema(BaseModel):
     phone: Optional[str] = Field(
         None, min_length=12, max_length=12, description="+7 999 999 99 99"
     )
@@ -75,7 +74,7 @@ class UpdateUserSchema(BaseModel):
         description="отчество",
     )
 
-    birthday: Optional[date]
+    birthday: Optional[date] = None
     email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
 
     about: Optional[str] = Field(

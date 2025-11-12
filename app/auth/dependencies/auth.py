@@ -60,7 +60,7 @@ async def get_auth_repository(
 
 
 async def get_auth_service(
-        user_repo=Depends(get_user_repository),
-        auth_repo=Depends(get_auth_repository)
+    user_repo=Depends(get_user_repository),
+    auth_repo=Depends(get_auth_repository),
 ) -> AuthService:
     return AuthService(user_repo=user_repo, auth_repo=auth_repo)

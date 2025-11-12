@@ -6,6 +6,7 @@ from sqlalchemy import pool
 
 # Чтобы модели подхватывались автоматически при их добавлении.
 from app.database.database import Base
+
 # Explicitly import model modules so SQLAlchemy metadata is populated.
 from app.task.models.tasks import Task  # noqa: F401
 from app.task.models.categories import Category  # noqa: F401

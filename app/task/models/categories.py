@@ -25,4 +25,4 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
         "Task",
         back_populates="category",
         cascade="all, delete-orphan",
-        )
+    )

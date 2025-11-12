@@ -16,12 +16,16 @@ from app.task.schemas.category import (
     UpdateCategorySchema,
 )
 from app.task.services.category_service import CategoryService
+from app.user.models.users import UserRole
+
 
 category_service_annotated = Annotated[
     CategoryService, Depends(get_category_service)
 ]
+admin = UserRole.ADMIN
+root = UserRole.ROOT
 require_roles_depends = Depends(
-    dependency=require_roles(allowed_roles=("root", "admin"))
+    dependency=require_roles(allowed_roles=(root, admin))
 )
 router = APIRouter()
 
@@ -47,7 +51,7 @@ async def create_category(
 
 
 @router.patch(
-    path="/",
+    path="/{category_id}",
     response_model=ResponseCategorySchema,
     dependencies=[require_roles_depends],
 )
@@ -62,7 +66,7 @@ async def update_category(
 
 
 @router.delete(
-    path="/",
+    path="/{category_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[require_roles_depends],
 )
