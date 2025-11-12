@@ -7,7 +7,7 @@
 """
 
 from datetime import UTC, datetime
-from typing import Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import delete, select
@@ -34,7 +34,7 @@ class CRUDRepository[T]:
     Класс не управляет транзакциями автоматически — это делает внешний код.
     """
 
-    def __init__(self, db_session: AsyncSession, orm_model: type[T]):
+    def __init__(self, db_session: AsyncSession, orm_model: type[Any]):
         """Инициализируем базовый репозитоий."""
         self.db_session = db_session
         self.orm_model = orm_model
@@ -56,8 +56,12 @@ class CRUDRepository[T]:
 
         Возвращает ORM-экземпляр (не Pydantic-схему).
         """
+        # Используем getattr для обращения к class-атрибуту id, чтобы
+        # избежать ошибок статической типизации: у Type[T] mypy не видит
+        # дескрипторы SQLAlchemy как доступные атрибуты класса.
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            select(self.orm_model).where(self.orm_model.id == object_id)
+            select(self.orm_model).where(pk_attr == object_id)
         )
         return result.scalar_one_or_none()
 
@@ -73,8 +77,9 @@ class CRUDRepository[T]:
         self, object_id: int, update_data: BaseModel
     ) -> T | None:
         """Изминение объекта БД."""
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            select(self.orm_model).where(self.orm_model.id == object_id)
+            select(self.orm_model).where(pk_attr == object_id)
         )
         obj = result.scalar_one_or_none()
 
@@ -91,8 +96,9 @@ class CRUDRepository[T]:
 
     async def delete_object(self, object_id: int) -> bool:
         """Удаление объекта БД."""
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            delete(self.orm_model).where(self.orm_model.id == object_id)
+            delete(self.orm_model).where(pk_attr == object_id)
         )
         await self.db_session.commit()
         # Явно приводим результат к булеву значению
