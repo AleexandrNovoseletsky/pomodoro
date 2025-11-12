@@ -1,5 +1,6 @@
+"""Схемы пользователей."""
+
 from datetime import date, datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +10,7 @@ from app.user.models.users import UserRole
 
 settings = Settings()
 
+# Ограничения длинны для ФИО
 name_field_params: dict = {
     "min_length": settings.MIN_USER_NAME_LENGTH,
     "max_length": settings.MAX_USER_NAME_LENGTH,
@@ -17,16 +19,24 @@ name_field_params: dict = {
 
 
 class BaseUserProfileSchema(BaseModel):
-    phone: Optional[str] = Field(
-        None, min_length=12, max_length=12, description="+79999999999"
+    """Базоавая схема пользователя."""
+
+    phone: str | None = Field(
+        None, min_length=12, max_length=12, description="+7 999 999 99 99"
+    )
+    first_name: str | None = name_field(None)
+    last_name: str | None = name_field(None)
+    patronymic: str | None = Field(
+        None,
+        min_length=settings.MIN_USER_NAME_LENGTH,
+        max_length=settings.MAX_USER_NAME_LENGTH,
+        description="отчество",
     )
 
-    first_name: Optional[str] = name_field(None)
-    last_name: Optional[str] = name_field(None)
-    patronymic: Optional[str] = name_field(None)
-    birthday: Optional[date] = None
-    email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
-    about: Optional[str] = Field(
+    birthday: date | None = None
+    email: str | None = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
+
+    about: str | None = Field(
         None,
         max_length=settings.MAX_USER_ABOUT_LENGTH,
         description="о пользователе",
@@ -34,16 +44,22 @@ class BaseUserProfileSchema(BaseModel):
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
-    password: Optional[str] = Field(
+    """Принимаемые от пользователя данные для создания пользователя."""
+
+    password: str | None = Field(
         None, min_length=settings.MIN_PASSWORD_LENGTH
     )
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
+    """Данные для создания пользователя в БД."""
+
     hashed_password: str
 
 
-class ResponseUserProfileSchema(CreateUserProfileORM):
+class ResponseUserProfileSchema(BaseUserProfileSchema):
+    """Возвращаемые пользователю данные."""
+
     id: int
     phone_verified: bool
     patronymic: str | None
@@ -58,32 +74,12 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
     role: UserRole
 
     class Config:
+        """Конфигурационный класс."""
+
         from_attributes = True
 
 
-class UpdateUserProfileSchema(BaseModel):
-    phone: Optional[str] = Field(
-        None, min_length=12, max_length=12, description="+7 999 999 99 99"
-    )
-    first_name: Optional[str] = name_field(None)
-    last_name: Optional[str] = name_field(None)
-    patronymic: Optional[str] = Field(
-        None,
-        min_length=settings.MIN_USER_NAME_LENGTH,
-        max_length=settings.MAX_USER_NAME_LENGTH,
-        description="отчество",
-    )
+class UpdateUserProfileSchema(BaseUserProfileSchema):
+    """Данные для обновления данных о пользователе."""
 
-    birthday: Optional[date] = None
-    email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
-
-    about: Optional[str] = Field(
-        None,
-        max_length=settings.MAX_USER_ABOUT_LENGTH,
-        description="о пользователе",
-    )
-
-
-class LoginUserSchema(BaseModel):
-    phone: str
-    password: str
+    pass

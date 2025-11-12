@@ -1,3 +1,5 @@
+"""Разрешения авторизации."""
+
 from typing import Any
 
 from app.user.schemas.user import ResponseUserProfileSchema

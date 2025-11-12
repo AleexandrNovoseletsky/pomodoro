@@ -1,18 +1,18 @@
+"""Проверки доступов."""
+
 from app.core.exceptions.acces_denied import AccessDenied
 from app.user.models.users import UserProfile, UserRole
 from app.user.schemas.user import ResponseUserProfileSchema
 
 
-async def check_permissions(
+async def check_update_permissions(
     target_user: ResponseUserProfileSchema, current_user: UserProfile
 ):
-    """
-    Проверяет, имеет ли текущий пользователь право обновлять target_user.
+    """Проверяет, имеет ли текущий пользователь право обновлять target_user.
 
     Правила:
     - root может обновить кого угодно, включая себя, кроме других root.
-    - admin может обновить себя, но не других админов или root'а.
-    - user может обновить только себя.
+    - admin может обновить себя, но не других админов или root.
     """
     # 1. Рут не может быть изменён никем, кроме себя
     if target_user.role == UserRole.ROOT and current_user.id != target_user.id:

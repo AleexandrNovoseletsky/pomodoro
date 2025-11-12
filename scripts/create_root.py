@@ -1,7 +1,9 @@
+"""Создаёт root-пользователя."""
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import app.task.models.categories  # noqa: F401
+import app.task.models.categories
 import app.task.models.tasks  # noqa: F401
 from app.auth.security import get_password_hash
 from app.core.settings import Settings
@@ -13,6 +15,7 @@ settings = Settings()
 
 
 def create_root() -> None:
+    """Функция создания root-пользователя."""
     engine = create_engine(settings.DB_PATH)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -24,6 +27,7 @@ def create_root() -> None:
         hashed_password=get_password_hash(
             input("Введите пароль root-пользователя: ")
         ),
+        patronymic=None,
         about=None,
         email=None,
     )

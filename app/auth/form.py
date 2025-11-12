@@ -1,11 +1,16 @@
+"""Формы авторизации."""
+
 from fastapi import Form
 
 
-class OAuth2PhoneRequestForm:
+class LoginForm:
+    """Форма входа пользователя."""
+
     def __init__(
         self,
         phone: str = Form(..., alias="username"),
         password: str = Form(...),
     ):
+        """Инициализируем форму."""
         self.phone = phone
         self.password = password

@@ -1,3 +1,5 @@
+"""Ошибкаи авторизации."""
+
 from fastapi import status
 
 from app.core.exceptions.base import AppException
@@ -10,5 +12,5 @@ class PasswordVerifyError(AppException):
     error_type = "InvalidCredentials"
 
     def __init__(self, detail: str | None = None):
-        # Сообщение по-умолчанию даёт понятный текст для API-пользователя
+        """Инициализируем ошибку."""
         super().__init__(detail or "Неверный логин или пароль.")

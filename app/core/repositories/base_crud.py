@@ -6,8 +6,8 @@
 сессии без внешней синхронизации.
 """
 
-from datetime import datetime, timezone
-from typing import Generic, Protocol, Type, TypeVar
+from datetime import UTC, datetime
+from typing import Any, Protocol, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import delete, select
@@ -28,13 +28,14 @@ class HasId(Protocol):
 T = TypeVar("T", bound=HasId)
 
 
-class CRUDRepository(Generic[T]):
+class CRUDRepository[T]:
     """Минимальный CRUD-репозиторий, оборачивающий SQLAlchemy-сессию.
 
     Класс не управляет транзакциями автоматически — это делает внешний код.
     """
 
-    def __init__(self, db_session: AsyncSession, orm_model: Type[T]):
+    def __init__(self, db_session: AsyncSession, orm_model: type[Any]):
+        """Инициализируем базовый репозитоий."""
         self.db_session = db_session
         self.orm_model = orm_model
 
@@ -55,8 +56,12 @@ class CRUDRepository(Generic[T]):
 
         Возвращает ORM-экземпляр (не Pydantic-схему).
         """
+        # Используем getattr для обращения к class-атрибуту id, чтобы
+        # избежать ошибок статической типизации: у Type[T] mypy не видит
+        # дескрипторы SQLAlchemy как доступные атрибуты класса.
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            select(self.orm_model).where(self.orm_model.id == object_id)
+            select(self.orm_model).where(pk_attr == object_id)
         )
         return result.scalar_one_or_none()
 
@@ -71,8 +76,10 @@ class CRUDRepository(Generic[T]):
     async def update_object(
         self, object_id: int, update_data: BaseModel
     ) -> T | None:
+        """Изминение объекта БД."""
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            select(self.orm_model).where(self.orm_model.id == object_id)
+            select(self.orm_model).where(pk_attr == object_id)
         )
         obj = result.scalar_one_or_none()
 
@@ -82,14 +89,16 @@ class CRUDRepository(Generic[T]):
         for key, value in update_data.model_dump(exclude_unset=True).items():
             setattr(obj, key, value)
         # Обновляем метку времени вручную
-        obj.updated_at = datetime.now(timezone.utc)
+        obj.updated_at = datetime.now(UTC)
         await self.db_session.commit()
         await self.db_session.refresh(obj)
         return obj
 
     async def delete_object(self, object_id: int) -> bool:
+        """Удаление объекта БД."""
+        pk_attr: Any = self.orm_model.id
         result = await self.db_session.execute(
-            delete(self.orm_model).where(self.orm_model.id == object_id)
+            delete(self.orm_model).where(pk_attr == object_id)
         )
         await self.db_session.commit()
         # Явно приводим результат к булеву значению

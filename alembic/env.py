@@ -3,10 +3,10 @@ from logging.config import fileConfig
 from sqlalchemy import create_engine, pool
 
 from alembic import context
-from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
-from app.core.settings import Settings
 
 # Чтобы модели подхватывались автоматически при их добавлении.
+from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
+from app.core.settings import Settings
 from app.database.database import Base
 from app.task.models.categories import Category  # noqa: F401
 

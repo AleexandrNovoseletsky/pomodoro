@@ -1,9 +1,13 @@
+"""Схемы авторизации."""
+
 from datetime import date
 
 from pydantic import BaseModel
 
 
 class OAuthCreateSchema(BaseModel):
+    """Данные от внешнего провайдера авторизации."""
+
     provider: str
     provider_user_id: str
     first_name: str | None
@@ -15,4 +19,6 @@ class OAuthCreateSchema(BaseModel):
 
 
 class OAuthCreateORM(OAuthCreateSchema):
+    """Данные пользователя для записи в БД."""
+
     user_id: int

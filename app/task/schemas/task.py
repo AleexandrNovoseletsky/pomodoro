@@ -1,5 +1,7 @@
+"""Схемы задач."""
+
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +11,7 @@ settings = Settings()
 
 
 def name_field(default: Any):
+    """Ограничения длинны ФИО."""
     return Field(
         default,
         min_length=settings.MIN_TASK_NAME_LENGTH,
@@ -17,24 +20,31 @@ def name_field(default: Any):
     )
 
 
-def p_count_field(default: Any):
+def pomodoro_count_field(default: Any):
+    """Огнаничение продолжительности времени по задаче."""
     return Field(
         default, ge=settings.MIN_POMODORO_COUNT, le=settings.MAX_POMODORO_COUNT
     )
 
 
 class CreateTaskSchema(BaseModel):
+    """Принисаемые от пользователя данные для создания задачи."""
+
     name: str = name_field(...)
-    pomodoro_count: int = p_count_field(...)
+    pomodoro_count: int = pomodoro_count_field(...)
     category_id: int
     is_active: bool
 
 
 class CreateTaskORM(CreateTaskSchema):
+    """Данные для создания задачи в БД."""
+
     author_id: int
 
 
 class ResponseTaskSchema(CreateTaskSchema):
+    """Возвращаемые пользователю данные по задаче."""
+
     id: int
     author_id: int
     is_active: bool
@@ -42,11 +52,15 @@ class ResponseTaskSchema(CreateTaskSchema):
     updated_at: datetime
 
     class Config:
+        """Конфигурации класса."""
+
         from_attributes = True
 
 
 class UpdateTaskSchema(BaseModel):
-    name: Optional[str] = name_field(None)
-    pomodoro_count: Optional[int] = p_count_field(None)
-    category_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    """Данные для изминения задачи."""
+
+    name: str | None = name_field(None)
+    pomodoro_count: int | None = pomodoro_count_field(None)
+    category_id: int | None = None
+    is_active: bool | None = None

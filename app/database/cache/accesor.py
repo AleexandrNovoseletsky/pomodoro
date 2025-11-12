@@ -4,7 +4,7 @@
 FastAPI-зависимостях.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import redis.asyncio as redis
 

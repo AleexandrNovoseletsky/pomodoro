@@ -1,3 +1,10 @@
+"""Утилиты для хеширования паролей и создания JWT-токенов.
+
+Модуль обеспечивает функции для верификации и генерации паролей,
+а также для создания токенов доступа (JWT).
+"""
+
+
 from datetime import UTC, datetime
 
 from jose import jwt
@@ -13,14 +20,17 @@ pwd_context = CryptContext(
 
 
 def verify_password(plain_password, hashed_password) -> bool:
+    """Прверка пароля."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password) -> str:
+    """Гкнирация хэш-пароля."""
     return pwd_context.hash(password)
 
 
 def create_access_token(data: dict) -> str:
+    """Гкнирация токена."""
     to_encode = data.copy()
     expire = datetime.now(UTC) + settings.JWT_LIFE_SPAN
     to_encode.update({"exp": expire})

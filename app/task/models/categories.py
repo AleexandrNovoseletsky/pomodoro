@@ -1,3 +1,5 @@
+"""Модели категорий."""
+
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,6 +12,8 @@ settings = Settings()
 
 
 class Category(TimestampMixin, ActiveFlagMixin, Base):
+    """Модель категорий."""
+
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

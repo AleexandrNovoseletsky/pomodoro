@@ -4,7 +4,7 @@
 FastAPI-зависимость.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -23,8 +23,7 @@ AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Асинхронный генератор сессии SQLAlchemy для использования как
-    FastAPI dependency.
+    """Асинхронный генератор сессии.
 
     Пример:
         db: AsyncSession = Depends(get_db_session)

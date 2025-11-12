@@ -1,3 +1,4 @@
+"""Базовый класс для всех сервисов. CRUD операции."""
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
@@ -18,6 +19,7 @@ class CRUDService:
     def __init__(
         self, repository: CRUDRepository, response_schema: type[BaseModel]
     ):
+        """Инициализируем базовый репозиторий."""
         self.repository = repository
         self.response_schema = response_schema
 
@@ -29,7 +31,6 @@ class CRUDService:
         db_object = await self.repository.get_object(object_id=object_id)
         if db_object is None:
             raise ObjectNotFoundError(object_id=object_id)
-        assert self.response_schema is not None
         return self.response_schema.model_validate(obj=db_object)
 
     async def get_all_objects(self):
@@ -45,8 +46,7 @@ class CRUDService:
         try:
             new_object = await self.repository.create_object(data=object_data)
         except IntegrityError as e:
-            raise IntegrityDBError(exc=e)
-        assert self.response_schema is not None
+            raise IntegrityDBError(exc=e) from e
         return self.response_schema.model_validate(obj=new_object)
 
     async def create_object_with_author(
@@ -66,8 +66,7 @@ class CRUDService:
             new_input = object_data.__class__(**data_dict)
             new_object = await self.repository.create_object(data=new_input)
         except IntegrityError as e:
-            raise IntegrityDBError(exc=e)
-        assert self.response_schema is not None
+            raise IntegrityDBError(exc=e) from e
         return self.response_schema.model_validate(obj=new_object)
 
     async def update_object(self, object_id: int, update_data: BaseModel):
@@ -77,10 +76,9 @@ class CRUDService:
                 object_id=object_id, update_data=update_data
             )
         except IntegrityError as e:
-            raise IntegrityDBError(exc=e)
+            raise IntegrityDBError(exc=e) from e
         if updated_object_or_none is None:
             raise ObjectNotFoundError(object_id=object_id)
-        assert self.response_schema is not None
         return self.response_schema.model_validate(obj=updated_object_or_none)
 
     async def delete_object(self, object_id: int) -> None:

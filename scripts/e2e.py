@@ -1,9 +1,11 @@
+"""End to end тесты."""
+
 import json
 import sys
 import time
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 from sqlalchemy import create_engine
@@ -18,7 +20,8 @@ from app.user.models.users import UserProfile, UserRole
 BASE = "http://127.0.0.1:8000"
 
 
-def prepare_users(settings: Settings) -> List[int]:
+def prepare_users(settings: Settings) -> list[int]:
+    """Создание пользователей."""
     engine = create_engine(settings.DB_PATH)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -47,7 +50,7 @@ def prepare_users(settings: Settings) -> List[int]:
         },
     ]
 
-    created_ids: List[int] = []
+    created_ids: list[int] = []
     for u in users:
         query = session.query(UserProfile).filter_by(phone=u["phone"])
         exists = query.one_or_none()
@@ -74,6 +77,7 @@ def prepare_users(settings: Settings) -> List[int]:
 
 
 def login(client: httpx.Client, phone: str, password: str) -> str:
+    """Вход пользователей."""
     data = {"username": phone, "password": password}
     r = client.post(f"{BASE}/auth/login", data=data)
     if r.status_code != 200:
@@ -84,10 +88,11 @@ def login(client: httpx.Client, phone: str, password: str) -> str:
 
 
 def auth_header(token: str) -> dict:
+    """Создание заголовка авторизации."""
     return {"Authorization": f"Bearer {token}"}
 
 
-def _format_details(details: Optional[object]) -> Optional[str]:
+def _format_details(details: object | None) -> str | None:
     if details is None:
         return None
     try:
@@ -110,7 +115,7 @@ def request_with_retries(
     Повторяет при httpx.RequestError и (опционально) при статусах >=500.
     Возвращает последний ответ или перебрасывает последнее исключение.
     """
-    last_exc: Optional[BaseException] = None
+    last_exc: BaseException | None = None
     for attempt in range(1, retries + 1):
         try:
             resp = client.request(method, url, **kwargs)
@@ -138,10 +143,11 @@ def request_with_retries(
 
 def cleanup_db(
     settings: Settings,
-    user_ids: List[int],
-    category_ids: List[int],
-    task_ids: List[int],
-) -> Dict[str, List[Dict]]:
+    user_ids: list[int],
+    category_ids: list[int],
+    task_ids: list[int],
+) -> dict[str, list[dict]]:
+    """Функция очистки созданных данных из БД."""
     results: dict = {"users": [], "categories": [], "tasks": []}
     engine = create_engine(settings.DB_PATH)
     Session = sessionmaker(bind=engine)
@@ -202,19 +208,20 @@ def cleanup_db(
     return results
 
 
-def main() -> Dict[str, Any]:
+def main() -> dict[str, Any]:
+    """Точка входа."""
     settings = Settings()
-    steps: List[Dict] = []
+    steps: list[dict] = []
 
     def record_step(
         ok_flag: bool,
         msg: str,
-        details: Optional[object] = None,
-        request: Optional[Dict] = None,
-        response: Optional[Dict] = None,
+        details: object | None = None,
+        request: dict | None = None,
+        response: dict | None = None,
     ) -> None:
         entry = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "ok": bool(ok_flag),
             "message": msg,
             "details": details,
@@ -230,9 +237,9 @@ def main() -> Dict[str, Any]:
 
     def ok(
         msg: str,
-        details: Optional[object] = None,
-        request: Optional[Dict] = None,
-        response: Optional[Dict] = None,
+        details: object | None = None,
+        request: dict | None = None,
+        response: dict | None = None,
     ) -> None:
         record_step(
             True, msg, details=details, request=request, response=response
@@ -240,9 +247,9 @@ def main() -> Dict[str, Any]:
 
     def fail(
         msg: str,
-        details: Optional[object] = None,
-        request: Optional[Dict] = None,
-        response: Optional[Dict] = None,
+        details: object | None = None,
+        request: dict | None = None,
+        response: dict | None = None,
     ) -> None:
         record_step(
             False, msg, details=details, request=request, response=response
@@ -250,8 +257,8 @@ def main() -> Dict[str, Any]:
 
     ok("Подготовка пользователей в БД...")
     created_user_ids = prepare_users(settings=settings)
-    created_category_ids: List[int] = []
-    created_task_ids: List[int] = []
+    created_category_ids: list[int] = []
+    created_task_ids: list[int] = []
 
     with httpx.Client(timeout=10.0) as client:
         # Логиним трёх тестовых пользователей
@@ -446,7 +453,7 @@ def main() -> Dict[str, Any]:
             )
 
         # Создадим по задаче от каждого пользователя
-        tasks: Dict[str, Dict] = {}
+        tasks: dict[str, dict] = {}
         for token, phone in (
             (normal_token, "+70000000001"),
             (admin_token, "+70000000002"),
@@ -648,8 +655,8 @@ def main() -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    report: Dict = {
-        "start_ts": datetime.now(timezone.utc).isoformat(),
+    report: dict = {
+        "start_ts": datetime.now(UTC).isoformat(),
         "success": False,
         "error": None,
         "error_traceback": None,
@@ -695,7 +702,7 @@ if __name__ == "__main__":
             report["cleanup"] = {"error": str(e)}
             report["cleanup_human"] = [f"Ошибка очистки: {e}"]
 
-        report["end_ts"] = datetime.now(timezone.utc).isoformat()
+        report["end_ts"] = datetime.now(UTC).isoformat()
         with open("scripts/e2e_report.json", "w", encoding="utf-8") as fh:
             json.dump(report, fh, ensure_ascii=False, indent=2)
         if not report.get("success"):
