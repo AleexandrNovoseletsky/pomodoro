@@ -1,7 +1,9 @@
 from datetime import date, datetime, timezone
 from typing import Optional
+
 from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database.database import Base
 
 

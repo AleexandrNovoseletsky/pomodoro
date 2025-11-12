@@ -8,20 +8,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.auth.dependencies.auth import (
-    require_owner_or_roles,
-    require_roles,
-)
+from app.auth.dependencies.auth import require_owner_or_roles, require_roles
 from app.task.dependencies.task import get_task_resource, get_task_service
-from app.user.dependencies.user import get_current_user
 from app.task.schemas.task import (
-    CreateTaskSchema,
     CreateTaskORM,
+    CreateTaskSchema,
     ResponseTaskSchema,
     UpdateTaskSchema,
 )
-from app.user.schemas.user import ResponseUserProfileSchema
 from app.task.services.task_service import TaskService
+from app.user.dependencies.user import get_current_user
+from app.user.schemas.user import ResponseUserProfileSchema
 
 current_user_annotated = Annotated[
     ResponseUserProfileSchema, Depends(get_current_user)

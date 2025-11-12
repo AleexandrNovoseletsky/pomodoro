@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.task.models.categories import Category
 from app.core.repositories.base_crud import CRUDRepository
+from app.task.models.categories import Category
 
 
 class CategoryRepository(CRUDRepository):

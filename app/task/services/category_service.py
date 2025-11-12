@@ -1,5 +1,5 @@
-from app.task.repositories.category import CategoryRepository
 from app.core.services.base_crud import CRUDService
+from app.task.repositories.category import CategoryRepository
 from app.task.schemas.category import ResponseCategorySchema
 
 

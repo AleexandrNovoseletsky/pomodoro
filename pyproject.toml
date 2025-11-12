@@ -17,7 +17,6 @@ dependencies = [
     "psycopg2-binary (>=2.9.11,<3.0.0)",
     "redis (>=6.4.0,<7.0.0)",
     "argon2-cffi (>=25.1.0,<26.0.0)",
-    "black (>=25.9.0,<26.0.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "types-python-jose (>=3.5.0.20250531,<4.0.0.0)",
     "types-passlib (>=1.7.7.20250602,<2.0.0.0)",
@@ -28,30 +27,34 @@ dependencies = [
     "httpx (>=0.28.1,<0.29.0)",
     "requests (>=2.32.5,<3.0.0)",
     "types-requests (>=2.32.4.20250913,<3.0.0.0)",
+    "ruff (>=0.14.4,<0.15.0)",
 ]
 
 [tool.poetry]
 packages = [{include = "pomodoro", from = "src"}]
 
-[tool.black]
+[tool.ruff]
 line-length = 79
-target-version = ['py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | \alembic
-  | build
-  | dist
-  | migrations
-)/
-'''
+fix = true
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "build",
+    "dist",
+    "migrations",
+    "alembic",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-single-line = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

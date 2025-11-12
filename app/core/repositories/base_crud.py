@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Generic, Protocol, Type, TypeVar
 
 from pydantic import BaseModel
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 

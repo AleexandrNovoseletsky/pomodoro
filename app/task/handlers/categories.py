@@ -7,8 +7,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.task.dependencies.category import get_category_service
 from app.auth.dependencies.auth import require_roles
+from app.task.dependencies.category import get_category_service
 from app.task.models.categories import Category
 from app.task.schemas.category import (
     CreateCategorySchema,
@@ -17,7 +17,6 @@ from app.task.schemas.category import (
 )
 from app.task.services.category_service import CategoryService
 from app.user.models.users import UserRole
-
 
 category_service_annotated = Annotated[
     CategoryService, Depends(get_category_service)

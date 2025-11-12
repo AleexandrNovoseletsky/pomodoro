@@ -1,11 +1,11 @@
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.user.models.users import UserRole
-from app.task.schemas.task import name_field
 from app.core.settings import Settings
+from app.task.schemas.task import name_field
+from app.user.models.users import UserRole
 
 settings = Settings()
 

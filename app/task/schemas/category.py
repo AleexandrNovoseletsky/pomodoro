@@ -3,8 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from app.task.schemas.task import name_field
 from app.core.settings import Settings
+from app.task.schemas.task import name_field
 
 settings = Settings()
 

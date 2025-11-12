@@ -6,11 +6,11 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
-from app.database.database import Base
 from app.core.mixins.active_flag import ActiveFlagMixin
 from app.core.mixins.timestamp import TimestampMixin
 from app.core.settings import Settings
 from app.core.utils.db_constraints import make_check_in
+from app.database.database import Base
 
 settings = Settings()
 

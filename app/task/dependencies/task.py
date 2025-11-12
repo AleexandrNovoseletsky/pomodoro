@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.cache.accesor import get_cache_session
 from app.database.accesor import get_db_session
+from app.database.cache.accesor import get_cache_session
 from app.task.repositories.cache_tasks import TaskCacheRepository
 from app.task.repositories.task import TaskRepository
 from app.task.services.task_service import TaskService

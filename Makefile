@@ -29,3 +29,6 @@ e2e: ## Run e2e smoke tests (requires app running and DB migrated)
 
 create-root: ## Create a superuser in the application
 	PYTHONPATH=. poetry run python scripts/create_root.py
+
+ruff: ## Run ruff
+	ruff check . --fix 

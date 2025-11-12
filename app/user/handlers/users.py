@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.auth.dependencies.auth import require_roles
-from app.user.dependencies.user import get_user_service, get_current_user
+from app.user.dependencies.user import get_current_user, get_user_service
 from app.user.models.users import UserProfile, UserRole
 from app.user.schemas.user import (
     ResponseUserProfileSchema,
@@ -66,10 +66,8 @@ async def update_user(
     user_service: user_service_annotated,
 ):
     return await user_service.update_user(
-        user_id=user_id,
-        current_user=current_user,
-        update_data=body
-        )
+        user_id=user_id, current_user=current_user, update_data=body
+    )
 
 
 @router.delete(

@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.user.models.users import UserProfile
 from app.core.repositories.base_crud import CRUDRepository
+from app.user.models.users import UserProfile
 
 
 class UserRepository(CRUDRepository):

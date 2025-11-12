@@ -1,12 +1,13 @@
 from typing import Callable
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.permissions import require_role, require_owner
+from app.auth.permissions import require_owner, require_role
 from app.auth.repositories.auth import AuthRepository
 from app.auth.services.auth import AuthService
-from app.database.accesor import get_db_session
 from app.core.exceptions.acces_denied import AccessDenied
+from app.database.accesor import get_db_session
 from app.user.dependencies.user import get_current_user, get_user_repository
 from app.user.schemas.user import ResponseUserProfileSchema
 

@@ -1,20 +1,19 @@
-import sys
 import json
+import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-import time
 
 import httpx
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.settings import Settings
 from app.auth.security import get_password_hash
-from app.user.models.users import UserProfile, UserRole
-from app.task.models.tasks import Task
+from app.core.settings import Settings
 from app.task.models.categories import Category
-
+from app.task.models.tasks import Task
+from app.user.models.users import UserProfile, UserRole
 
 BASE = "http://127.0.0.1:8000"
 

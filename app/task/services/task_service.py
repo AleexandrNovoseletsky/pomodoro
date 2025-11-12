@@ -2,12 +2,11 @@ from typing import List, TypeVar
 
 from pydantic import BaseModel
 
+from app.core.services.base_crud import CRUDService
 from app.task.repositories.cache_tasks import TaskCacheRepository
 from app.task.repositories.task import TaskRepository
 from app.task.schemas.task import ResponseTaskSchema
 from app.user.schemas.user import ResponseUserProfileSchema
-from app.core.services.base_crud import CRUDService
-
 
 TCreate = TypeVar("TCreate", bound=BaseModel)
 TUpdate = TypeVar("TUpdate", bound=BaseModel)

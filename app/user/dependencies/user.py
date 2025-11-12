@@ -4,12 +4,11 @@ from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.repositories.base_crud import HasId
+from app.core.settings import Settings
 from app.database.accesor import get_db_session
 from app.user.models.users import UserProfile
 from app.user.repositories.user import UserRepository
-from app.user.schemas.user import ResponseUserProfileSchema
 from app.user.services.user_service import UserProfileService
-from app.core.settings import Settings
 
 settings = Settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")

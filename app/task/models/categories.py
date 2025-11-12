@@ -1,10 +1,10 @@
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.database import Base
 from app.core.mixins.active_flag import ActiveFlagMixin
 from app.core.mixins.timestamp import TimestampMixin
 from app.core.settings import Settings
+from app.database.database import Base
 
 settings = Settings()
 
