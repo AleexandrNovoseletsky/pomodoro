@@ -1,6 +1,7 @@
+"""Модели пользователей."""
+
 import enum
 from datetime import date
-from typing import Optional
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -16,43 +17,47 @@ settings = Settings()
 
 
 class UserRole(enum.StrEnum):
+    """Роли пользователей."""
+
     ROOT = "root"
     ADMIN = "admin"
     USER = "user"
 
 
 class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
+    """Модель пользователя."""
+
     __tablename__ = "user_profiles"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    phone: Mapped[Optional[str]] = mapped_column(String(12), unique=True)
+    phone: Mapped[str | None] = mapped_column(String(12), unique=True)
 
     phone_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    first_name: Mapped[Optional[str]] = mapped_column(
+    first_name: Mapped[str | None] = mapped_column(
         String(settings.MAX_USER_NAME_LENGTH)
     )
-    last_name: Mapped[Optional[str]] = mapped_column(
+    last_name: Mapped[str | None] = mapped_column(
         String(settings.MAX_USER_NAME_LENGTH)
     )
-    patronymic: Mapped[Optional[str]] = mapped_column(
+    patronymic: Mapped[str | None] = mapped_column(
         String(settings.MAX_USER_NAME_LENGTH)
     )
 
-    birthday: Mapped[Optional[date]]
+    birthday: Mapped[date | None]
 
-    email: Mapped[Optional[str]] = mapped_column(
+    email: Mapped[str | None] = mapped_column(
         String(settings.MAX_EMAIL_LENGTH), unique=True
     )
 
     email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    hashed_password: Mapped[Optional[str]] = mapped_column(String(255))
+    hashed_password: Mapped[str | None] = mapped_column(String(255))
 
-    photo_path: Mapped[Optional[str]] = mapped_column(String(255))
+    photo_path: Mapped[str | None] = mapped_column(String(255))
 
-    about: Mapped[Optional[str]] = mapped_column(
+    about: Mapped[str | None] = mapped_column(
         String(settings.MAX_USER_ABOUT_LENGTH)
     )
 

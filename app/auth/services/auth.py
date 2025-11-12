@@ -1,3 +1,5 @@
+"""Сервисы авторизации."""
+
 from app.auth.clients.yandex import YandexClient
 from app.auth.exceptions.password_incorrect import PasswordVerifyError
 from app.auth.models.oauth_accaunts import OAuthAccount
@@ -9,7 +11,6 @@ from app.auth.security import (
     verify_password,
 )
 from app.auth.services.mappers import yandex_to_user_and_oauth
-from app.core.repositories.base_crud import HasId
 from app.core.settings import Settings
 from app.user.exceptions.user_not_found import UserNotFoundError
 from app.user.models.users import UserProfile
@@ -17,19 +18,25 @@ from app.user.repositories.user import UserRepository
 from app.user.schemas.user import (
     CreateUserProfileORM,
     CreateUserProfileSchema,
-    LoginUserSchema,
+    ResponseUserProfileSchema,
     UpdateUserProfileSchema,
 )
 
 
 class AuthService:
+    """Сервис аторизации."""
+
     def __init__(self, user_repo: UserRepository, auth_repo: AuthRepository):
+        """Иннициализация сервиса."""
         self.settings = Settings()
         self.client = YandexClient()
         self.user_repo = user_repo
         self.auth_repo = auth_repo
 
-    async def register_user(self, user_data: CreateUserProfileSchema) -> HasId:
+    async def register_user(
+        self, user_data: CreateUserProfileSchema
+    ) -> ResponseUserProfileSchema:
+        """Регистрация пользователя."""
         hashed_password = get_password_hash(password=user_data.password)
         user_dict = user_data.model_dump()
         user_dict["hashed_password"] = hashed_password
@@ -39,30 +46,33 @@ class AuthService:
         new_user = await self.user_repo.create_object(data=new_user_data)
         return new_user
 
-    async def login(self, login_data: LoginUserSchema) -> dict:
+    async def login(self, phone: str, password: str) -> dict[str, str]:
+        """Вход пользователя. Возвращает токен."""
         user_or_none = await self.user_repo.get_by_phone(
-            user_phone=login_data.phone
+            user_phone=phone
         )
         if user_or_none is None or user_or_none.is_active is False:
-            raise UserNotFoundError(phone=login_data.phone)
+            raise UserNotFoundError(phone=phone)
 
         verify = verify_password(
-            plain_password=login_data.password,
+            plain_password=password,
             hashed_password=user_or_none.hashed_password,
         )
         if not verify:
             raise PasswordVerifyError
         access_token = create_access_token(data={"sub": str(user_or_none.id)})
-        response: dict[str, str] = {"access_token": access_token}
+        response = {"access_token": access_token}
         return response
 
     async def get_yandex_redirect_url(self) -> str:
+        """Получение ссылки для авторизации через Яндекс."""
         return self.settings.get_yandex_redirect_url
 
-    async def get_yandex_auth(self, code: str) -> None:
+    async def get_yandex_auth(self, code: str) -> dict[str, str]:
+        """Получение авторизации от Яндекса. Возвращает наш токен."""
         # Получаем данные пользователя из Яндекса
         user_data = await self.client.get_user_info(code=code)
-        # Преобразуем полученные данные в схеу нашего пользователя
+        # Преобразуем полученные данные в схему нашего пользователя
         # и в схему внешнего пользователя
         user_schema, oauth_schema = yandex_to_user_and_oauth(data=user_data)
 
@@ -112,3 +122,9 @@ class AuthService:
             user = await self.user_repo.get_object(
                 object_id=oauth_user.user_id
             )
+            if user is None:
+                raise UserNotFoundError()
+
+        access_token = create_access_token(data={"sub": str(user.id)})
+        response = {"access_token": access_token}
+        return response

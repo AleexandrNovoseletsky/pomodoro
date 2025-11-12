@@ -1,3 +1,5 @@
+"""Ошибки целостности базы данных."""
+
 from fastapi import status
 from sqlalchemy.exc import IntegrityError
 
@@ -5,10 +7,13 @@ from app.core.exceptions.base import AppException
 
 
 class IntegrityDBError(AppException):
+    """Ошибки целостности базы данных."""
+
     status_code = status.HTTP_409_CONFLICT
     error_type = "IntegrityDBError"
 
     def __init__(self, exc: IntegrityError):
+        """Инициализируем огибку."""
         error_message = str(exc.orig).lower()
 
         # Определяем тип ошибки по сообщению БД

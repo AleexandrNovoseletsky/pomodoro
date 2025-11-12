@@ -1,3 +1,5 @@
+"""Модели задач."""
+
 from sqlalchemy import ForeignKey, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +14,8 @@ settings = Settings()
 
 
 class Task(ActiveFlagMixin, TimestampMixin, Base):
+    """Модель задач."""
+
     __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

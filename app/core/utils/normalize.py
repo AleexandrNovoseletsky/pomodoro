@@ -1,10 +1,11 @@
+"""Нормализаторы данных."""
+
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 
-def normalize_phone(phone: Optional[str]) -> Optional[str]:
+def normalize_phone(phone: str | None) -> str | None:
     """Нормализовать номер телефона к формату +7XXXXXXXXXX.
 
     Поддерживаем российские номера в форматах:
@@ -30,8 +31,7 @@ def normalize_phone(phone: Optional[str]) -> Optional[str]:
         return None
 
     # Удалим международный префикс '00', если есть (например, 007...)
-    if digits.startswith("00"):
-        digits = digits[2:]
+    digits = digits.removeprefix("00")
 
     # Вариант: 11 цифр, начинается с 8 или 7
     if len(digits) == 11:
@@ -55,7 +55,7 @@ def normalize_phone(phone: Optional[str]) -> Optional[str]:
     return None
 
 
-def normalize_name(value: Optional[str]) -> Optional[str]:
+def normalize_name(value: str | None) -> str | None:
     """Привести ФИО к виду: первая буква заглавная, остальные — строчные.
 
     Если вход пустой или None — возвращаем None.

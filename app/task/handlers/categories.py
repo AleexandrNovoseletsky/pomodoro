@@ -33,6 +33,7 @@ router = APIRouter()
 async def get_categories(
     category_service: category_service_annotated,
 ) -> list[ResponseCategorySchema]:
+    """Получить все категории. Доступно всем."""
     return await category_service.get_all_objects()
 
 
@@ -46,6 +47,7 @@ async def create_category(
     body: CreateCategorySchema,
     category_service: category_service_annotated,
 ) -> Category:
+    """Создать категорию. Доступно алминистраторам."""
     return await category_service.create_object(object_data=body)
 
 
@@ -59,6 +61,7 @@ async def update_category(
     body: UpdateCategorySchema,
     category_service: category_service_annotated,
 ) -> Category:
+    """Изменить категорию. Доступно администраторам."""
     return await category_service.update_object(
         object_id=category_id, update_data=body
     )
@@ -73,4 +76,5 @@ async def delete_category(
     category_id: int,
     category_service: category_service_annotated,
 ) -> None:
+    """Удалить категорию. Доступно администраторам."""
     return await category_service.delete_object(object_id=category_id)

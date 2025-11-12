@@ -1,6 +1,13 @@
+"""Ошибки ненахода пользователя."""
+
+
 class UserNotFoundError(Exception):
-    def __init__(self, phone):
+    """Ошибка – пользователь не найден."""
+
+    def __init__(self, phone: str | None = None):
+        """Инициадизируем ошибку."""
         self.phone = phone
 
     def __str__(self):
-        return f" Пользователь с телефоном {self.phone} не зарегистрирован."
+        """Строковое представление ошибки."""
+        return f" Пользователь {self.phone} не найден."
