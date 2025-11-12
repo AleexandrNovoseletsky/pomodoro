@@ -5,11 +5,12 @@ from typing import Optional
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.database import Base
+from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
 from app.core.mixins.active_flag import ActiveFlagMixin
 from app.core.mixins.timestamp import TimestampMixin
 from app.core.settings import Settings
 from app.core.utils.db_constraints import make_check_in
+from app.database.database import Base
 
 settings = Settings()
 
@@ -25,17 +26,15 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    phone: Mapped[Optional[str]] = mapped_column(
-        String(12), nullable=False, unique=True
-    )
+    phone: Mapped[Optional[str]] = mapped_column(String(12), unique=True)
 
     phone_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    first_name: Mapped[str] = mapped_column(
-        String(settings.MAX_USER_NAME_LENGTH), nullable=False
+    first_name: Mapped[Optional[str]] = mapped_column(
+        String(settings.MAX_USER_NAME_LENGTH)
     )
-    last_name: Mapped[str] = mapped_column(
-        String(settings.MAX_USER_NAME_LENGTH), nullable=False
+    last_name: Mapped[Optional[str]] = mapped_column(
+        String(settings.MAX_USER_NAME_LENGTH)
     )
     patronymic: Mapped[Optional[str]] = mapped_column(
         String(settings.MAX_USER_NAME_LENGTH)
@@ -49,7 +48,7 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
 
     email_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[Optional[str]] = mapped_column(String(255))
 
     photo_path: Mapped[Optional[str]] = mapped_column(String(255))
 
@@ -64,6 +63,11 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
         "Task",
         back_populates="author",
         cascade="all, delete-orphan",
-        )
+    )
+    oauth_accounts = relationship(
+        "OAuthAccount",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (make_check_in(enum_cls=UserRole, column_name="role"),)

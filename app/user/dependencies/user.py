@@ -3,14 +3,15 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.accesor import get_db_session
-from app.user.repositories.user import UserRepository
-from app.user.schemas.user import ResponseUserProfileSchema
-from app.user.services.user_service import UserProfileService
+from app.core.repositories.base_crud import HasId
 from app.core.settings import Settings
+from app.database.accesor import get_db_session
+from app.user.models.users import UserProfile
+from app.user.repositories.user import UserRepository
+from app.user.services.user_service import UserProfileService
 
 settings = Settings()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 async def get_user_repository(
@@ -28,7 +29,7 @@ async def get_user_service(
 async def get_current_user(
     service: UserProfileService = Depends(get_user_service),
     token: str = Depends(oauth2_scheme),
-) -> ResponseUserProfileSchema:
+) -> UserProfile:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Не удалось подтвердить учетные данные",
@@ -48,3 +49,9 @@ async def get_current_user(
     if current_user is None:
         raise credentials_exception
     return current_user
+
+
+async def get_user_resource(
+    user_id: int, user_service: UserProfileService = Depends(get_user_service)
+) -> HasId:
+    return await user_service.get_one_object(object_id=user_id)

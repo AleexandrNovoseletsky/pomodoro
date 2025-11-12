@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.task.models.tasks import Task
 from app.core.repositories.base_crud import CRUDRepository
+from app.task.models.tasks import Task
 
 
 class TaskRepository(CRUDRepository):

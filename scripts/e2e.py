@@ -1,25 +1,19 @@
-#!/usr/bin/env python3
-"""Clean E2E script (spaces only).
-
-Run this directly: python3 scripts/e2e.py
-"""
-import sys
 import json
-import traceback
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+import sys
 import time
+import traceback
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 import httpx
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.settings import Settings
 from app.auth.security import get_password_hash
-from app.user.models.users import UserProfile, UserRole
-from app.task.models.tasks import Task
+from app.core.settings import Settings
 from app.task.models.categories import Category
-
+from app.task.models.tasks import Task
+from app.user.models.users import UserProfile, UserRole
 
 BASE = "http://127.0.0.1:8000"
 
@@ -81,7 +75,7 @@ def prepare_users(settings: Settings) -> List[int]:
 
 def login(client: httpx.Client, phone: str, password: str) -> str:
     data = {"username": phone, "password": password}
-    r = client.post(f"{BASE}/users/login", data=data)
+    r = client.post(f"{BASE}/auth/login", data=data)
     if r.status_code != 200:
         msg = f"Login failed for {phone}: {r.status_code} {r.text}"
         raise RuntimeError(msg)
@@ -220,7 +214,7 @@ def main() -> Dict[str, Any]:
         response: Optional[Dict] = None,
     ) -> None:
         entry = {
-            "ts": datetime.utcnow().isoformat() + "Z",
+            "ts": datetime.now(timezone.utc).isoformat(),
             "ok": bool(ok_flag),
             "message": msg,
             "details": details,
@@ -274,13 +268,13 @@ def main() -> Dict[str, Any]:
         bad_data = {"username": "+70000000001", "password": "wrong"}
         try:
             r_bad = request_with_retries(
-                client, "POST", f"{BASE}/users/login", data=bad_data
+                client, "POST", f"{BASE}/auth/login", data=bad_data
             )
             if r_bad.status_code != 200:
                 ok(
                     "Вход с неверными учётными данными отклонён (ожидаемо)",
                     details={"status_code": r_bad.status_code},
-                    request={"url": f"{BASE}/users/login", "data": bad_data},
+                    request={"url": f"{BASE}/auth/login", "data": bad_data},
                     response={
                         "status_code": r_bad.status_code,
                         "text": r_bad.text,
@@ -289,7 +283,7 @@ def main() -> Dict[str, Any]:
             else:
                 fail(
                     "Вход с неверными учётными данными прошёл (неожиданно)",
-                    request={"url": f"{BASE}/users/login", "data": bad_data},
+                    request={"url": f"{BASE}/auth/login", "data": bad_data},
                     response={
                         "status_code": r_bad.status_code,
                         "text": r_bad.text,
@@ -299,7 +293,7 @@ def main() -> Dict[str, Any]:
             fail(
                 "Ошибка при проверке неверного входа",
                 details=str(exc),
-                request={"url": f"{BASE}/users/login", "data": bad_data},
+                request={"url": f"{BASE}/auth/login", "data": bad_data},
             )
 
         # Создаём категории root/admin через API,
@@ -655,7 +649,7 @@ def main() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     report: Dict = {
-        "start_ts": datetime.utcnow().isoformat() + "Z",
+        "start_ts": datetime.now(timezone.utc).isoformat(),
         "success": False,
         "error": None,
         "error_traceback": None,
@@ -701,7 +695,7 @@ if __name__ == "__main__":
             report["cleanup"] = {"error": str(e)}
             report["cleanup_human"] = [f"Ошибка очистки: {e}"]
 
-        report["end_ts"] = datetime.utcnow().isoformat() + "Z"
+        report["end_ts"] = datetime.now(timezone.utc).isoformat()
         with open("scripts/e2e_report.json", "w", encoding="utf-8") as fh:
             json.dump(report, fh, ensure_ascii=False, indent=2)
         if not report.get("success"):

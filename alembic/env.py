@@ -1,16 +1,18 @@
 from logging.config import fileConfig
 
+from sqlalchemy import create_engine, pool
+
 from alembic import context
-from sqlalchemy import create_engine
-from sqlalchemy import pool
+from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
+from app.core.settings import Settings
 
 # Чтобы модели подхватывались автоматически при их добавлении.
 from app.database.database import Base
+from app.task.models.categories import Category  # noqa: F401
+
 # Explicitly import model modules so SQLAlchemy metadata is populated.
 from app.task.models.tasks import Task  # noqa: F401
-from app.task.models.categories import Category  # noqa: F401
 from app.user.models.users import UserProfile  # noqa: F401
-from app.core.settings import Settings
 
 settings = Settings()
 # Use synchronous DB URL for Alembic (alembic uses SQLAlchemy sync engine).

@@ -1,12 +1,12 @@
-from sqlalchemy import String, ForeignKey, SmallInteger
+from sqlalchemy import ForeignKey, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.database import Base
 from app.core.mixins.active_flag import ActiveFlagMixin
 from app.core.mixins.timestamp import TimestampMixin
+from app.core.settings import Settings
+from app.database.database import Base
 from app.task.models.categories import Category
 from app.user.models.users import UserProfile
-from app.core.settings import Settings
 
 settings = Settings()
 

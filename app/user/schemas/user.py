@@ -1,11 +1,11 @@
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.user.models.users import UserRole
-from app.task.schemas.task import name_field
 from app.core.settings import Settings
+from app.task.schemas.task import name_field
+from app.user.models.users import UserRole
 
 settings = Settings()
 
@@ -17,16 +17,26 @@ name_field_params: dict = {
 
 
 class BaseUserProfileSchema(BaseModel):
-    phone: str = Field(
-        ..., min_length=12, max_length=12, description="+7 999 999 99 99"
+    phone: Optional[str] = Field(
+        None, min_length=12, max_length=12, description="+79999999999"
     )
 
-    first_name: str = name_field(...)
-    last_name: str = name_field(...)
+    first_name: Optional[str] = name_field(None)
+    last_name: Optional[str] = name_field(None)
+    patronymic: Optional[str] = name_field(None)
+    birthday: Optional[date] = None
+    email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
+    about: Optional[str] = Field(
+        None,
+        max_length=settings.MAX_USER_ABOUT_LENGTH,
+        description="о пользователе",
+    )
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
-    password: str = Field(..., min_length=settings.MIN_PASSWORD_LENGTH)
+    password: Optional[str] = Field(
+        None, min_length=settings.MIN_PASSWORD_LENGTH
+    )
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
@@ -39,9 +49,9 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
     patronymic: str | None
     birthday: date | None
     created_at: datetime
+    updated_at: datetime
     email: str | None
     email_verified: bool
-    hashed_password: str
     photo_path: str | None
     about: str | None
     is_active: bool
@@ -51,7 +61,7 @@ class ResponseUserProfileSchema(CreateUserProfileORM):
         from_attributes = True
 
 
-class UpdateUserSchema(BaseModel):
+class UpdateUserProfileSchema(BaseModel):
     phone: Optional[str] = Field(
         None, min_length=12, max_length=12, description="+7 999 999 99 99"
     )
@@ -64,7 +74,7 @@ class UpdateUserSchema(BaseModel):
         description="отчество",
     )
 
-    birthday: Optional[date]
+    birthday: Optional[date] = None
     email: Optional[str] = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
 
     about: Optional[str] = Field(

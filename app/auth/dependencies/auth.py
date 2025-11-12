@@ -1,9 +1,14 @@
 from typing import Callable
-from fastapi import Depends
 
-from app.auth.permissions import require_role, require_owner
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.permissions import require_owner, require_role
+from app.auth.repositories.auth import AuthRepository
+from app.auth.services.auth import AuthService
 from app.core.exceptions.acces_denied import AccessDenied
-from app.user.dependencies.user import get_current_user
+from app.database.accesor import get_db_session
+from app.user.dependencies.user import get_current_user, get_user_repository
 from app.user.schemas.user import ResponseUserProfileSchema
 
 
@@ -47,3 +52,16 @@ def require_owner_or_roles(
         raise AccessDenied()
 
     return _dep
+
+
+async def get_auth_repository(
+    db: AsyncSession = Depends(get_db_session),
+) -> AuthRepository:
+    return AuthRepository(db_session=db)
+
+
+async def get_auth_service(
+    user_repo=Depends(get_user_repository),
+    auth_repo=Depends(get_auth_repository),
+) -> AuthService:
+    return AuthService(user_repo=user_repo, auth_repo=auth_repo)

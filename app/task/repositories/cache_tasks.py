@@ -2,8 +2,8 @@ import json
 
 from redis.asyncio import Redis
 
-from app.task.schemas.task import ResponseTaskSchema
 from app.core.settings import Settings
+from app.task.schemas.task import ResponseTaskSchema
 
 settings = Settings()
 

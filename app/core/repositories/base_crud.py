@@ -7,10 +7,10 @@
 """
 
 from datetime import datetime, timezone
-from typing import Protocol, Type
+from typing import Generic, Protocol, Type, TypeVar
 
 from pydantic import BaseModel
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
@@ -25,17 +25,20 @@ class HasId(Protocol):
     updated_at: Mapped[datetime]
 
 
-class CRUDRepository:
+T = TypeVar("T", bound=HasId)
+
+
+class CRUDRepository(Generic[T]):
     """Минимальный CRUD-репозиторий, оборачивающий SQLAlchemy-сессию.
 
     Класс не управляет транзакциями автоматически — это делает внешний код.
     """
 
-    def __init__(self, db_session: AsyncSession, orm_model: Type[HasId]):
+    def __init__(self, db_session: AsyncSession, orm_model: Type[T]):
         self.db_session = db_session
         self.orm_model = orm_model
 
-    async def create_object(self, data: BaseModel) -> HasId:
+    async def create_object(self, data: BaseModel) -> T:
         """Создать ORM-объект из Pydantic-модели и вернуть созданный объект.
 
         Метод создаёт экземпляр модели на основе data.model_dump().
@@ -47,7 +50,7 @@ class CRUDRepository:
         await self.db_session.refresh(obj)
         return obj
 
-    async def get_object(self, object_id: int) -> HasId | None:
+    async def get_object(self, object_id: int) -> T | None:
         """Получить объект по id или вернуть None, если не найден.
 
         Возвращает ORM-экземпляр (не Pydantic-схему).
@@ -57,7 +60,7 @@ class CRUDRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_all_objects(self) -> list[HasId]:
+    async def get_all_objects(self) -> list[T]:
         """Вернуть все объекты ORM для данной модели.
 
         Используется сервисами для пакетного получения сущностей.
@@ -67,7 +70,7 @@ class CRUDRepository:
 
     async def update_object(
         self, object_id: int, update_data: BaseModel
-    ) -> HasId | None:
+    ) -> T | None:
         result = await self.db_session.execute(
             select(self.orm_model).where(self.orm_model.id == object_id)
         )
@@ -89,6 +92,5 @@ class CRUDRepository:
             delete(self.orm_model).where(self.orm_model.id == object_id)
         )
         await self.db_session.commit()
-        # rowcount может отсутствовать в некоторых вариантах DB-API.
         # Явно приводим результат к булеву значению
         return result.rowcount > 0  # type: ignore[attr-defined]
