@@ -3,12 +3,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import app.task.models.categories
-import app.task.models.tasks  # noqa: F401
-from app.auth.security import get_password_hash
-from app.core.settings import Settings
-from app.user.models.users import UserProfile
-from app.user.schemas.user import CreateUserProfileORM, UserRole
+import pomodoro.task.models.categories
+import pomodoro.task.models.tasks  # noqa: F401
+from pomodoro.auth.security import get_password_hash
+from pomodoro.core.settings import Settings
+from pomodoro.user.models.users import UserProfile
+from pomodoro.user.schemas.user import CreateUserProfileORM, UserRole
 
 BASE = "http://127.0.0.1:8000"
 settings = Settings()

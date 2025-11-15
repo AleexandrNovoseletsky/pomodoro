@@ -5,14 +5,13 @@ from sqlalchemy import create_engine, pool
 from alembic import context
 
 # Чтобы модели подхватывались автоматически при их добавлении.
-from app.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
-from app.core.settings import Settings
-from app.database.database import Base
-from app.task.models.categories import Category  # noqa: F401
-
-# Explicitly import model modules so SQLAlchemy metadata is populated.
-from app.task.models.tasks import Task  # noqa: F401
-from app.user.models.users import UserProfile  # noqa: F401
+from pomodoro.auth.models.oauth_accaunts import OAuthAccount  # noqa: F401
+from pomodoro.core.settings import Settings
+from pomodoro.database.database import Base
+from pomodoro.task.models.categories import Category  # noqa: F401
+from pomodoro.media.models.files import Files  # noqa: F401
+from pomodoro.task.models.tasks import Task  # noqa: F401
+from pomodoro.user.models.users import UserProfile  # noqa: F401
 
 settings = Settings()
 # Use synchronous DB URL for Alembic (alembic uses SQLAlchemy sync engine).
