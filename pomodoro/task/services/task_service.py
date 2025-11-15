@@ -5,6 +5,7 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from pomodoro.core.services.base_crud import CRUDService
+from pomodoro.media.services.media_service import MediaService
 from pomodoro.task.repositories.cache_tasks import TaskCacheRepository
 from pomodoro.task.repositories.task import TaskRepository
 from pomodoro.task.schemas.task import ResponseTaskSchema
@@ -20,9 +21,13 @@ class TaskService(CRUDService):
     """Сервис задач. Унаследован от базового сервиса."""
 
     def __init__(
-        self, task_repo: TaskRepository, cache_repo: TaskCacheRepository
+        self,
+        task_repo: TaskRepository,
+        cache_repo: TaskCacheRepository,
+        media_service: MediaService,
     ):
         """Инициализирует сервис задач."""
+        self.media_service = media_service
         super().__init__(
             repository=task_repo, response_schema=ResponseTaskSchema
         )
@@ -68,6 +73,11 @@ class TaskService(CRUDService):
 
     async def delete_object(self, object_id: int) -> None:
         """Удаление задачи и обновление кэша."""
+        # Очищаем файлы
+        await self.media_service.delete_all_by_owner(
+            owner_type="task", owner_id=object_id
+            )
+        # Удаляем задачу из БД
         await super().delete_object(object_id=object_id)
         # после удаления обновляем кэш
         await self._refresh_cache()

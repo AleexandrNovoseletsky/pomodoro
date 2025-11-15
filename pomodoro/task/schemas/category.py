@@ -21,7 +21,7 @@ class CreateCategorySchema(BaseModel):
     """принимаемые от пользователя поля для создании категории."""
 
     name: str = name_field(...)
-    is_active: bool
+    is_active: bool | None = None
 
 
 class ResponseCategorySchema(CreateCategorySchema):

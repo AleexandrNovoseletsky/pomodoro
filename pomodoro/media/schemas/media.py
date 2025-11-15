@@ -14,6 +14,7 @@ class CreateFileSchema(BaseModel):
     """Принимаемые данные для создания файла."""
 
     owner_type: OwnerType
+    owner_id: int
     author_id: int
     mime: str
     key: str
