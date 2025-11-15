@@ -4,7 +4,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8000
 
 run: ## Run the application using uvicorn with provided arguments or defaults
-	poetry run uvicorn app.main:app --host $(HOST) --port $(PORT) --reload
+	poetry run uvicorn pomodoro.main:app --host $(HOST) --port $(PORT) --reload
 
 migrations: ## Make migrations using alembic
 	@echo "Make migrations $(MESSAGE)"
@@ -27,7 +27,7 @@ help: ## Show this help message
 e2e: ## Run e2e smoke tests (requires app running and DB migrated)
 	PYTHONPATH=. poetry run python scripts/e2e.py
 
-create-root: ## Create a superuser in the application
+root: ## Create a superuser in the application
 	PYTHONPATH=. poetry run python scripts/create_root.py
 
 ruff: ## Run ruff
