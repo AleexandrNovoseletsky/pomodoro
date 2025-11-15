@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from pomodoro.core.settings import Settings
 from pomodoro.database.accesor import get_db_session
+from pomodoro.media.dependencies.media import get_media_service
+from pomodoro.media.services.media_service import MediaService
 from pomodoro.user.models.users import UserProfile
 from pomodoro.user.repositories.user import UserRepository
 from pomodoro.user.services.user_service import UserProfileService
@@ -27,10 +29,11 @@ async def get_user_repository(
 async def get_user_service(
     user_repo: Annotated[
         UserRepository, Depends(dependency=get_user_repository)
-        ]
+        ],
+    media_service: Annotated[MediaService, Depends(get_media_service)],
 ) -> UserProfileService:
     """Получение сервиса пользователя."""
-    return UserProfileService(user_repo=user_repo)
+    return UserProfileService(user_repo=user_repo, media_service=media_service)
 
 
 async def get_current_user(

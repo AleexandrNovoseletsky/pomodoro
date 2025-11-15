@@ -2,12 +2,13 @@
 
 import enum
 
-from sqlalchemy import BigInteger, String
+from sqlalchemy import BigInteger, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from pomodoro.core.mixins.timestamp import TimestampMixin
 from pomodoro.core.utils.db_constraints import make_check_in
 from pomodoro.database.database import Base
+from pomodoro.user.models.users import UserProfile
 
 
 class OwnerType(enum.StrEnum):
@@ -27,27 +28,43 @@ class Variants(enum.StrEnum):
 
 
 class Files(TimestampMixin, Base):
-    """Модель изображений."""
+    """Модель файлов."""
 
     __tablename__ = "files"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # К какой сущности привязан файл: user / task / category
     owner_type: Mapped[OwnerType] = mapped_column(
         String(50), nullable=False, index=True
-        )
-    author_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    )
+
+    # ID сущности (task.id, user.id, category.id)
+    owner_id: Mapped[int] = mapped_column(nullable=False, index=True)
+
+    # Автор загрузки файла
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey(UserProfile.id, ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+
     bucket: Mapped[str] = mapped_column(String(256), nullable=False)
     key: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
+
     variant: Mapped[Variants] = mapped_column(
         String(50), nullable=False, default=Variants.ORIGINAL.value
-        )
+    )
+
     mime: Mapped[str] = mapped_column(String(100), nullable=False)
     size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
     width: Mapped[int | None] = mapped_column(nullable=True)
     height: Mapped[int | None] = mapped_column(nullable=True)
+
     is_primary: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     __table_args__ = (
         make_check_in(enum_cls=Variants, column_name="variant"),
         make_check_in(enum_cls=OwnerType, column_name="owner_type"),
-        )
+    )

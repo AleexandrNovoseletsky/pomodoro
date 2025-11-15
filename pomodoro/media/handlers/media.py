@@ -28,17 +28,21 @@ owner_or_admin_depends = Depends(
 router = APIRouter()
 
 
-@router.post("/upload/{domain}")
+@router.post("/{domain}/{owner_id}/upload")
 async def upload_media(
     domain: str,
+    owner_id: int,
     file: UploadFile,
     media_service: media_service_annotated,
     current_user: current_user_annotated,
 ):
-    """агрузка файла в хранилище и сохранение в БД."""
+    """Загрузка файла в хранилище и сохранение в БД."""
     return await media_service.upload_file(
-        file=file, domain=domain, current_user=current_user
-        )
+        file=file,
+        domain=domain,
+        owner_id=owner_id,
+        current_user=current_user
+    )
 
 
 @router.delete(
@@ -50,5 +54,5 @@ async def delete_media(
     file_id: int,
     media_service: media_service_annotated,
 ):
-    """даление файла из хранилища и БД."""
+    """Удаление файла из хранилища и БД."""
     return await media_service.delete_file(file_id=file_id)
