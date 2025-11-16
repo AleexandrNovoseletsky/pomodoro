@@ -1,5 +1,6 @@
 """Роуты медиа."""
 
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Response, UploadFile, status
@@ -100,15 +101,19 @@ async def upload_files(
 ):
     """Множественная загрузка файлов."""
     files_to_schema = []
-    for file in files:
-        files_to_schema.append(
-            await media_service.upload_file(
+    semaphore = asyncio.Semaphore(5)  # максимум 5 параллельных загрузок
+
+    async def sem_upload(file):
+        async with semaphore:
+            return await media_service.upload_file(
                 file=file,
                 current_user=current_user,
                 domain=domain,
                 owner_id=owner_id
             )
-        )
+
+    tasks = [sem_upload(f) for f in files]
+    files_to_schema = await asyncio.gather(*tasks)
     return files_to_schema
 
 

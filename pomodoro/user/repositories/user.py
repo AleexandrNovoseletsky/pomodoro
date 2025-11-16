@@ -1,7 +1,7 @@
 """Репозитории пользователей."""
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from pomodoro.core.repositories.base_crud import CRUDRepository
 from pomodoro.user.models.users import UserProfile
@@ -10,9 +10,9 @@ from pomodoro.user.models.users import UserProfile
 class UserRepository(CRUDRepository):
     """Репозиторий пользователей. Унаследован от базового репозитория."""
 
-    def __init__(self, db_session: AsyncSession):
+    def __init__(self, sessionmaker: async_sessionmaker):
         """Инициализируем репозиторий."""
-        super().__init__(db_session, UserProfile)
+        super().__init__(sessionmaker=sessionmaker, orm_model=UserProfile)
 
     async def get_by_phone(self, user_phone: str) -> UserProfile | None:
         """Находит пользователя по номеру телефона."""

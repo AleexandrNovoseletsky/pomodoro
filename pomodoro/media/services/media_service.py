@@ -134,17 +134,19 @@ class MediaService(CRUDService):
         owner_type_enum = OwnerType(owner_type)
 
         if owner_type_enum == OwnerType.TASK:
-            repo = TaskRepository(db_session=self.repository.db_session)
+            repo = TaskRepository(sessionmaker=self.repository.sessionmaker)
             if await repo.get_object(owner_id) is None:
                 raise ObjectNotFoundError(owner_id)
 
         elif owner_type_enum == OwnerType.CATEGORY:
-            repo = CategoryRepository(db_session=self.repository.db_session)
+            repo = CategoryRepository(
+                sessionmaker=self.repository.sessionmaker
+                )
             if await repo.get_object(owner_id) is None:
                 raise ObjectNotFoundError(owner_id)
 
         elif owner_type_enum == OwnerType.USER:
-            repo = UserRepository(db_session=self.repository.db_session)
+            repo = UserRepository(sessionmaker=self.repository.sessionmaker)
             if await repo.get_object(owner_id) is None:
                 raise ObjectNotFoundError(owner_id)
 

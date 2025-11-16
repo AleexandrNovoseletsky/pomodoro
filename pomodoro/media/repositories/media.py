@@ -1,7 +1,7 @@
 """Репозитории медиа."""
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from pomodoro.core.repositories.base_crud import CRUDRepository
 from pomodoro.media.models.files import Files, OwnerType
@@ -11,9 +11,9 @@ from pomodoro.media.schemas.media import SetPrimarySchema
 class MediaRepository(CRUDRepository):
     """Репозиторий медиа."""
 
-    def __init__(self, db_session: AsyncSession):
+    def __init__(self, sessionmaker: async_sessionmaker):
         """Инициализируем репозиторий."""
-        super().__init__(db_session, Files)
+        super().__init__(sessionmaker=sessionmaker, orm_model=Files)
 
     async def get_by_owner(
             self, owner_type: OwnerType, owner_id: int
