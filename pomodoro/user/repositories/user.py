@@ -16,10 +16,11 @@ class UserRepository(CRUDRepository):
 
     async def get_by_phone(self, user_phone: str) -> UserProfile | None:
         """Находит пользователя по номеру телефона."""
-        query = select(UserProfile).where(UserProfile.phone == user_phone)
-        result = await self.db_session.execute(query)
-        user = result.scalar_one_or_none()
-        return user
+        async with self.sessionmaker() as session:
+            query = select(UserProfile).where(UserProfile.phone == user_phone)
+            result = await session.execute(query)
+            user = result.scalar_one_or_none()
+            return user
 
     async def update_object(self, object_id, update_data):
         """Изминение данных о пользователе."""
