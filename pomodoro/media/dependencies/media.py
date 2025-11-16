@@ -3,19 +3,16 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from pomodoro.database.accesor import get_db_session
+from pomodoro.database.accesor import async_session_maker
 from pomodoro.media.models.files import Files
 from pomodoro.media.repositories.media import MediaRepository
 from pomodoro.media.services.media_service import MediaService
 
 
-async def get_media_repository(
-    db: Annotated[AsyncSession, Depends(dependency=get_db_session)]
-) -> MediaRepository:
+async def get_media_repository() -> MediaRepository:
     """Получение репозитория медиа."""
-    return MediaRepository(db_session=db)
+    return MediaRepository(sessionmaker=async_session_maker)
 
 
 async def get_media_service(

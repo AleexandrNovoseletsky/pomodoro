@@ -5,10 +5,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import ExpiredSignatureError, JWTError, jwt
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from pomodoro.core.settings import Settings
-from pomodoro.database.accesor import get_db_session
+from pomodoro.database.accesor import async_session_maker
 from pomodoro.media.dependencies.media import get_media_service
 from pomodoro.media.services.media_service import MediaService
 from pomodoro.user.models.users import UserProfile
@@ -20,10 +19,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 async def get_user_repository(
-    db: Annotated[AsyncSession, Depends(get_db_session)]
 ) -> UserRepository:
     """Получение репозитория пользователя."""
-    return UserRepository(db_session=db)
+    return UserRepository(sessionmaker=async_session_maker)
 
 
 async def get_user_service(

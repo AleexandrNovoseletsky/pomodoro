@@ -3,9 +3,8 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from pomodoro.database.accesor import get_db_session
+from pomodoro.database.accesor import async_session_maker
 from pomodoro.database.cache.accesor import get_cache_session
 from pomodoro.media.dependencies.media import get_media_service
 from pomodoro.media.services.media_service import MediaService
@@ -16,10 +15,9 @@ from pomodoro.task.services.task_service import TaskService
 
 
 async def get_task_repository(
-    db: Annotated[AsyncSession, Depends(dependency=get_db_session)]
 ) -> TaskRepository:
     """Получение репозитория задач."""
-    return TaskRepository(db_session=db)
+    return TaskRepository(sessionmaker=async_session_maker)
 
 
 async def get_cache_task_repository() -> TaskCacheRepository | None:

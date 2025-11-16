@@ -4,13 +4,12 @@ from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from pomodoro.auth.permissions import require_owner, require_role
 from pomodoro.auth.repositories.auth import AuthRepository
 from pomodoro.auth.services.auth import AuthService
 from pomodoro.core.exceptions.acces_denied import AccessDenied
-from pomodoro.database.accesor import get_db_session
+from pomodoro.database.accesor import async_session_maker
 from pomodoro.user.dependencies.user import (
     get_current_user,
     get_user_repository,
@@ -66,10 +65,9 @@ def require_owner_or_roles(
 
 
 async def get_auth_repository(
-    db: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> AuthRepository:
     """Получение репозитория авторизации."""
-    return AuthRepository(db_session=db)
+    return AuthRepository(sessionmaker=async_session_maker)
 
 
 async def get_auth_service(
