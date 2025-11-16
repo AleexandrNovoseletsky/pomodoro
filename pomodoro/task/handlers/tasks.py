@@ -8,10 +8,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from pomodoro.auth.dependencies.auth import (
-    require_owner_or_roles,
-    require_roles,
-)
+from pomodoro.auth.dependencies.auth import require_owner_or_roles
 from pomodoro.task.dependencies.task import get_task_resource, get_task_service
 from pomodoro.task.schemas.task import (
     CreateTaskORM,
@@ -53,9 +50,6 @@ async def get_tasks(
     path="/",
     response_model=ResponseTaskSchema,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_roles(allowed_roles=("root", "admin", "user")))
-    ],
 )
 async def create_task(
     body: CreateTaskSchema,

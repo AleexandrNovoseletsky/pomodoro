@@ -25,16 +25,15 @@ class S3Storage:
             aws_secret_access_key=settings.S3_SECRET_KEY,
         )
 
-    async def upload(self, key: str, file: UploadFile) -> None:
+    async def upload(self, key: str, file: UploadFile, real_mime: str) -> None:
         """Загрузка файла в хранилище."""
-        body = await file.read()
         async with await self._get_client() as client:
-            await client.put_object(
+            await client.upload_fileobj(
+                file.file,
                 Bucket=self.bucket,
                 Key=key,
-                Body=body,
-                ContentType=file.content_type,
-            )
+                ExtraArgs={"ContentType": real_mime}
+                )
 
     async def delete(self, key: str) -> None:
         """Удаление файла."""
@@ -63,3 +62,13 @@ class S3Storage:
     async def get_url(self, key: str) -> str:
         """Получение URL файла."""
         return f"{settings.S3_ENDPOINT}/{self.bucket}/{key}"
+
+    async def generate_presigned_url(
+            self, key: str, expires_in: int = 3600
+            ) -> str:
+        async with await self._get_client() as client:
+            return await client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self.bucket, "Key": key},
+                ExpiresIn=expires_in
+                )

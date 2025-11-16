@@ -16,15 +16,12 @@ from pomodoro.task.schemas.category import (
     UpdateCategorySchema,
 )
 from pomodoro.task.services.category_service import CategoryService
-from pomodoro.user.models.users import UserRole
 
 category_service_annotated = Annotated[
     CategoryService, Depends(get_category_service)
 ]
-admin = UserRole.ADMIN
-root = UserRole.ROOT
-require_roles_depends = Depends(
-    dependency=require_roles(allowed_roles=(root, admin))
+only_admin = Depends(
+    dependency=require_roles(allowed_roles=("root", "admin"))
 )
 router = APIRouter()
 
@@ -41,7 +38,7 @@ async def get_categories(
     path="/",
     response_model=ResponseCategorySchema,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[require_roles_depends],
+    dependencies=[only_admin],
 )
 async def create_category(
     body: CreateCategorySchema,
@@ -54,7 +51,7 @@ async def create_category(
 @router.patch(
     path="/{category_id}",
     response_model=ResponseCategorySchema,
-    dependencies=[require_roles_depends],
+    dependencies=[only_admin],
 )
 async def update_category(
     category_id: int,
@@ -70,7 +67,7 @@ async def update_category(
 @router.delete(
     path="/{category_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[require_roles_depends],
+    dependencies=[only_admin],
 )
 async def delete_category(
     category_id: int,
