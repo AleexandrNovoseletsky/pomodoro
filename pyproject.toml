@@ -30,6 +30,7 @@ dependencies = [
     "ruff (>=0.14.4,<0.15.0)",
     "sqlalchemy2-stubs (>=0.0.2a38,<0.0.3)",
     "aioboto3 (>=15.5.0,<16.0.0)",
+    "python-magic (>=0.4.27,<0.5.0)",
 ]
 
 [tool.poetry]

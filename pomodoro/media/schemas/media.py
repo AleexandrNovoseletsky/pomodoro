@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from pomodoro.core.settings import Settings
-from pomodoro.media.models.files import OwnerType, Variants
+from pomodoro.media.models.files import AllowedMimeTypes, OwnerType, Variants
 
 settings = Settings()
 
@@ -16,13 +16,14 @@ class CreateFileSchema(BaseModel):
     owner_type: OwnerType
     owner_id: int
     author_id: int
-    mime: str
+    mime: AllowedMimeTypes
     key: str
     size: int = Field(..., le=settings.MAX_FILE_SIZE)
     bucket: str | None = settings.S3_BUCKET
 
 
 class ResponseFileSchema(CreateFileSchema):
+    """Возвращаеые пользователю данные."""
     id: int
     key: str
     variant: Variants | None = None
@@ -33,3 +34,8 @@ class ResponseFileSchema(CreateFileSchema):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class SetPrimarySchema(BaseModel):
+    """Сделать изображение главным."""
+    is_primary: bool

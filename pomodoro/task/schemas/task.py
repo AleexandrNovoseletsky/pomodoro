@@ -33,7 +33,7 @@ class CreateTaskSchema(BaseModel):
     name: str = name_field(...)
     pomodoro_count: int = pomodoro_count_field(...)
     category_id: int
-    is_active: bool
+    is_active: bool | None = None
 
 
 class CreateTaskORM(CreateTaskSchema):
