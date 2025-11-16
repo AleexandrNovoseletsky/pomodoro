@@ -4,6 +4,8 @@
 исключений регистрируется глобально.
 """
 
+import logging
+
 from fastapi import FastAPI
 
 from pomodoro.auth.handlers.auth import router as auth_router
@@ -13,6 +15,14 @@ from pomodoro.media.handlers.media import router as media_router
 from pomodoro.task.handlers.categories import router as category_router
 from pomodoro.task.handlers.tasks import router as task_router
 from pomodoro.user.handlers.users import router as user_router
+
+# Настроим базовое логирование на уровне INFO, чтобы все модульные
+# `logger.info(...)` сообщения (включая временные метки [TIMING])
+# выводились в stdout/stderr и попадали в лог-файл при редиректе.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-5s %(name)s: %(message)s",
+)
 
 app = FastAPI()
 

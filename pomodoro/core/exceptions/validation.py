@@ -1,4 +1,4 @@
-"""Ошибки валидации входных данных приложения."""
+"""Input data validation exceptions."""
 
 from fastapi import status
 from pydantic import ValidationError
@@ -7,27 +7,41 @@ from pomodoro.core.exceptions.base import AppException
 
 
 class InvalidCreateFileData(AppException):
-    """Ошибка — неверные данные при создании записи о файле."""
+    """Exception raised when file creation data is invalid."""
 
     status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     error_type = "InvalidCreateFileData"
 
-    def __init__(self, exc: ValidationError, detail: str | None = None):
-        """Инициализируем ошибку."""
-        formatted = self._format_errors(exc)
+    def __init__(
+        self, exc: ValidationError | None, detail: str | None = None
+    ) -> None:
+        """Initialize validation error.
+
+        Args:
+            exc: Pydantic ValidationError instance (can be None).
+            detail: Custom error detail message.
+        """
+        formatted = (
+            self._format_errors(exc) if exc else "Invalid data provided"
+        )
         super().__init__(detail=detail or formatted)
 
     @staticmethod
     def _format_errors(exc: ValidationError) -> str:
-        """Форматирование ошибок Pydantic в читаемый вид."""
-        errors = exc.errors()
+        """Format Pydantic validation errors into readable string.
 
+        Args:
+            exc: Pydantic ValidationError.
+
+        Returns:
+            Formatted error message.
+        """
+        errors = exc.errors()
         messages: list[str] = []
 
-        for err in errors:
-            field = ".".join(str(x) for x in err.get("loc", []))
-            msg = err.get("msg", "Invalid value")
+        for error in errors:
+            field = ".".join(str(loc) for loc in error.get("loc", []))
+            msg = error.get("msg", "Invalid value")
             messages.append(f"Ошибка в поле '{field}': {msg}")
 
-        # Если ошибок несколько — выводим все одной строкой или списком
         return "; ".join(messages)

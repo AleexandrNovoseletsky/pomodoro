@@ -1,17 +1,21 @@
-"""Схемы медиа."""
+"""Media file schemas for request/response serialization."""
 
 from datetime import datetime
 
 from pydantic import BaseModel, Field
 
 from pomodoro.core.settings import Settings
-from pomodoro.media.models.files import AllowedMimeTypes, OwnerType, Variants
+from pomodoro.media.models.files import (
+    AllowedMimeTypes,
+    OwnerType,
+    Variants,
+)
 
 settings = Settings()
 
 
 class CreateFileSchema(BaseModel):
-    """Принимаемые данные для создания файла."""
+    """Input schema for file creation."""
 
     owner_type: OwnerType
     owner_id: int
@@ -23,7 +27,11 @@ class CreateFileSchema(BaseModel):
 
 
 class ResponseFileSchema(CreateFileSchema):
-    """Возвращаеые пользователю данные."""
+    """Output schema with database metadata.
+
+    Includes all file information plus database-generated fields.
+    """
+
     id: int
     key: str
     variant: Variants | None = None
@@ -37,5 +45,6 @@ class ResponseFileSchema(CreateFileSchema):
 
 
 class SetPrimarySchema(BaseModel):
-    """Сделать изображение главным."""
+    """Schema for setting file as primary."""
+
     is_primary: bool

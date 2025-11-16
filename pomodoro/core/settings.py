@@ -81,7 +81,11 @@ class Settings(BaseSettings):
     MAX_POMODORO_COUNT: int = 1000
 
     # --- Media ---
-    MAX_FILE_SIZE: int = 5 * 1024 * 1024
+    MAX_FILE_SIZE: int = 5 * 1024 * 1024  # MB
+    RATIO: tuple[int, int] = (3, 4)
+    MIN_IMAGE_SIZE: tuple[int, int] = (1200, 1600)  # px
+    SMALL_SIZE: tuple[int, int] = (600, 800)
+    THUMB_SIZE: tuple[int, int] = (300, 400)
 
     # --- Yandex OAuth ---
     YANDEX_CLIENT_ID: str = os.getenv(
