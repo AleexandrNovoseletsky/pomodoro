@@ -19,12 +19,13 @@ class MediaRepository(CRUDRepository):
             self, owner_type: OwnerType, owner_id: int
             ) -> list[Files]:
         """Получение всех файлов по owner_id."""
-        query = select(Files).where(
-            Files.owner_type == owner_type,
-            Files.owner_id == owner_id,
-            )
-        result = await self.db_session.execute(query)
-        return result.scalars().all()
+        async with self.sessionmaker() as session:
+            query = select(Files).where(
+                Files.owner_type == owner_type,
+                Files.owner_id == owner_id,
+                )
+            result = await session.execute(query)
+            return result.scalars().all()
 
     async def set_primary(
             self, file_id: int, owner_type: OwnerType, owner_id: int

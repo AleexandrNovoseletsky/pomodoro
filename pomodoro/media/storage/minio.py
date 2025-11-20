@@ -1,4 +1,5 @@
 """Доступ к файлам хранилища minio."""
+import io
 
 import aioboto3
 from botocore.exceptions import ClientError
@@ -25,15 +26,28 @@ class S3Storage:
             aws_secret_access_key=settings.S3_SECRET_KEY,
         )
 
-    async def upload(self, key: str, file: UploadFile, real_mime: str) -> None:
+    async def upload(
+            self, key: str, file: UploadFile | io.BytesIO, mime: str
+    ) -> None:
         """Загрузка файла в хранилище."""
         async with await self._get_client() as client:
-            await client.upload_fileobj(
-                file.file,
-                Bucket=self.bucket,
-                Key=key,
-                ExtraArgs={"ContentType": real_mime}
+            if isinstance(file, UploadFile):
+                await client.upload_fileobj(
+                    file.file,
+                    Bucket=self.bucket,
+                    Key=key,
+                    ExtraArgs={"ContentType": mime}
+                    )
+            elif isinstance(file, io.BytesIO):
+                file.seek(0)
+                await client.upload_fileobj(
+                    file,
+                    Bucket=self.bucket,
+                    Key=key,
+                    ExtraArgs={"ContentType": mime}
                 )
+            else:
+                raise ValueError("Ожидается UploadFile или io.BytesIO")
 
     async def delete(self, key: str) -> None:
         """Удаление файла."""

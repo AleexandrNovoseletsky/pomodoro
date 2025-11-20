@@ -11,10 +11,10 @@ from pomodoro.media.models.files import OwnerType
 from pomodoro.media.schemas.media import ResponseFileSchema
 from pomodoro.media.services.media_service import MediaService
 from pomodoro.user.dependencies.user import get_current_user
-from pomodoro.user.schemas.user import ResponseUserProfileSchema
+from pomodoro.user.models.users import UserProfile
 
 current_user_annotated = Annotated[
-    ResponseUserProfileSchema, Depends(get_current_user)
+    UserProfile, Depends(get_current_user)
 ]
 media_service_annotated = Annotated[
         MediaService, Depends(dependency=get_media_service)
@@ -115,6 +115,27 @@ async def upload_files(
     tasks = [sem_upload(f) for f in files]
     files_to_schema = await asyncio.gather(*tasks)
     return files_to_schema
+
+
+@router.post(
+        path="/{domain}/{owner_id}/upload/image",
+        response_model=list[ResponseFileSchema],
+        status_code=status.HTTP_201_CREATED,
+        )
+async def upload_file(
+    domain: OwnerType,
+    owner_id: int,
+    media_service: media_service_annotated,
+    current_user: current_user_annotated,
+    image: Annotated[UploadFile, File(...)],
+):
+    """Загрузка файла в хранилище и сохранение в БД."""
+    return await media_service.upload_image(
+        image=image,
+        domain=domain,
+        owner_id=owner_id,
+        current_user=current_user
+    )
 
 
 @router.patch(

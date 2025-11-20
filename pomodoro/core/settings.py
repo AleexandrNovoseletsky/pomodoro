@@ -82,6 +82,8 @@ class Settings(BaseSettings):
 
     # --- Media ---
     MAX_FILE_SIZE: int = 5 * 1024 * 1024
+    SMALL_WIDTH: int = 1024
+    THUMB_WIDTH: int = 256
 
     # --- Yandex OAuth ---
     YANDEX_CLIENT_ID: str = os.getenv(
