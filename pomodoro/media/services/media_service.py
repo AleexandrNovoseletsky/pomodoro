@@ -1,428 +1,286 @@
-"""Media service for file and image management."""
+"""Сервисы медиа."""
 
 import asyncio
-import logging
-
+import io
+import sys
 import uuid
-from io import BytesIO
+from pathlib import Path
 
+import magic
 from fastapi import UploadFile
+from pydantic import ValidationError
 
-from pomodoro.core.exceptions.object_not_found import (
-    ObjectNotFoundError,
-)
+from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
+from pomodoro.core.exceptions.validation import InvalidCreateFileData
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.core.settings import Settings
-from pomodoro.media.models.files import OwnerType
+from pomodoro.media.converters.image_converters import convert_to_webp, resize_image
+from pomodoro.media.models.files import OwnerType, Files, AllowedMimeTypes, Variants
 from pomodoro.media.repositories.media import MediaRepository
-from pomodoro.media.schemas.media import ResponseFileSchema
+from pomodoro.media.schemas.media import CreateFileSchema, ResponseFileSchema
 from pomodoro.media.storage.minio import S3Storage
-from pomodoro.media.utils.files import FileChecker
 from pomodoro.task.repositories.category import CategoryRepository
 from pomodoro.task.repositories.task import TaskRepository
 from pomodoro.user.models.users import UserProfile
 from pomodoro.user.repositories.user import UserRepository
 
 settings = Settings()
-logger = logging.getLogger(__name__)
 
 
 class MediaService(CRUDService):
-    """Media file management service.
-
-    Handles file uploads (single and batch), image processing with
-    variants, file deletion from storage and DB, and owner verification.
-    """
+    """Сервис медиа."""
 
     repository = MediaRepository
-    _upload_semaphore = asyncio.Semaphore(5)
-    _delete_semaphore = asyncio.Semaphore(10)
 
-    def __init__(self, media_repo: MediaRepository) -> None:
-        """Initialize media service with storage and repository.
-
-        Args:
-            media_repo: Media repository instance.
-        """
+    def __init__(self, media_repo: MediaRepository):
+        """нициализируем сервис."""
         self.storage = S3Storage()
         super().__init__(
             repository=media_repo, response_schema=ResponseFileSchema
         )
 
     async def get_presigned_url(self, file_id: int) -> str:
-        """Get temporary presigned URL for file download.
-
-        Args:
-            file_id: ID of the file record.
-
-        Returns:
-            Presigned URL string.
-
-        Raises:
-            ObjectNotFoundError: If file not found.
-        """
         file = await super().get_one_object(object_id=file_id)
-        return await self.storage.generate_presigned_url(key=file.key)
+        return await self.storage.generate_presigned_url(
+            key=file.key,
+            )
 
     async def get_by_owner(
-        self, domain: OwnerType, owner_id: int
-    ) -> list[ResponseFileSchema]:
-        """Get all files for specific owner.
-
-        Args:
-            domain: Owner type (user/task/category).
-            owner_id: ID of the owner.
-
-        Returns:
-            List of file schemas.
-        """
+            self, domain: OwnerType, owner_id: int
+            ) -> list[ResponseFileSchema]:
+        """Отдаёт все файлы ресурса."""
         files = await self.repository.get_by_owner(
             owner_type=domain, owner_id=owner_id
-        )
-        return [ResponseFileSchema.model_validate(f) for f in files]
+            )
+        files_to_schema = [
+            ResponseFileSchema.model_validate(file) for file in files
+            ]
+        return files_to_schema
 
     async def upload_file(
-        self,
-        file: UploadFile,
-        current_user: UserProfile,
-        domain: OwnerType,
-        owner_id: int,
-    ) -> ResponseFileSchema:
-        """Upload single file to storage and DB.
+            self,
+            file: UploadFile,
+            current_user: UserProfile,
+            domain: OwnerType,
+            owner_id: int,
+            ) -> ResponseFileSchema:
+        """Загрузка файла в хранилище и сохранение в БД."""
+        key: str = f"{domain}/{owner_id}/{uuid.uuid4()}-{file.filename}"
+        mime: AllowedMimeTypes = await self._get_real_mime(file=file)
+        try:
+            # Валидируем файл
+            file_data = CreateFileSchema(
+                owner_type=domain,
+                owner_id=owner_id,
+                author_id=current_user.id,
+                mime=mime,
+                size=file.size,
+                key=key,
+            )
+        except ValidationError as e:
+            raise InvalidCreateFileData(exc=e) from e
 
-        Args:
-            file: Uploaded file.
-            current_user: User uploading the file.
-            domain: Owner type.
-            owner_id: ID of the owner.
+        # Проверяем что существует owner с указанным типом и ID
+        await self._verify_owner_exists(owner_type=domain, owner_id=owner_id)
 
-        Returns:
-            File schema with DB metadata.
+        # Загружаем файл в S3
+        await self.storage.upload(key=key, file=file, real_mime=mime)
 
-        Raises:
-            InvalidCreateFileData: If file validation fails.
-            ObjectNotFoundError: If owner not found.
-        """
-        key = self._get_key(
-            domain=domain, owner_id=owner_id, file_name=file.filename
-        )
-
-        checker = FileChecker(file=file)
-        verified_file = await checker.validate_file(
-            domain=domain,
-            owner_id=owner_id,
-            author_id=current_user.id,
-            key=key,
-        )
-
-        await self._verify_owner_exists(
-            owner_type=domain, owner_id=owner_id
-        )
-
-        await self.storage.upload(
-            key=key, file=file, real_mime=verified_file.mime
-        )
-
+        # Записываем в БД
         return await super().create_object_with_author(
-            object_data=verified_file, current_user=current_user
+            object_data=file_data, current_user=current_user
         )
 
     async def upload_image(
-        self,
-        file: UploadFile,
-        current_user: UserProfile,
-        domain: OwnerType,
-        owner_id: int,
+            self,
+            image: UploadFile,
+            current_user: UserProfile,
+            domain: OwnerType,
+            owner_id: int,
     ) -> list[ResponseFileSchema]:
-        """Upload image with WebP variant generation.
+        filename = Path(image.filename).stem
+        mime = await self._get_real_mime(file=image)
+        await self._verify_owner_exists(owner_type=domain, owner_id=owner_id)
 
-        Generates three variants (original, small, thumb) and uploads
-        them concurrently to storage.
-
-        Args:
-            file: Uploaded image file.
-            current_user: User uploading the image.
-            domain: Owner type.
-            owner_id: ID of the owner.
-
-        Returns:
-            List of file schemas for each variant.
-
-        Raises:
-            InvalidCreateFileData: If image validation fails.
-            ObjectNotFoundError: If owner not found.
-        """
-        file_name = file.filename
-
-        # validate input
-        checker = FileChecker(file=file)
-        verified_file = await checker.validate_file(
-            domain=domain,
-            owner_id=owner_id,
-            author_id=current_user.id,
-            key="",
+        # -- Generate keys --
+        key_params = {
+            "domain": domain,
+            "owner_id": owner_id,
+            "filename": filename
+        }
+        original_key = await self._get_key(
+            **key_params,
+            variant=Variants.ORIGINAL
         )
-        processed = await checker.process_image()
-
-        await self._verify_owner_exists(
-            owner_type=domain, owner_id=owner_id
+        small_key = await self._get_key(
+            **key_params,
+            variant=Variants.SMALL
+        )
+        thumb_key = await self._get_key(
+            **key_params,
+            variant=Variants.THUMB
         )
 
-        # upload variants in parallel
-        upload_tasks = [
-            self._upload_variant(
-                suffix, data, domain, owner_id, file_name
+        # -- Generate files --
+        original_image_bytes: bytes = await image.read()
+        original_webp = await convert_to_webp(image=original_image_bytes)
+        small_webp = await resize_image(
+            image=original_webp, width=settings.SMALL_WIDTH
+        )
+        thumb_webp = await resize_image(
+            image=original_webp, width=settings.THUMB_WIDTH
+        )
+        files: dict[str, io.BytesIO | UploadFile] = {
+            original_key: original_webp,
+            small_key: small_webp,
+            thumb_key: thumb_webp
+        }
+
+        # -- Upload files --
+        await self._upload_variants(files=files, mime=mime)
+
+        # -- Recording to DB --
+        try:
+            # -- Generate file schemas --
+            author_id = current_user.id
+            schemas_data = {
+                "owner_type": domain,
+                "owner_id": owner_id,
+                "author_id": author_id,
+                "mime": mime,
+            }
+            original_schema = CreateFileSchema(
+                **schemas_data,
+                size=sys.getsizeof(original_webp),
+                key=original_key,
+                variant=Variants.ORIGINAL,
+
             )
-            for suffix, data in [
-                ("ORIGINAL", processed["original"]),
-                ("SMALL", processed["small"]),
-                ("THUMB", processed["thumb"]),
+            small_schema = CreateFileSchema(
+                **schemas_data,
+                size=sys.getsizeof(small_webp),
+                key=small_key,
+                variant=Variants.SMALL,
+            )
+            thumb_schema = CreateFileSchema(
+                **schemas_data,
+                size=sys.getsizeof(thumb_webp),
+                key=thumb_key,
+                variant=Variants.THUMB,
+            )
+
+            db_files = [
+                await super().create_object_with_author(
+                    object_data=original_schema,
+                    current_user=current_user,
+
+                ),
+                await super().create_object_with_author(
+                    object_data=small_schema, current_user=current_user
+                ),
+                await super().create_object_with_author(
+                    object_data=thumb_schema, current_user=current_user
+                )
             ]
-        ]
+            return db_files
 
-        upload_results = await asyncio.gather(*upload_tasks)
-        db_records = await self._create_db_records(
-            verified_file, current_user, upload_results
-        )
+        # -- Rollback upload files
+        except Exception:
+            await self.storage.delete(original_key)
+            await self.storage.delete(small_key)
+            await self.storage.delete(thumb_key)
+            raise
 
-        return db_records
 
-    async def upload_files(
-        self,
-        files: list[UploadFile],
-        current_user: UserProfile,
-        domain: str,
-        owner_id: int,
-    ) -> list[ResponseFileSchema]:
-        """Upload multiple files concurrently.
-
-        Args:
-            files: List of files to upload.
-            current_user: User uploading files.
-            domain: Owner type.
-            owner_id: ID of the owner.
-
-        Returns:
-            List of file schemas.
-        """
-        tasks = [
-            self._upload_with_semaphore(
-                file, current_user, domain, owner_id
-            )
-            for file in files
-        ]
-        return await asyncio.gather(*tasks)
-
-    async def set_primary(
-        self, file_id: int
-    ) -> ResponseFileSchema:
-        """Mark file as primary for its owner.
-
-        Args:
-            file_id: ID of the file to set as primary.
-
-        Returns:
-            Updated file schema.
-        """
+    async def set_primary(self, file_id: int) -> ResponseFileSchema:
         file: ResponseFileSchema = await super().get_one_object(
             object_id=file_id
-        )
-        owner_type, owner_id = self._parse_owner_from_key(file.key)
-        return await self.repository.set_primary(
+            )
+        file_key = file.key
+        owner_type, owner_id = await self._get_owner_and_owner_id_by_key(
+            key=file_key
+            )
+        file: Files = await self.repository.set_primary(
             file_id=file_id, owner_type=owner_type, owner_id=owner_id
-        )
+            )
+        return ResponseFileSchema.model_validate(file)
 
     async def delete_file(self, file_id: int) -> None:
-        """Delete file from storage and DB.
-
-        Args:
-            file_id: ID of the file to delete.
-
-        Raises:
-            ObjectNotFoundError: If file not found.
-        """
+        """Удаления файла из хранилища и БД."""
+        # Получаем файл из БД
         file = await super().get_one_object(object_id=file_id)
+
+        # Удаляем файл из хранилища
         await self.storage.delete(key=file.key)
-        await super().delete_object(object_id=file_id)
+
+        # Удаляем файл из БД
+        return await super().delete_object(object_id=file_id)
 
     async def delete_all_by_owner(
-        self, owner_type: OwnerType, owner_id: int
-    ) -> None:
-        """Delete all files for an owner.
-
-        Args:
-            owner_type: Type of owner (user/task/category).
-            owner_id: ID of the owner.
-        """
+            self, owner_type: OwnerType, owner_id: int
+            ) -> None:
         files = await self.repository.get_by_owner(
             owner_type=owner_type, owner_id=owner_id
-        )
-
-        tasks = [
-            self._delete_with_semaphore(file_id)
-            for file_id in [f.id for f in files]
-        ]
-
-        await asyncio.gather(*tasks)
-
-    async def _upload_with_semaphore(
-        self,
-        file: UploadFile,
-        current_user: UserProfile,
-        domain: str,
-        owner_id: int,
-    ) -> ResponseFileSchema:
-        """Upload file with semaphore rate limiting.
-
-        Args:
-            file: File to upload.
-            current_user: Current user.
-            domain: Owner type.
-            owner_id: Owner ID.
-
-        Returns:
-            File schema.
-        """
-        async with self._upload_semaphore:
-            return await self.upload_file(
-                file=file,
-                current_user=current_user,
-                domain=domain,
-                owner_id=owner_id,
             )
+        sem = asyncio.Semaphore(10)
 
-    async def _delete_with_semaphore(self, file_id: int) -> None:
-        """Delete file with semaphore rate limiting.
-
-        Args:
-            file_id: ID of file to delete.
-        """
-        async with self._delete_semaphore:
-            file = await super().get_one_object(object_id=file_id)
-            await self.storage.delete(key=file.key)
-            await self.repository.delete_object(object_id=file_id)
-
-    async def _upload_variant(
-        self,
-        suffix: str,
-        data: bytes,
-        domain: OwnerType,
-        owner_id: int,
-        file_name: str,
-    ) -> tuple[str, int]:
-        """Upload single image variant to storage.
-
-        Args:
-            suffix: Variant suffix (ORIGINAL/SMALL/THUMB).
-            data: Image data bytes.
-            domain: Owner type.
-            owner_id: Owner ID.
-            file_name: Original file name.
-
-        Returns:
-            Tuple of (storage_key, file_size_bytes).
-        """
-        key = self._get_key(
-            domain=domain,
-            owner_id=owner_id,
-            file_name=f"{suffix}-{file_name}",
-        )
-        await self.storage.upload(
-            key=key, file=BytesIO(data), real_mime="image/webp"
-        )
-        return key, len(data)
-
-    async def _create_db_records(
-        self,
-        base_schema: ResponseFileSchema,
-        current_user: UserProfile,
-        upload_results: list[tuple[str, int]],
-    ) -> list[ResponseFileSchema]:
-        """Create DB records for uploaded variants.
-
-        Args:
-            base_schema: Base file schema template.
-            current_user: User creating records.
-            upload_results: List of (key, size) tuples.
-
-        Returns:
-            List of created file schemas.
-        """
-        records = []
-        for key, size in upload_results:
-            setattr(base_schema, "key", key)
-            setattr(base_schema, "size", size)
-            created = await super().create_object_with_author(
-                object_data=base_schema, current_user=current_user
-            )
-            records.append(created)
-        return records
+        async def _del(f):
+            async with sem:
+                await self.storage.delete(f.key)
+                await self.repository.delete_object(object_id=f.id)
+        await asyncio.gather(*[_del(f) for f in files])
 
     async def _verify_owner_exists(
-        self, owner_type: str, owner_id: int
-    ) -> None:
-        """Verify owner exists in the system.
+            self, owner_type: str, owner_id: int
+            ) -> None:
+        owner_type_enum = OwnerType(owner_type)
 
-        Args:
-            owner_type: Type of owner (user/task/category).
-            owner_id: ID of the owner.
+        if owner_type_enum == OwnerType.TASK:
+            repo = TaskRepository(sessionmaker=self.repository.sessionmaker)
+            if await repo.get_object(owner_id) is None:
+                raise ObjectNotFoundError(owner_id)
 
-        Raises:
-            ObjectNotFoundError: If owner not found.
-        """
-        owner_enum = OwnerType(owner_type)
-        repo = self._get_owner_repository(owner_enum)
-
-        owner_obj = await repo.get_object(owner_id)
-        if owner_obj is None:
-            raise ObjectNotFoundError(owner_id)
-
-    def _get_owner_repository(
-        self, owner_type: OwnerType
-    ) -> TaskRepository | CategoryRepository | UserRepository:
-        """Get appropriate repository for owner type.
-
-        Args:
-            owner_type: Type of owner.
-
-        Returns:
-            Repository instance for the owner type.
-        """
-        if owner_type == OwnerType.TASK:
-            return TaskRepository(sessionmaker=self.repository.sessionmaker)
-        if owner_type == OwnerType.CATEGORY:
-            return CategoryRepository(
+        elif owner_type_enum == OwnerType.CATEGORY:
+            repo = CategoryRepository(
                 sessionmaker=self.repository.sessionmaker
-            )
-        return UserRepository(sessionmaker=self.repository.sessionmaker)
+                )
+            if await repo.get_object(owner_id) is None:
+                raise ObjectNotFoundError(owner_id)
+
+        elif owner_type_enum == OwnerType.USER:
+            repo = UserRepository(sessionmaker=self.repository.sessionmaker)
+            if await repo.get_object(owner_id) is None:
+                raise ObjectNotFoundError(owner_id)
+    async def _upload_variants(
+            self,
+            files: dict[str, UploadFile | bytes],
+            mime: AllowedMimeTypes
+    ) -> None:
+        for key, file in files.items():
+            await self.storage.upload(key=key, file=file, mime=mime)
+
 
     @staticmethod
-    def _parse_owner_from_key(key: str) -> tuple[str, int]:
-        """Parse owner type and ID from storage key.
-
-        Key format: {owner_type}/{owner_id}/{uuid}-{filename}
-
-        Args:
-            key: Storage key string.
-
-        Returns:
-            Tuple of (owner_type, owner_id).
-        """
-        parts = key.split("/")
-        return parts[0], int(parts[1])
+    async def _get_owner_and_owner_id_by_key(key: str) -> tuple[str, int]:
+        split_key = key.split(sep="/")
+        return split_key[0], int(split_key[1])
 
     @staticmethod
-    def _get_key(
-        domain: OwnerType, owner_id: int, file_name: str
+    async def _get_real_mime(file: UploadFile) -> AllowedMimeTypes:
+        header = await file.read(2048)
+        real_mime = magic.from_buffer(header, mime=True)
+        await file.seek(0)
+        try:
+            return AllowedMimeTypes(real_mime)
+        except ValueError:
+            raise ValueError(f"Недопустимый тип файла {real_mime}.")
+
+    @staticmethod
+    async def _get_key(
+            domain: OwnerType,
+            owner_id: int,
+            filename: str,
+            variant: str | None
     ) -> str:
-        """Generate storage key for file.
-
-        Args:
-            domain: Owner type.
-            owner_id: Owner ID.
-            file_name: Original file name.
-
-        Returns:
-            Formatted storage key.
-        """
-        return f"{domain}/{owner_id}/{uuid.uuid4()}-{file_name}"
+        variant = f"-{variant}"
+        return f"{domain}/{owner_id}/{uuid.uuid4()}{variant}-{filename}.webp"

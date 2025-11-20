@@ -2292,6 +2292,17 @@ socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
+name = "uuid"
+version = "1.30"
+description = "UUID object and generation functions (Python 2.3 or higher)"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "uuid-1.30.tar.gz", hash = "sha256:1f87cc004ac5120466f36c5beae48b4c48cc411968eed0eaecd3da82aa96193f"},
+]
+
+[[package]]
 name = "uvicorn"
 version = "0.34.0"
 description = "The lightning-fast ASGI server."
@@ -2309,6 +2320,20 @@ h11 = ">=0.8"
 
 [package.extras]
 standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)", "python-dotenv (>=0.13)", "pyyaml (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1) ; sys_platform != \"win32\" and sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\"", "watchfiles (>=0.13)", "websockets (>=10.4)"]
+
+[[package]]
+name = "webptools"
+version = "0.0.9"
+description = "webptools is a Webp image conversion package for python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "webptools-0.0.9.tar.gz", hash = "sha256:7393b53dc6b7bb38294a93ec5d82e009cb0160eec749bf1f53249c81fba63918"},
+]
+
+[package.dependencies]
+uuid = "*"
 
 [[package]]
 name = "wrapt"
@@ -2549,4 +2574,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "25e03def772944330155e4aa2e9dbfb8d5a1ab7d4dbde91f7cc528b4328b709b"
+content-hash = "b2d2631f6e363c82c933fe00e7b8e5bed00d69baa609b3ea0ac2c1518a57dab4"
