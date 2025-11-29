@@ -1,4 +1,9 @@
-"""Модели задач."""
+"""Task models.
+
+Defines database models for task management with relationships to
+categories and users. Includes pomodoro tracking, timestamp management,
+and active status functionality.
+"""
 
 from sqlalchemy import ForeignKey, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,7 +19,20 @@ settings = Settings()
 
 
 class Task(ActiveFlagMixin, TimestampMixin, Base):
-    """Модель задач."""
+    """Task model for pomodoro task management.
+
+    Represents individual tasks with pomodoro tracking, categorization,
+    and user ownership. Includes automatic timestamp tracking and
+    active/inactive status management.
+
+    Attributes:     id: Primary key identifier     name: Unique task
+    name with configurable maximum length     pomodoro_count: Number of
+    pomodoro intervals allocated for the task     category_id: Foreign
+    key to associated category with CASCADE delete     category:
+    Relationship to Category model     author_id: Foreign key to task
+    creator with CASCADE delete     author: Relationship to UserProfile
+    model
+    """
 
     __tablename__ = "tasks"
 

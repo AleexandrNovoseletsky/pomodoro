@@ -3,23 +3,18 @@
 import io
 
 from PIL import Image
-from fastapi import UploadFile
 
 
 async def convert_to_webp(
-    image: bytes,
-    quality: int = 75,
-    method: int = 0
+    image: bytes, quality: int = 75, method: int = 0
 ) -> io.BytesIO:
-    """
-    Return converted to WEBP  copy of this image.
+    """Return converted to WEBP  copy of this image.
 
-    Args:
-        image: image in bytes
-        quality: compression quality (0-100)
-        method: the number of passes during compression (0-6)
-    """
+    Args:     image: Image in bytes.     quality: Compression quality
+    (0-100).     method: The number of passes during compression (0-6).
 
+    Returns:     Converted to WEBP image in bytes.
+    """
     output_buffer: io.BytesIO = io.BytesIO()
 
     with Image.open(io.BytesIO(image)) as img:
@@ -34,24 +29,22 @@ async def convert_to_webp(
     output_buffer.seek(0)
     return output_buffer
 
+
 async def resize_image(
     image: io.BytesIO,
     width: int | None = None,
-    height:int | None = None,
+    height: int | None = None,
     quality: int = 90,
-    method: int = 4
+    method: int = 6,
 ) -> io.BytesIO:
-    """
-    Returns a resized copy of this image with the same proportions.
+    """Returns a resized copy of this image with the same proportions.
 
-    Args:
-        image: image in bytes
-        width: width output image
-        height: height output image
-        quality: compression quality (0-100)
-        method: the number of passes during compression (0-6)
-    """
+    Args:     image: Image in bytes.     width: Width output image.
+    height: Height output image.     quality: Compression quality
+    (0-100).     method: The number of passes during compression (0-6).
 
+    Returns:     Compressed image in bytes.
+    """
     output_buffer: io.BytesIO = io.BytesIO()
     with Image.open(image) as img:
         original_width: int = img.width
@@ -79,4 +72,4 @@ async def resize_image(
             optimize=True,
         )
     resized_image.seek(0)
-    return  output_buffer
+    return output_buffer

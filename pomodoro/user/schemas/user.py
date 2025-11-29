@@ -1,4 +1,10 @@
-"""Схемы пользователей."""
+"""User schemas.
+
+Defines Pydantic schemas for user data validation, serialization, and
+API communication. Includes schemas for creation, database operations,
+response, and update operations with proper field constraints and
+validation rules for user profile management.
+"""
 
 from datetime import date, datetime
 
@@ -10,16 +16,27 @@ from pomodoro.user.models.users import UserRole
 
 settings = Settings()
 
-# Ограничения длинны для ФИО
+# Field length constraints for user names
 name_field_params: dict = {
     "min_length": settings.MIN_USER_NAME_LENGTH,
     "max_length": settings.MAX_USER_NAME_LENGTH,
-    "description": "имя, фамилия, или отчество пользователя",
+    "description": "User first name, last name, or patronymic",
 }
 
 
 class BaseUserProfileSchema(BaseModel):
-    """Базоавая схема пользователя."""
+    """Base schema for user profile data with common fields.
+
+    Defines common user profile fields with validation constraints used
+    across multiple operation types.
+
+    Attributes:     phone: Normalized phone number in +7 format
+    first_name: User's first name with length validation     last_name:
+    User's last name with length validation     patronymic: User's
+    patronymic/middle name with length validation     birthday: User's
+    date of birth     email: User's email address with length validation
+    about: User biography or description with length validation
+    """
 
     phone: str | None = Field(
         None, min_length=12, max_length=12, description="+7 999 999 99 99"
@@ -30,7 +47,7 @@ class BaseUserProfileSchema(BaseModel):
         None,
         min_length=settings.MIN_USER_NAME_LENGTH,
         max_length=settings.MAX_USER_NAME_LENGTH,
-        description="отчество",
+        description="Patronymic",
     )
 
     birthday: date | None = None
@@ -39,26 +56,52 @@ class BaseUserProfileSchema(BaseModel):
     about: str | None = Field(
         None,
         max_length=settings.MAX_USER_ABOUT_LENGTH,
-        description="о пользователе",
+        description="About the user",
     )
 
 
 class CreateUserProfileSchema(BaseUserProfileSchema):
-    """Принимаемые от пользователя данные для создания пользователя."""
+    """Schema for user creation with user-provided data.
 
-    password: str | None = Field(
-        None, min_length=settings.MIN_PASSWORD_LENGTH
-    )
+    Extends base schema with password field for initial user
+    registration.
+
+    Attributes:     password: Plain text password for initial
+    authentication setup
+    """
+
+    password: str | None = Field(None, min_length=settings.MIN_PASSWORD_LENGTH)
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
-    """Данные для создания пользователя в БД."""
+    """Schema for user creation in database operations.
+
+    Extends base schema with hashed password for secure database
+    storage. Used internally for database operations after password
+    hashing.
+
+    Attributes:     hashed_password: Securely hashed password for
+    database storage
+    """
 
     hashed_password: str
 
 
 class ResponseUserProfileSchema(BaseUserProfileSchema):
-    """Возвращаемые пользователю данные."""
+    """Schema for user response data with complete profile information.
+
+    Extends base schema with system-generated fields and verification
+    status for complete user representation in API responses.
+
+    Attributes:     id: System-generated user identifier
+    phone_verified: Current phone number verification status
+    patronymic: User's patronymic/middle name     birthday: User's date
+    of birth     created_at: Timestamp of user registration
+    updated_at: Timestamp of last profile modification     email: User's
+    email address     email_verified: Current email verification status
+    about: User biography or description     is_active: Current account
+    active status     role: User role for access control
+    """
 
     id: int
     phone_verified: bool
@@ -76,6 +119,13 @@ class ResponseUserProfileSchema(BaseUserProfileSchema):
 
 
 class UpdateUserProfileSchema(BaseUserProfileSchema):
-    """Данные для обновления данных о пользователе."""
+    """Schema for user profile updates with partial data support.
 
-    pass
+    Extends base schema with optional email verification field for
+    administrative updates. All fields are optional for partial updates.
+
+    Attributes:     email_verified: Optional email verification status
+    update
+    """
+
+    email_verified: bool | None = None

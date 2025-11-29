@@ -1,1 +1,1 @@
-"""Эндпоинты домена авторизации."""
+"""Authorization Domain Endpoints."""

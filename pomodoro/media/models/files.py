@@ -1,4 +1,4 @@
-"""Модели медиа."""
+"""Media models."""
 
 import enum
 
@@ -12,7 +12,8 @@ from pomodoro.user.models.users import UserProfile
 
 
 class AllowedMimeTypes(enum.StrEnum):
-    """Разрешённые типы файлов."""
+    """Allowed file types."""
+
     JPEG = "image/jpeg"
     PNG = "image/png"
     WEBP = "image/webp"
@@ -22,7 +23,7 @@ class AllowedMimeTypes(enum.StrEnum):
 
 
 class OwnerType(enum.StrEnum):
-    """К какой модели относится изображение."""
+    """Which model the file belongs to."""
 
     USER = "user"
     TASK = "task"
@@ -30,7 +31,7 @@ class OwnerType(enum.StrEnum):
 
 
 class Variants(enum.StrEnum):
-    """Варианты изображения."""
+    """Image Options."""
 
     ORIGINAL = "original"
     THUMB = "thumb"
@@ -38,21 +39,21 @@ class Variants(enum.StrEnum):
 
 
 class Files(TimestampMixin, Base):
-    """Модель файлов."""
+    """The file model."""
 
     __tablename__ = "files"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    # К какой сущности привязан файл: user / task / category
+    # What entity is the file attached to: user / task / category
     owner_type: Mapped[OwnerType] = mapped_column(
         String(50), nullable=False, index=True
     )
 
-    # ID сущности (task.id, user.id, category.id)
+    # Entity ID (task.id, user.id, category.id)
     owner_id: Mapped[int] = mapped_column(nullable=False, index=True)
 
-    # Автор загрузки файла
+    # The author of the file upload
     author_id: Mapped[int] = mapped_column(
         ForeignKey(UserProfile.id, ondelete="RESTRICT"),
         nullable=False,

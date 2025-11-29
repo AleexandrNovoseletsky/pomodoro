@@ -1,7 +1,7 @@
-"""Асинхронный доступ к Redis (используется redis.asyncio).
+"""Asynchronous access to Redis (using redis.asyncio).
 
-Экспортирует dependency `get_cache_session` для использования в
-FastAPI-зависимостях.
+Exports the dependency `get_cache_session` for use in FastAPI
+dependencies.
 """
 
 from collections.abc import AsyncGenerator
@@ -13,19 +13,22 @@ from pomodoro.core.settings import Settings
 settings = Settings()
 
 
-async def get_cache_session() -> AsyncGenerator[redis.Redis, None]:
-    """Вернуть подключение к Redis и корректно закрыть его в finally.
-
-    Redis клиент создаётся на каждом вызове — это простой и безопасный
-    подход для сервисов с небольшим трафиком. Для оптимизации можно
-    реиспользовать клиент на уровне приложения.
-    """
-    cache_session = redis.Redis(
+def create_redis_connection() -> redis.Redis:
+    """Create a connection to Redis."""
+    return redis.Redis(
         host=settings.CACHE_HOST,
         port=settings.CACHE_PORT,
         db=settings.CACHE_DB_NAME,
         decode_responses=True,
     )
+
+
+async def get_cache_session() -> AsyncGenerator[redis.Redis, None]:
+    """Return the Redis connection and close it correctly in finally.
+
+    The Redis client is created on each call.
+    """
+    cache_session = create_redis_connection()
     try:
         yield cache_session
     finally:

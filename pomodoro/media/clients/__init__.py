@@ -1,1 +1,1 @@
-"""Клинеты домена медиа."""
+"""Clients of the media domain."""

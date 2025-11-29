@@ -1,1 +1,1 @@
-"""Пакет с ядром приложения: настройки, сервисы, утилиты."""
+"""Application core package: settings, services, and utilities."""

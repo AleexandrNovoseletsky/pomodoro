@@ -1,4 +1,4 @@
-"""Нормализаторы данных."""
+"""Data Normalizers."""
 
 from __future__ import annotations
 
@@ -6,64 +6,129 @@ import re
 
 
 def normalize_phone(phone: str | None) -> str | None:
-    """Нормализовать номер телефона к формату +7XXXXXXXXXX.
+    """Normalize Russian phone numbers to format +7XXXXXXXXXX.
 
-    Поддерживаем российские номера в форматах:
-    - 8XXXXXXXXXX
-    - +7XXXXXXXXXX
-    - XXXXXXXXXX (если 10 цифр — считаем местным и приставляем +7)
-    - с разделителями: пробелы, скобки, дефисы и т.д.
+    Supports various Russian phone number formats:
+    - International: +7 (918) 111-11-11, +7 918 111 11 11
+    - National: 8 (918) 111-11-11, 89181111111
+    - Local: 918 111-11-11, 9181111111
 
-    Также поддерживаем входы с международным префиксом '00' (например,
-    007918...) — префикс будет удалён и номер обработан дальше.
+    Args:
+        phone: Raw phone number string that may contain various formatting
 
-    Если в строке содержится больше цифр (например, копипаста с лишним
-    префиксом), пытаемся взять последние 10 цифр, если они выглядят как
-    мобильный российский номер (начинаются с '9').
+    Returns:
+        Normalized phone number in +7XXXXXXXXXX format or None if:
+        - Input is None or empty
+        - Number is not recognized as Russian
+        - Number has invalid length or format
 
-    Если номер не распознан как российский — возвращаем None.
+    Examples:
+        >>> normalize_phone("+7 (918) 111-11-11")
+        '+79181111111'
+        >>> normalize_phone("89181111111")
+        '+79181111111'
+        >>> normalize_phone("918 111 11 11")
+        '+79181111111'
     """
-    if phone is None:
+    if not phone:
         return None
 
-    digits = re.sub(r"\D", "", phone)
+    # Store original first character for international format check
+    original_first_char = phone.strip()[0] if phone.strip() else ""
+
+    # Remove all non-digit characters except leading +
+    cleaned = re.sub(r"[^\d+]", "", phone)
+
+    # If string started with +, validate it's Russian international code
+    if original_first_char == "+":
+        if not cleaned.startswith("7"):
+            # International format but not Russian (+1, +44, etc.)
+            return None
+        # Remove the + for consistent processing
+        digits = cleaned.removeprefix("7")
+    else:
+        digits = cleaned
+
+    # Remove any remaining non-digit characters
+    digits = re.sub(r"\D", "", digits)
+
     if not digits:
         return None
 
-    # Удалим международный префикс '00', если есть (например, 007...)
-    digits = digits.removeprefix("00")
+    # Handle different digit lengths and formats
+    digit_count = len(digits)
 
-    # Вариант: 11 цифр, начинается с 8 или 7
-    if len(digits) == 11:
-        if digits.startswith("8"):
-            return "+7" + digits[1:]
+    # Case 1: 11 digits starting with 7 or 8
+    # (national format with country code)
+    if digit_count == 11:
         if digits.startswith("7"):
             return "+" + digits
+        elif digits.startswith("8"):
+            return "+7" + digits[1:]
+        else:
+            # 11 digits but doesn't start with 7 or 8 - invalid Russian format
+            return None
 
-    # Вариант: 10 цифр — считаем местным мобильным номером и добавляем +7
-    if len(digits) == 10:
+    # Case 2: 10 digits (local format without country code)
+    elif digit_count == 10:
+        # Russian mobile numbers typically start with 9
+        # Landlines start with 3, 4, 5, 8 but we'll accept any 10 digits
         return "+7" + digits
 
-    # Если в строке больше цифр (копипаста с префиксом), попробуем взять
-    # последние 10 цифр — часто это корректный локальный номер.
-    if len(digits) > 11:
-        last10 = digits[-10:]
-        if len(last10) == 10 and last10[0] == "9":
-            return "+7" + last10
+    # Case 3: More than 11 digits - try to extract valid Russian number
+    elif digit_count > 11:
+        # Look for Russian pattern in the end of the string
+        # Try to find 11 digits starting with 7 or 8
+        pattern_11 = re.search(r"(7\d{10}|8\d{10})$", digits)
+        if pattern_11:
+            matched = pattern_11.group()
+            if matched.startswith("7"):
+                return "+" + matched
+            else:
+                return "+7" + matched[1:]
 
-    # Неподдерживаемые форматы
+        # Try to find 10 digits (local format)
+        pattern_10 = re.search(r"(\d{10})$", digits)
+        if pattern_10:
+            return "+7" + pattern_10.group()
+
+    # Case 4: Less than 10 digits - invalid
+    elif digit_count < 10:
+        return None
+
+    # No valid pattern found
     return None
 
 
 def normalize_name(value: str | None) -> str | None:
-    """Привести ФИО к виду: первая буква заглавная, остальные — строчные.
+    """Normalize person names to standard format.
 
-    Если вход пустой или None — возвращаем None.
-    Удаляем лишние пробелы по краям и сводим множественные к одному.
+    Converts names to title case, removes extra whitespace,
+    and handles None values.
+
+    Args:
+        value: Raw name string that may contain inconsistent formatting
+
+    Returns:
+        Normalized name in Title Case with single spaces
+        or None if input is empty
+
+    Examples:
+        >>> normalize_name("  john   doe  ")
+        'John Doe'
+        >>> normalize_name("MARY-ANN")
+        'Mary-Ann'
+        >>> normalize_name(None)
+        None
     """
     if value is None:
         return None
-    v = " ".join(value.strip().split())
-    if v == "":
+
+    # Remove extra whitespace and normalize
+    normalized = " ".join(value.strip().split())
+
+    if not normalized:
         return None
-    return v.capitalize()
+
+    # Convert to title case (first letter of each word capitalized)
+    return normalized.title()

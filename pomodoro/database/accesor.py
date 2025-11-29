@@ -1,7 +1,7 @@
-"""Утилиты для доступа к базе данных (SQLAlchemy).
+"""Utilities for accessing the database (SQLAlchemy).
 
-Экспортирует фабрику сессий `get_db_session` для использования как
-FastAPI-зависимость.
+Exports the `get_db_session` session factory for use as a FastAPI
+dependency.
 """
 
 from sqlalchemy.ext.asyncio import (
@@ -15,9 +15,10 @@ from pomodoro.core.settings import Settings
 
 settings = Settings()
 
-# Асинхронный движок и фабрика сессий для SQLAlchemy AsyncIO
+# Async engine and session factory for SQLAlchemy AsyncIO
 engine: AsyncEngine = create_async_engine(settings.ASYNC_DB_PATH, echo=False)
 async_session_maker: async_sessionmaker[AsyncSession] = async_sessionmaker(
-    bind=engine, expire_on_commit=False,
+    bind=engine,
+    expire_on_commit=False,
     class_=AsyncSession,
-    )
+)

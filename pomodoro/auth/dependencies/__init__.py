@@ -1,1 +1,1 @@
-"""Зависимости домена авторизации."""
+"""Authorization domain dependencies."""

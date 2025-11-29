@@ -1,1 +1,1 @@
-"""Репозитории домена авторизации."""
+"""Authorization Domain repositories."""

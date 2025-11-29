@@ -1,1 +1,1 @@
-"""Модели домена авторизации."""
+"""Authorization Domain models."""

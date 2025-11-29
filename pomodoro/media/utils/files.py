@@ -24,8 +24,9 @@ logger = logging.getLogger(__name__)
 class FileChecker:
     """Validates and processes uploaded files.
 
-    Handles file type validation via magic bytes, image dimension checks,
-    aspect ratio validation, and WebP conversion for multiple variants.
+    Handles file type validation via magic bytes, image dimension
+    checks, aspect ratio validation, and WebP conversion for multiple
+    variants.
     """
 
     MIME_HEADER_SIZE = 2048
@@ -37,7 +38,7 @@ class FileChecker:
         """Initialize file processor.
 
         Args:
-            file: Uploaded file from FastAPI.
+        file: Uploaded file from FastAPI.
         """
         self.file = file
         self._file_bytes: bytes | None = None
@@ -51,17 +52,13 @@ class FileChecker:
     ) -> CreateFileSchema:
         """Validate and create file schema.
 
-        Args:
-            domain: Owner type (user/task/category).
-            owner_id: ID of the owner.
-            author_id: ID of the user uploading.
-            key: Storage key for the file.
+        Args:     domain: Owner type (user/task/category).     owner_id:
+        ID of the owner.     author_id: ID of the user uploading.
+        key: Storage key for the file.
 
-        Returns:
-            Validated CreateFileSchema instance.
+        Returns:     Validated CreateFileSchema instance.
 
-        Raises:
-            InvalidCreateFileData: If validation fails.
+        Errors:     InvalidCreateFileData: If validation fails.
         """
         try:
             mime = await self._get_real_mime()
@@ -78,17 +75,17 @@ class FileChecker:
                 exc=exc,
                 detail=(
                     f"Файл '{self.file.filename}': "
-                    f"{InvalidCreateFileData._format_errors(exc)}"
+                    f"{InvalidCreateFileData.format_errors(exc)}"
                 ),
             ) from exc
         return file_data
 
     async def process_image(self) -> dict[str, bytes]:
-        """Async wrapper that offloads CPU-bound image processing to a thread.
+        """Async wrapper that image processing to a thread.
 
-        Pillow is CPU-bound and blocks the event loop; running the work in a
-        thread prevents blocking other async tasks. This method reads the
-        bytes asynchronously then delegates the heavy work to
+        Pillow is CPU-bound and blocks the event loop; running the work
+        in a thread prevents blocking other async tasks. This method
+        reads the bytes asynchronously then delegates the heavy work to
         :meth:`_process_image_sync` via :func:`asyncio.to_thread`.
         """
         file_bytes = await self._read_file_bytes()
@@ -116,22 +113,17 @@ class FileChecker:
     ) -> CreateFileSchema:
         """Alias for validate_file for backward compatibility.
 
-        Args:
-            domain: Owner type.
-            owner_id: ID of the owner.
-            author_id: ID of the uploader.
-            key: Storage key.
+        Args:     domain: Owner type.     owner_id: ID of the owner.
+        author_id: ID of the uploader.     key: Storage key.
 
-        Returns:
-            Validated CreateFileSchema instance.
+        Returns:     Validated CreateFileSchema instance.
         """
         return await self.validate_file(domain, owner_id, author_id, key)
 
     async def _read_file_bytes(self) -> bytes:
         """Read file content and reset position.
 
-        Returns:
-            File content as bytes.
+        Returns:     File content as bytes.
         """
         if self._file_bytes is None:
             self._file_bytes = await self.file.read()
@@ -141,22 +133,21 @@ class FileChecker:
     async def _get_real_mime(self) -> str:
         """Detect actual MIME type via magic bytes.
 
-        Returns:
-            MIME type string.
+        Returns:     MIME type string.
         """
         header = await self.file.read(self.MIME_HEADER_SIZE)
         mime = magic.from_buffer(header, mime=True)
         await self.file.seek(0)
         return mime
 
-    def _validate_image_dimensions(self, img: Image.Image) -> None:
+    @staticmethod
+    def _validate_image_dimensions(img: Image.Image) -> None:
         """Validate image minimum dimensions.
 
-        Args:
-            img: PIL Image object.
+        Args:     img: PIL Image object.
 
-        Raises:
-            InvalidCreateFileData: If dimensions are below minimum.
+        Errors:     InvalidCreateFileData: If dimensions are below
+        minimum.
         """
         width, height = img.size
         min_w, min_h = settings.MIN_IMAGE_SIZE
@@ -165,19 +156,19 @@ class FileChecker:
             raise InvalidCreateFileData(
                 exc=None,
                 detail=(
-                    f"Минимальное разрешение {min_w}x{min_h}, "
-                    f"получено {width}x{height}"
+                           f"Минимальное разрешение {min_w}x{min_h}, "
+                            f"получено {width}x{height}"
                 ),
             )
 
-    def _validate_aspect_ratio(self, img: Image.Image) -> None:
+    @staticmethod
+    def _validate_aspect_ratio(img: Image.Image) -> None:
         """Validate image aspect ratio.
 
-        Args:
-            img: PIL Image object.
+        Args:     img: PIL Image object.
 
-        Raises:
-            InvalidCreateFileData: If aspect ratio doesn't match.
+        Errors:     InvalidCreateFileData: If aspect ratio doesn't
+        match.
         """
         width, height = img.size
         ratio = settings.RATIO
@@ -194,16 +185,13 @@ class FileChecker:
                 ),
             )
 
-    def _generate_variants(
-        self, img: Image.Image
-    ) -> dict[str, bytes]:
+    def _generate_variants(self, img: Image.Image) -> dict[str, bytes]:
         """Generate image variants (original, small, thumbnail).
 
-        Args:
-            img: PIL Image object.
+        Args:     img: PIL Image object.
 
-        Returns:
-            Dictionary with variant names as keys and WebP bytes as values.
+        Returns:     Dictionary with variant names as keys and WebP
+        bytes as values.
         """
         # Generate each variant and log per-variant timings inside
         original = self._convert_to_webp(img)
@@ -248,8 +236,8 @@ class FileChecker:
         """Synchronous image processing using Pillow.
 
         This method is intended to be executed in a separate thread via
-        :func:`asyncio.to_thread` to keep the async event loop responsive.
-        Adds detailed timing logs for each internal step.
+        :func:`asyncio.to_thread` to keep the async event loop
+        responsive. Adds detailed timing logs for each internal step.
         """
         with Image.open(io.BytesIO(file_bytes)) as img:
             self._validate_image_dimensions(img)

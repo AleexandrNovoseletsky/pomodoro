@@ -1,1 +1,1 @@
-"""Общие ошибки приложения."""
+"""Common application errors."""

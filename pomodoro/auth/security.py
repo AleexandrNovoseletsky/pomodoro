@@ -1,36 +1,77 @@
-"""Утилиты для хеширования паролей и создания JWT-токенов.
+"""Utilities for hashing passwords and creating JWT tokens.
 
-Модуль обеспечивает функции для верификации и генерации паролей,
-а также для создания токенов доступа (JWT).
+The module provides functions for password verification and generation,
+as well as for creating access tokens (JWT) using Argon2 for password
+hashing and JOSE for JWT operations.
 """
-
 
 from datetime import UTC, datetime
 
+from argon2 import PasswordHasher
 from jose import jwt
-from passlib.context import CryptContext
 
 from pomodoro.core.settings import Settings
 
+# Global password hasher instance with optimized security parameters
+password_hasher = PasswordHasher(
+    time_cost=2, memory_cost=19 * 1024, parallelism=1
+)
 settings = Settings()
 
-pwd_context = CryptContext(
-    schemes=[settings.CRYPTO_CONTEXT], deprecated="auto"
-)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify plain password against hashed password using Argon2.
+
+    Securely compares a plain text password with a stored hash to
+    determine if they match without exposing timing attacks.
+
+    Args:     plain_password: User-provided plain text password
+    hashed_password: Previously hashed password from database
+
+    Returns:     True if password matches the hash, False otherwise
+
+    Raises:     argon2.exceptions.VerifyMismatchError: If password
+    doesn't match hash     argon2.exceptions.VerificationError: If hash
+    format is invalid
+
+    Note:     Uses constant-time comparison to prevent timing attacks
+    """
+    return password_hasher.verify(
+        hash=hashed_password, password=plain_password
+    )
 
 
-def verify_password(plain_password, hashed_password) -> bool:
-    """Прверка пароля."""
-    return pwd_context.verify(plain_password, hashed_password)
+def get_password_hash(password: str) -> str:
+    """Generate secure password hash using Argon2id algorithm.
 
+    Creates a cryptographically secure hash of the password suitable for
+    long-term storage. Includes salt and security parameters.
 
-def get_password_hash(password) -> str:
-    """Гкнирация хэш-пароля."""
-    return pwd_context.hash(password)
+    Args:     password: Plain text password to hash
+
+    Returns:     Securely hashed password string for database storage
+
+    Note:     Uses Argon2id, the winner of Password Hashing Competition
+    (PHC)     with resistance to GPU cracking and side-channel attacks
+    """
+    return password_hasher.hash(password=password)
 
 
 def create_access_token(data: dict) -> str:
-    """Гкнирация токена."""
+    """Generate JWT access token for user authentication.
+
+    Creates a signed JWT token containing user identity and expiration
+    for API authorization. Tokens are signed with application secret.
+
+    Args:     data: Payload data to include in token (e.g., {"sub":
+    user_id})
+
+    Returns:     Encoded JWT token string for Bearer authentication
+
+    Note:     Automatically adds expiration timestamp based on
+    application settings.     Uses HS256 algorithm for signing with
+    application secret key.
+    """
     to_encode = data.copy()
     expire = datetime.now(UTC) + settings.JWT_LIFE_SPAN
     to_encode.update({"exp": expire})

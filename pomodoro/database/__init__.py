@@ -1,1 +1,1 @@
-"""Пакет для работы с базой данных."""
+"""A package for working with a database."""

@@ -1,1 +1,1 @@
-"""Зависомости домена медиа."""
+"""Media domain dependencies."""

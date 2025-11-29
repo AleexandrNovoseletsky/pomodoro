@@ -1,6 +1,8 @@
-"""HTTP-роуты для категорий (categories).
+"""HTTP routes for categories.
 
-Роуты защищены зависимостями ролей там, где это нужно.
+Provides REST API endpoints for category management operations.
+Routes are protected with role-based dependencies where necessary.
+Includes CRUD operations with appropriate authorization checks.
 """
 
 from typing import Annotated
@@ -16,21 +18,33 @@ from pomodoro.task.schemas.category import (
     UpdateCategorySchema,
 )
 from pomodoro.task.services.category_service import CategoryService
+from pomodoro.user.models.users import UserRole
 
+# Dependency annotations for consistent type checking and IDE support
 category_service_annotated = Annotated[
     CategoryService, Depends(get_category_service)
 ]
+
+# Admin-only dependency for privileged operations
 only_admin = Depends(
-    dependency=require_roles(allowed_roles=("root", "admin"))
+    dependency=require_roles(
+        allowed_roles=(UserRole.ROOT, UserRole.ADMIN)
+    )
 )
+
 router = APIRouter()
 
 
-@router.get(path="/", response_model=list[ResponseCategorySchema])
+@router.get(
+    path="/",
+    response_model=list[ResponseCategorySchema],
+    summary="Получить все категории",
+    description="Получить список всех доступных категорий. Открытый доступ."
+)
 async def get_categories(
     category_service: category_service_annotated,
 ) -> list[ResponseCategorySchema]:
-    """Получить все категории. Доступно всем."""
+    """Get all categories. Available to all users."""
     return await category_service.get_all_objects()
 
 
@@ -39,12 +53,14 @@ async def get_categories(
     response_model=ResponseCategorySchema,
     status_code=status.HTTP_201_CREATED,
     dependencies=[only_admin],
+    summary="Создать категорию",
+    description="Создание новой категории. Требуются права администратора."
 )
 async def create_category(
     body: CreateCategorySchema,
     category_service: category_service_annotated,
 ) -> Category:
-    """Создать категорию. Доступно алминистраторам."""
+    """Create category. Available to administrators only."""
     return await category_service.create_object(object_data=body)
 
 
@@ -52,13 +68,16 @@ async def create_category(
     path="/{category_id}",
     response_model=ResponseCategorySchema,
     dependencies=[only_admin],
+    summary="Обновить категорию",
+    description=("Обновление существующей категории. "
+                 "Требуются права администратора.")
 )
 async def update_category(
     category_id: int,
     body: UpdateCategorySchema,
     category_service: category_service_annotated,
 ) -> Category:
-    """Изменить категорию. Доступно администраторам."""
+    """Update category. Available to administrators only."""
     return await category_service.update_object(
         object_id=category_id, update_data=body
     )
@@ -68,10 +87,12 @@ async def update_category(
     path="/{category_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
+    summary="Удалить категорию",
+    description="Необратимо удаляет категорию. Требуются права администратора"
 )
 async def delete_category(
     category_id: int,
     category_service: category_service_annotated,
 ) -> None:
-    """Удалить категорию. Доступно администраторам."""
+    """Delete category. Available to administrators only."""
     return await category_service.delete_object(object_id=category_id)

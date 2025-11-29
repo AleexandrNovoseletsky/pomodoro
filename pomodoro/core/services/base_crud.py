@@ -1,72 +1,105 @@
-"""Базовый класс для всех сервисов. CRUD операции."""
+"""Base class for all services.
+
+CRUD operations.
+"""
+
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
 from pomodoro.core.exceptions.integrity import IntegrityDBError
 from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 from pomodoro.core.repositories.base_crud import CRUDRepository
-from pomodoro.user.models.users import UserProfile
 
 
 class CRUDService:
-    """Базовый сервис поверх CRUDRepository.
+    """Base service class providing CRUD operations.
 
-    Сервисы преобразуют ORM-объекты в Pydantic-схемы (`response_schema`).
-    Методики обработки ошибок используют исключения из
-    `pomodoro.core.exceptions`.
+    Serves as the foundation for all domain-specific services, handling
+    data transformation between ORM objects and Pydantic schemas with
+    consistent error handling and business logic encapsulation.
+
+    Attributes:     repository: CRUD repository instance for data access
+    operations     response_schema: Pydantic model class for response
+    data serialization
     """
 
     def __init__(
         self, repository: CRUDRepository, response_schema: type[BaseModel]
     ):
-        """Инициализируем базовый репозиторий."""
+        """Initialize base service with repository and response schema.
+
+        Args:     repository: Domain-specific repository for data
+        operations     response_schema: Pydantic model class for
+        response serialization
+        """
         self.repository = repository
         self.response_schema = response_schema
 
-    async def get_one_object(self, object_id: int):
-        """Получить один объект и вернуть Pydantic-валидацию.
+    async def get_one_object(self, object_id: int) -> BaseModel:
+        """Retrieve a single object by identifier with validation.
 
-        Бросает ObjectNotFoundError если объект не найден.
+        Args:     object_id: Unique identifier of the object to retrieve
+
+        Returns:     Validated Pydantic response schema instance
+
+        Raises:     ObjectNotFoundError: If no object exists with the
+        specified ID
+
+        Note:     Automatically converts ORM objects to Pydantic schemas
+        for consistent API response formatting
         """
         db_object = await self.repository.get_object(object_id=object_id)
         if db_object is None:
             raise ObjectNotFoundError(object_id=object_id)
         return self.response_schema.model_validate(obj=db_object)
 
-    async def get_all_objects(self):
-        """Получить список объектов и вернуть список Pydantic-схем."""
+    async def get_all_objects(self) -> list[BaseModel]:
+        """Retrieve all objects with schema validation.
+
+        Returns:     List of validated Pydantic response schema
+        instances
+
+        Note:     Returns empty list if no objects exist in the
+        repository
+        """
         db_objects = await self.repository.get_all_objects()
         object_schema = [
             self.response_schema.model_validate(row) for row in db_objects
         ]
         return object_schema
 
-    async def create_object(self, object_data: BaseModel):
-        """Создать объект через репозиторий и вернуть Pydantic-экземпляр."""
+    async def create_object(self, object_data: BaseModel) -> BaseModel:
+        """Create a new object with data validation.
+
+        Args:     object_data: Pydantic schema containing creation data
+
+        Returns:     Validated Pydantic response schema of the created
+        object
+
+        Raises:     IntegrityDBError: If database constraints are
+        violated     during object creation
+        """
         try:
             new_object = await self.repository.create_object(data=object_data)
         except IntegrityError as e:
             raise IntegrityDBError(exc=e) from e
         return self.response_schema.model_validate(obj=new_object)
 
-    async def create_object_with_author(
-        self,
-        object_data: BaseModel,
-        current_user: UserProfile,
-    ):
-        """Создать объект и автоматически добавить поле author_id."""
-        try:
-            data_dict = object_data.model_dump()
-            data_dict["author_id"] = current_user.id
-            # Создаём новый экземпляр той же Pydantic-схемы
-            new_input = object_data.__class__(**data_dict)
-            new_object = await self.repository.create_object(data=new_input)
-        except IntegrityError as e:
-            raise IntegrityDBError(exc=e) from e
-        return self.response_schema.model_validate(obj=new_object)
+    async def update_object(
+        self, object_id: int, update_data: BaseModel
+    ) -> BaseModel:
+        """Update an existing object with partial data and validation.
 
-    async def update_object(self, object_id: int, update_data: BaseModel):
-        """Обновить объект и вернуть Pydantic-валидированный результат."""
+        Args:     object_id: Unique identifier of the object to update
+        update_data: Pydantic schema containing update data
+
+        Returns:     Validated Pydantic response schema of the updated
+        object
+
+        Raises:     IntegrityDBError: If database constraints are
+        violated     ObjectNotFoundError: If no object exists with the
+        specified ID
+        """
         try:
             updated_object_or_none = await self.repository.update_object(
                 object_id=object_id, update_data=update_data
@@ -78,7 +111,17 @@ class CRUDService:
         return self.response_schema.model_validate(obj=updated_object_or_none)
 
     async def delete_object(self, object_id: int) -> None:
-        """Удалить объект; если его нет — бросить ObjectNotFoundError."""
+        """Delete an object by identifier with existence validation.
+
+        Args:     object_id: Unique identifier of the object to delete
+
+        Raises:     ObjectNotFoundError: If no object exists with the
+        specified ID
+
+        Note:     Returns None on successful deletion to indicate
+        operation completion     without returning data for deleted
+        resources
+        """
         deleted = await self.repository.delete_object(object_id=object_id)
         if not deleted:
             raise ObjectNotFoundError(object_id=object_id)
