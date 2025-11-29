@@ -1,1 +1,1 @@
-"""Пакет для работы с пользователями."""
+"""A package for working with users."""

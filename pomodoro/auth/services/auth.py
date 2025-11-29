@@ -1,13 +1,17 @@
-"""Сервисы авторизации."""
+"""Authentication services.
+
+Provides business logic layer for user authentication operations
+including credential-based login and OAuth integration with external
+providers. Handles user verification, token generation, and OAuth
+account linking.
+"""
 
 from pomodoro.auth.clients.yandex import YandexClient
 from pomodoro.auth.exceptions.password_incorrect import PasswordVerifyError
-from pomodoro.auth.models.oauth_accaunts import OAuthAccount
 from pomodoro.auth.repositories.auth import AuthRepository
-from pomodoro.auth.schemas.oauth import OAuthCreateORM
+from pomodoro.auth.schemas.oauth import AccessTokenSchema, OAuthCreateORM
 from pomodoro.auth.security import (
     create_access_token,
-    get_password_hash,
     verify_password,
 )
 from pomodoro.auth.services.mappers import yandex_to_user_and_oauth
@@ -15,43 +19,55 @@ from pomodoro.core.settings import Settings
 from pomodoro.user.exceptions.user_not_found import UserNotFoundError
 from pomodoro.user.models.users import UserProfile
 from pomodoro.user.repositories.user import UserRepository
-from pomodoro.user.schemas.user import (
-    CreateUserProfileORM,
-    CreateUserProfileSchema,
-    ResponseUserProfileSchema,
-    UpdateUserProfileSchema,
-)
+from pomodoro.user.schemas.user import UpdateUserProfileSchema
 
 
 class AuthService:
-    """Сервис аторизации."""
+    """Authentication service for user login and OAuth integration.
+
+    Handles both traditional credential-based authentication and OAuth
+    flows with external providers like Yandex. Manages user
+    verification, token generation, and OAuth account linking.
+
+    Attributes:     settings: Application configuration settings
+    client: Yandex OAuth client for external authentication
+    user_repo: User repository for user data operations     auth_repo:
+    Authentication repository for OAuth account management
+    """
 
     def __init__(self, user_repo: UserRepository, auth_repo: AuthRepository):
-        """Иннициализация сервиса."""
+        """Initialize authentication service with dependencies.
+
+        Args:     user_repo: User repository for user profile operations
+        auth_repo: Authentication repository for OAuth account
+        management
+        """
         self.settings = Settings()
         self.client = YandexClient()
         self.user_repo = user_repo
         self.auth_repo = auth_repo
 
-    async def register_user(
-        self, user_data: CreateUserProfileSchema
-    ) -> ResponseUserProfileSchema:
-        """Регистрация пользователя."""
-        hashed_password = get_password_hash(password=user_data.password)
-        user_dict = user_data.model_dump()
-        user_dict["hashed_password"] = hashed_password
-        del user_dict["password"]
+    async def login(self, phone: str, password: str) -> AccessTokenSchema:
+        """Authenticate user with phone and password credentials.
 
-        new_user_data = CreateUserProfileORM(**user_dict)
-        new_user = await self.user_repo.create_object(data=new_user_data)
-        return new_user
+        Performs user verification including existence check, active
+        status validation, and password verification before issuing
+        access token.
 
-    async def login(self, phone: str, password: str) -> dict[str, str]:
-        """Вход пользователя. Возвращает токен."""
-        user_or_none = await self.user_repo.get_by_phone(
-            user_phone=phone
-        )
-        if user_or_none is None or user_or_none.is_active is False:
+        Args:     phone: User's phone number used as login identifier
+        password: Plain text password for authentication
+
+        Returns:     AccessTokenSchema containing JWT token for API
+        authorization
+
+        Raises:     UserNotFoundError: If no active user exists with the
+        provided phone     PasswordVerifyError: If provided password
+        doesn't match stored hash
+        """
+        user_or_none = await self.user_repo.get_by_phone(user_phone=phone)
+        if user_or_none is None:
+            raise UserNotFoundError(phone=phone)
+        if not user_or_none.is_active:
             raise UserNotFoundError(phone=phone)
 
         verify = verify_password(
@@ -59,51 +75,66 @@ class AuthService:
             hashed_password=user_or_none.hashed_password,
         )
         if not verify:
-            raise PasswordVerifyError
+            raise PasswordVerifyError()
         access_token = create_access_token(data={"sub": str(user_or_none.id)})
-        response = {"access_token": access_token}
+        response = AccessTokenSchema(access_token=access_token)
         return response
 
     async def get_yandex_redirect_url(self) -> str:
-        """Получение ссылки для авторизации через Яндекс."""
+        """Generate Yandex OAuth authorization URL.
+
+        Returns:     Pre-configured redirect URL for Yandex OAuth
+        authorization flow
+        """
         return self.settings.get_yandex_redirect_url
 
-    async def get_yandex_auth(self, code: str) -> dict[str, str]:
-        """Получение авторизации от Яндекса. Возвращает наш токен."""
-        # Получаем данные пользователя из Яндекса
+    async def get_yandex_auth(self, code: str) -> AccessTokenSchema:
+        """Process Yandex OAuth authentication flow.
+
+        Handles complete Yandex OAuth flow including: - User data
+        retrieval from Yandex API - OAuth account linking and user
+        creation - Profile data enrichment for existing users - Access
+        token generation
+
+        Args:     code: Authorization code received from Yandex OAuth
+        redirect
+
+        Returns:     AccessTokenSchema containing JWT token for API
+        authorization
+        """
+        # Retrieve user profile data from Yandex OAuth API
         user_data = await self.client.get_user_info(code=code)
-        # Преобразуем полученные данные в схему нашего пользователя
-        # и в схему внешнего пользователя
+
+        # Transform Yandex data to application schemas
         user_schema, oauth_schema = yandex_to_user_and_oauth(data=user_data)
 
-        user: UserProfile | None = None
-        oauth_user: OAuthAccount | None = None
-
-        oauth_user = await self.auth_repo.get_by_provider_user(
+        # Check if OAuth account already exists
+        oauth_user_or_none = await self.auth_repo.get_by_provider_user(
             provider=oauth_schema.provider,
             provider_user_id=oauth_schema.provider_user_id,
         )
-        # Если внешнего пользователя ещё нет
-        if oauth_user is None:
-            # Если указан номер телефона
+
+        # Handle new OAuth user registration
+        if oauth_user_or_none is None:
+            user: UserProfile | None = None
+            # Attempt to find existing user by phone number
             if user_schema.phone is not None:
-                # Ищем у нас пользователя по номеру телефона
                 user = await self.user_repo.get_by_phone(
                     user_phone=user_schema.phone
                 )
-            # если у нас пользователь не найден, или телефон не указан,
-            # создаём нового пользователя.
+
+            # Create new user if not found
             if user is None:
                 user = await self.user_repo.create_object(data=user_schema)
             else:
-                # Попытка одноразового обогащения профиля: заполняем
-                # только отсутствующие поля (не перезаписываем существующие).
+                # Enrich existing user profile with OAuth data
                 update_data: dict = {}
-                # Список полей, которые разумно подтянуть от провайдера
+                # Update empty fields with data from OAuth provider
                 for field in ("first_name", "last_name", "birthday", "email"):
                     provider_value = getattr(user_schema, field, None)
                     current_value = getattr(user, field, None)
-                    if current_value in (None, "") and provider_value not in (
+                    # Only update if field is empty and provider has data
+                    if current_value is None and provider_value not in (
                         None,
                         "",
                     ):
@@ -114,17 +145,20 @@ class AuthService:
                         object_id=user.id,
                         update_data=UpdateUserProfileSchema(**update_data),
                     )
+
+            # Create OAuth account linking
             create_data = OAuthCreateORM(
                 **oauth_schema.model_dump(), user_id=user.id
             )
-            oauth_user = await self.auth_repo.create_object(data=create_data)
+            await self.auth_repo.create_object(data=create_data)
+
+        # Handle existing OAuth user login
         else:
             user = await self.user_repo.get_object(
-                object_id=oauth_user.user_id
+                object_id=oauth_user_or_none.user_id
             )
-            if user is None:
-                raise UserNotFoundError()
 
+        # Generate access token for authenticated user
         access_token = create_access_token(data={"sub": str(user.id)})
-        response = {"access_token": access_token}
+        response = AccessTokenSchema(access_token=access_token)
         return response

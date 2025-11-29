@@ -1,1 +1,1 @@
-"""Сервисный слой домена авторизации."""
+"""Authorization Domain services."""

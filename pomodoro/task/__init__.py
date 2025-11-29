@@ -1,1 +1,1 @@
-"""Пакет для работы с задачами bи категориями."""
+"""A package for working with tasks and categories."""

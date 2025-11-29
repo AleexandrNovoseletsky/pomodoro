@@ -1,4 +1,4 @@
-"""Роуты медиа."""
+"""Media edpoints."""
 
 import asyncio
 from typing import Annotated
@@ -11,66 +11,87 @@ from pomodoro.media.models.files import OwnerType
 from pomodoro.media.schemas.media import ResponseFileSchema
 from pomodoro.media.services.media_service import MediaService
 from pomodoro.user.dependencies.user import get_current_user
-from pomodoro.user.models.users import UserProfile
+from pomodoro.user.models.users import UserProfile, UserRole
 
-current_user_annotated = Annotated[
-    UserProfile, Depends(get_current_user)
-]
+current_user_annotated = Annotated[UserProfile, Depends(get_current_user)]
 media_service_annotated = Annotated[
-        MediaService, Depends(dependency=get_media_service)
-        ]
+    MediaService, Depends(dependency=get_media_service)
+]
 only_admin = Depends(
-    dependency=require_roles(allowed_roles=("root", "admin"))
+    dependency=require_roles(allowed_roles=(UserRole.ROOT, UserRole.ADMIN))
 )
 router = APIRouter()
 
 
 @router.get(
-        path="/{file_id}/url",
-        response_model=dict,
-        status_code=status.HTTP_200_OK,
-        )
+    path="/{file_id}/url",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="Получить ссылку на файл.",
+)
 async def get_file_url(
     file_id: int,
     media_service: media_service_annotated,
 ):
-    """Получить временную ссылку на файл."""
+    """Get a temporary link to the file.
+
+    Args:     file_id: The ID of the file we are linking to.
+    media_service: Depends on media service.
+
+    Returns:     Dict {"url": url}
+    """
     url = await media_service.get_presigned_url(file_id=file_id)
     return {"url": url}
 
 
 @router.get(
-        path="/{file_id}",
-        response_model=ResponseFileSchema,
-        status_code=status.HTTP_200_OK,
-        )
+    path="/{file_id}",
+    response_model=ResponseFileSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Получить файл по ID.",
+)
 async def get_file(
     file_id: int,
     media_service: media_service_annotated,
 ):
-    """Получение файла по ID."""
+    """Getting a file by ID.
+
+    Args:     file_id: ID of the file you are looking for.
+    media_service: Depends on media service.
+
+    Returns:     Response file schemes validated by Pydantic.
+    """
     return await media_service.get_one_object(object_id=file_id)
 
 
 @router.get(
-        path="/{domain}/{owner_id}",
-        response_model=list[ResponseFileSchema],
-        status_code=status.HTTP_200_OK,
-        )
+    path="/{domain}/{owner_id}",
+    response_model=list[ResponseFileSchema],
+    status_code=status.HTTP_200_OK,
+    summary="Получить все файлы ресурса.",
+)
 async def get_files_by_owner(
     domain: OwnerType,
     owner_id: int,
     media_service: media_service_annotated,
 ):
-    """получение всех файлов ресурса."""
+    """Getting all the resource files.
+
+    Args:     domain: Owner type. Example Task.     owner_id: Resource
+    ID. Example Task where id = 10.     media_service: Depends on media
+    service.
+
+    Returns:     List of response file schemes validated by Pydantic.
+    """
     return await media_service.get_by_owner(domain=domain, owner_id=owner_id)
 
 
 @router.post(
-        path="/{domain}/{owner_id}/upload",
-        response_model=ResponseFileSchema,
-        status_code=status.HTTP_201_CREATED,
-        )
+    path="/{domain}/{owner_id}/upload",
+    response_model=ResponseFileSchema,
+    status_code=status.HTTP_201_CREATED,
+    summary="Загрузить один файл.",
+)
 async def upload_file(
     domain: OwnerType,
     owner_id: int,
@@ -78,20 +99,28 @@ async def upload_file(
     current_user: current_user_annotated,
     file: Annotated[UploadFile, File(...)],
 ):
-    """Загрузка файла в хранилище и сохранение в БД."""
+    """Uploading a file to the storage and saving it to the database.
+
+    Args:     domain: Owner type. Example Task.     owner_id: Resource
+    ID. Example Task where id = 10.     media_service: Depends on media
+    service.     current_user: The user who made the request.
+    file:
+    upload file.
+
+    Returns:
+    Response file schemes validated by Pydantic.
+    """
     return await media_service.upload_file(
-        file=file,
-        domain=domain,
-        owner_id=owner_id,
-        current_user=current_user
+        file=file, domain=domain, owner_id=owner_id, current_user=current_user
     )
 
 
 @router.post(
-        path="/{domain}/{owner_id}/upload/multiple",
-        response_model=list[ResponseFileSchema],
-        status_code=status.HTTP_201_CREATED,
-        )
+    path="/{domain}/{owner_id}/upload/multiple",
+    response_model=list[ResponseFileSchema],
+    status_code=status.HTTP_201_CREATED,
+    summary="Загрузка нескольких файлов.",
+)
 async def upload_files(
     domain: OwnerType,
     owner_id: int,
@@ -99,9 +128,16 @@ async def upload_files(
     current_user: current_user_annotated,
     files: Annotated[list[UploadFile], File(...)],
 ):
-    """Множественная загрузка файлов."""
-    files_to_schema = []
-    semaphore = asyncio.Semaphore(5)  # максимум 5 параллельных загрузок
+    """Multiple file uploads.
+
+    Args:     domain: Owner type. Example Task.     owner_id: Resource
+    ID. Example Task where id = 10.     media_service: Depends on media
+    service.     current_user: The user who made the request.     files:
+    upload files.
+
+    Returns:     List of response file schemes validated by Pydantic.
+    """
+    semaphore = asyncio.Semaphore(5)  # Maximum of 5 parallel uploads
 
     async def sem_upload(file):
         async with semaphore:
@@ -109,7 +145,7 @@ async def upload_files(
                 file=file,
                 current_user=current_user,
                 domain=domain,
-                owner_id=owner_id
+                owner_id=owner_id,
             )
 
     tasks = [sem_upload(f) for f in files]
@@ -118,50 +154,77 @@ async def upload_files(
 
 
 @router.post(
-        path="/{domain}/{owner_id}/upload/image",
-        response_model=list[ResponseFileSchema],
-        status_code=status.HTTP_201_CREATED,
-        )
-async def upload_file(
+    path="/{domain}/{owner_id}/upload/image",
+    response_model=list[ResponseFileSchema],
+    status_code=status.HTTP_201_CREATED,
+    summary="Загрузка одного изображения.",
+    description="Создаётся три варианта изображения: "
+    "ORIGINAL (Оригинальный размер), "
+    "SMALL (Сжатое изображение), "
+    "THUMB. (Сильно сжатое изображение)",
+)
+async def upload_image(
     domain: OwnerType,
     owner_id: int,
     media_service: media_service_annotated,
     current_user: current_user_annotated,
     image: Annotated[UploadFile, File(...)],
 ):
-    """Загрузка файла в хранилище и сохранение в БД."""
+    """Uploading a file to the storage and saving it to the database.
+
+    Args:     domain: Owner type. Example Task.     owner_id: Resource
+    ID. Example Task where id = 10.     media_service: Depends on media
+    service.     current_user: The user who made the request.     image:
+    upload image.
+
+    Returns:     Response file schemes validated by Pydantic.
+    """
     return await media_service.upload_image(
         image=image,
         domain=domain,
         owner_id=owner_id,
-        current_user=current_user
+        current_user=current_user,
     )
 
 
 @router.patch(
-        path="/{file_id}/make_primary",
-        dependencies=[only_admin],
-        response_model=ResponseFileSchema,
-        status_code=status.HTTP_200_OK,
-        )
+    path="/{file_id}/make_primary",
+    dependencies=[only_admin],
+    response_model=ResponseFileSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Установить файл как главный (primary) у ресурса.",
+)
 async def make_primary(
     file_id: int,
     media_service: media_service_annotated,
 ):
-    """Устанавливает файл как основной (primary) у ресурса."""
+    """Sets the file as the primary of the resource.
+
+    Args:     file_id: ID of the file that we make the primary.
+    media_service: Depends on media service.
+
+    Returns:     Response file schemes validated by Pydantic.
+    """
     return await media_service.set_primary(file_id=file_id)
 
 
 @router.delete(
-        path="/{file_id}",
-        status_code=status.HTTP_204_NO_CONTENT,
-        dependencies=[only_admin],
-        )
+    path="/{file_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[only_admin],
+    summary="Удалить один файл.",
+)
 async def delete_file(
     file_id: int,
     media_service: media_service_annotated,
 ):
-    """Удаление файла из хранилища и БД."""
+    """Deleting a file from storage and database.
+
+    Args:     file_id: ID of the file to delete.     media_service:
+    Depends on media service.
+
+    Returns:     ''None''.
+    """
     await media_service.delete_file(file_id=file_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -170,14 +233,20 @@ async def delete_file(
     path="/{domain}/{owner_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
+    summary="Удалить все файлы указанного ресурса.",
 )
 async def delete_files_by_owner(
     domain: OwnerType,
     owner_id: int,
     media_service: media_service_annotated,
 ):
-    """Удаляет все файлы ресурса."""
-    await media_service.delete_all_by_owner(
-        owner_type=domain, owner_id=owner_id
-    )
+    """Deletes all resource files.
+
+    Args:     domain: Owner type. Example Task.     owner_id: Resource
+    ID. Example Task where id = 10.     media_service: Depends on media
+    service.
+
+    Returns:     ''None''
+    """
+    await media_service.delete_all_by_owner(domain=domain, owner_id=owner_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

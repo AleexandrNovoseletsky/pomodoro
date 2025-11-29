@@ -1,4 +1,4 @@
-"""Настройки приложения Pomodoro."""
+"""Pomodoro App Settings."""
 
 import os
 from datetime import timedelta
@@ -17,11 +17,7 @@ elif PROD:
 
 
 class Settings(BaseSettings):
-    """Основные настройки приложения Pomodoro.
-
-    Включает параметры БД, кеша, JWT, валидацию пользователей и задач,
-    а также интеграцию с Яндекс OAuth.
-    """
+    """Basic settings of the Pomodoro app."""
 
     # --- Database ---
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
@@ -32,10 +28,8 @@ class Settings(BaseSettings):
     DB_DRIVER: str = "postgresql+psycopg2://"
     ASYNC_DB_DRIVER: str = "postgresql+asyncpg://"
 
-    DB_PATH: str = (
-        f"{DB_DRIVER}{DB_USERNAME}:{DB_PASSWORD}"
-        f"@{DB_HOST}:{int(DB_PORT)}/{DB_NAME}"
-    )
+    DB_PATH: str = (f"{DB_DRIVER}{DB_USERNAME}:{DB_PASSWORD}"
+                    f"@{DB_HOST}:{int(DB_PORT)}/{DB_NAME}")
     ASYNC_DB_PATH: str = (
         f"{ASYNC_DB_DRIVER}{DB_USERNAME}:{DB_PASSWORD}"
         f"@{DB_HOST}:{int(DB_PORT)}/{DB_NAME}"
@@ -88,15 +82,15 @@ class Settings(BaseSettings):
     # --- Yandex OAuth ---
     YANDEX_CLIENT_ID: str = os.getenv(
         "YANDEX_CLIENT_ID", default="YANDEX_CLIENT_ID"
-        )
+    )
     YANDEX_CLIENT_SECRET: str = os.getenv(
         "YANDEX_CLIENT_SECRET", default="YANDEX_CLIENT_SECRET"
-        )
+    )
     YANDEX_REDIRECT_URI: str = "http://localhost:8000/auth/yandex"
 
     @property
     def get_yandex_redirect_url(self) -> str:
-        """URL для авторизации через Яндекс."""
+        """The URL for authorization via Yandex."""
         return (
             f"https://oauth.yandex.ru/authorize?response_type=code"
             f"&client_id={self.YANDEX_CLIENT_ID}"

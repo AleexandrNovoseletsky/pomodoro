@@ -21,7 +21,6 @@ dependencies = [
     "types-python-jose (>=3.5.0.20250531,<4.0.0.0)",
     "types-passlib (>=1.7.7.20250602,<2.0.0.0)",
     "python-jose (>=3.5.0,<4.0.0)",
-    "passlib (>=1.7.4,<2.0.0)",
     "asyncpg (>=0.30.0,<0.31.0)",
     "greenlet (>=3.2.4,<4.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
@@ -33,10 +32,16 @@ dependencies = [
     "python-magic (>=0.4.27,<0.5.0)",
     "webptools (>=0.0.9,<0.0.10)",
     "pillow (>=12.0.0,<13.0.0)",
+    "fastapi-limiter (>=0.1.6,<0.2.0)",
+    "black (>=25.11.0,<26.0.0)",
+    "pydocstringformatter (>=0.7.5,<0.8.0)",
 ]
 
 [tool.poetry]
 packages = [{include = "pomodoro", from = "."}]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
 
 [tool.ruff]
 line-length = 79
@@ -53,6 +58,13 @@ exclude = [
     "alembic",
     "scripts",
 ]
+
+[tool.ruff.format]
+docstring-code-line-length = 72
+docstring-code-format = true
+quote-style = "double"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.ruff.lint]
 select = [
@@ -72,17 +84,30 @@ select = [
     "DTZ",  # flake8-datetimez
     "ERA",  # eradicate
     "FURB", # refurb
+    "D",    # pydocstyle
 ]
 ignore = [
     "D203",  # или "D211", если хочешь наоборот
     "D213",  # или "D212", если хочешь второй стиль
-    "RUF002",  # Игнорирование уирилических символов
-    "RUF001",  # Игнорирование уирилических символов
-    "RUF003",  # Игнорирование уирилических символов
+    "RUF002",  # Игнорирование кирилических символов
+    "RUF001",  # Игнорирование кирилических символов
+    "RUF003",  # Игнорирование кирилических символов
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
+
+
+[tool.pydocstringformatter]
+write = true
+max-line-length = 72
+linewrap-full-docstring = true
+split-summary-body = false
+strip-whitespaces = true
+style = ["pep257"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

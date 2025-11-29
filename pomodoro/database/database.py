@@ -1,4 +1,4 @@
-"""Классы для моделей БД."""
+"""Classes for database models."""
 
 from typing import Any
 
@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
-    """Базовый класс для моделей."""
+    """Base class for models."""
 
     id: Any
     __allow_unmapped__ = True

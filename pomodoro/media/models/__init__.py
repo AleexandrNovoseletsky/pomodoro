@@ -1,1 +1,1 @@
-"""Модели домена media."""
+"""Media domain models."""

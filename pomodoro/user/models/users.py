@@ -1,4 +1,9 @@
-"""Модели пользователей."""
+"""User models.
+
+Defines database models for user management including profiles, roles,
+and relationships. Includes user authentication fields, profile
+information, and relationships to tasks and OAuth accounts.
+"""
 
 import enum
 from datetime import date
@@ -17,7 +22,13 @@ settings = Settings()
 
 
 class UserRole(enum.StrEnum):
-    """Роли пользователей."""
+    """User role enumeration for access control.
+
+    Defines hierarchical user roles for permission management: - ROOT:
+    System administrator with full access - ADMIN: Administrative user
+    with elevated privileges - USER: Regular application user with
+    standard access
+    """
 
     ROOT = "root"
     ADMIN = "admin"
@@ -25,7 +36,23 @@ class UserRole(enum.StrEnum):
 
 
 class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
-    """Модель пользователя."""
+    """User profile model for user management and authentication.
+
+    Represents user entities with comprehensive profile information,
+    authentication credentials, and relationships to other system
+    entities. Includes timestamp tracking and active status management.
+
+    Attributes:     id: Primary key identifier     phone: Unique phone
+    number for authentication     phone_verified: Phone number
+    verification status     first_name: User's first name     last_name:
+    User's last name     patronymic: User's patronymic/middle name
+    birthday: User's date of birth     email: Unique email address
+    email_verified: Email verification status     hashed_password:
+    Securely stored password hash     about: User biography or
+    description     role: User role for access control     tasks:
+    Relationship to user's tasks with cascade deletion
+    oauth_accounts: Relationship to OAuth accounts with cascade deletion
+    """
 
     __tablename__ = "user_profiles"
 
@@ -54,12 +81,12 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
         String(50), nullable=False, default=UserRole.USER.value
     )
     tasks = relationship(
-        "Task",
+        argument="Task",
         back_populates="author",
         cascade="all, delete-orphan",
     )
     oauth_accounts = relationship(
-        "OAuthAccount",
+        argument="OAuthAccount",
         back_populates="user",
         cascade="all, delete-orphan",
     )

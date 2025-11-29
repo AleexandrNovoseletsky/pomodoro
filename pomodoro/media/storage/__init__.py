@@ -1,1 +1,1 @@
-"""Реализация доступа к файлам хранилища S3."""
+"""Implementing access to S3 storage files."""

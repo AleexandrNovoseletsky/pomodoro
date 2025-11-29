@@ -1,1 +1,1 @@
-"""Ошибки домена авторизации."""
+"""Authorization domain errors."""

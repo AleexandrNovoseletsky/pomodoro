@@ -1,1 +1,1 @@
-"""Клиенты для провайдеров авторизации."""
+"""Clients for authorization providers."""

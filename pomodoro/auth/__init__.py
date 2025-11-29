@@ -1,1 +1,1 @@
-"""Пакет для аутентификации и авторизации пользователей."""
+"""A package for user authentication and authorization."""

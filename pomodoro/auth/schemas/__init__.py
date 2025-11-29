@@ -1,1 +1,1 @@
-"""Схкмы домена авторизации."""
+"""Authorization Domain schemas."""
