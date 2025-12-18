@@ -12,7 +12,7 @@ from pomodoro.task.repositories.category import CategoryRepository
 from pomodoro.task.schemas.category import ResponseCategorySchema
 
 
-class CategoryService(CRUDService):
+class CategoryService(CRUDService[ResponseCategorySchema]):
     """Category service inheriting from base CRUD service.
 
     Extends base CRUD operations with category-specific business logic

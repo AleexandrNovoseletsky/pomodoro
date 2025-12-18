@@ -21,14 +21,15 @@ class LoginForm:
 
     def __init__(
         self,
-        phone: str = Form(..., alias="username"),
+        username: str = Form(...),
         password: str = Form(...),
     ):
         """Initialize login form with user credentials.
 
-        Args:     phone: Phone number serving as user identifier, mapped
-        from 'username' field            for OAuth2 compatibility
-        password: User password for authentication verification
+        Args:
+            username: Phone number serving as user identifier, mapped
+                   from 'username' field for OAuth2 compatibility
+            password: User password for authentication verification
         """
-        self.phone = phone
+        self.username = username
         self.password = password

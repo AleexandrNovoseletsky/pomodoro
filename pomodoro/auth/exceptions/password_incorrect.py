@@ -27,13 +27,18 @@ class PasswordVerifyError(AppException):
     def __init__(self, detail: str | None = None):
         """Initialize password verification error.
 
-        Args:     detail: Custom error message for specific
-        authentication failure scenarios.            Uses generic
-        "Invalid login or password" message if not provided
-        to avoid revealing whether username or password was incorrect.
+        Args:
+            detail: Custom error message for specific
+                    authentication failure scenarios.
+                    Uses generic
+                    "Invalid login or password"
+                    message if not provided
+                    to avoid revealing whether username
+                    or password was incorrect.
 
-        Note:     Generic error messaging is used for security to
-        prevent user enumeration     attacks that could determine which
-        usernames exist in the system.
+        Note:
+            Generic error messaging is used for security to
+            prevent user enumeration attacks that could determine which
+            usernames exist in the system.
         """
         super().__init__(detail or "Неверный логин или пароль.")

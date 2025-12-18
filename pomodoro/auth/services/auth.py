@@ -21,6 +21,13 @@ from pomodoro.user.models.users import UserProfile
 from pomodoro.user.repositories.user import UserRepository
 from pomodoro.user.schemas.user import UpdateUserProfileSchema
 
+PROFILE_FIELDS_TO_ENRICH = (
+    "first_name",
+    "last_name",
+    "birthday",
+    "email",
+)
+
 
 class AuthService:
     """Authentication service for user login and OAuth integration.
@@ -65,6 +72,8 @@ class AuthService:
         doesn't match stored hash
         """
         user_or_none = await self.user_repo.get_by_phone(user_phone=phone)
+        if user_or_none.hashed_password is None:
+            raise PasswordVerifyError(detail="Этот аккаунт создан через OAuth.")
         if user_or_none is None:
             raise UserNotFoundError(phone=phone)
         if not user_or_none.is_active:
@@ -130,7 +139,7 @@ class AuthService:
                 # Enrich existing user profile with OAuth data
                 update_data: dict = {}
                 # Update empty fields with data from OAuth provider
-                for field in ("first_name", "last_name", "birthday", "email"):
+                for field in PROFILE_FIELDS_TO_ENRICH:
                     provider_value = getattr(user_schema, field, None)
                     current_value = getattr(user, field, None)
                     # Only update if field is empty and provider has data

@@ -13,7 +13,7 @@ from pomodoro.core.repositories.base_crud import CRUDRepository
 from pomodoro.user.models.users import UserProfile
 
 
-class UserRepository(CRUDRepository):
+class UserRepository(CRUDRepository[UserProfile]):
     """User repository inheriting from base CRUD repository.
 
     Provides data access operations for UserProfile entities with
@@ -35,13 +35,16 @@ class UserRepository(CRUDRepository):
     async def get_by_phone(self, user_phone: str) -> UserProfile | None:
         """Find user by phone number.
 
-        Args:     user_phone: Phone number to search for
+        Args:
+            user_phone: Phone number to search for
 
-        Returns:     UserProfile instance if found, None if no user with
-        given phone exists
+        Returns:
+            UserProfile instance if found, None if no user with
+            given phone exists
 
-        Note:     Phone numbers are expected to be in normalized format
-        for accurate matching
+        Note:
+            - Phone numbers are expected to be in normalized format
+              for accurate matching
         """
         async with self.sessionmaker() as session:
             query = select(UserProfile).where(UserProfile.phone == user_phone)
