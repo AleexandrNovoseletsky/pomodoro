@@ -7,12 +7,12 @@ registered globally.
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi_limiter import FastAPILimiter
 
 from pomodoro.auth.handlers.auth import router as auth_router
 from pomodoro.core.exceptions.base import AppException
-from pomodoro.core.handlers.exceptions_handlers import app_exception_handler
+from pomodoro.core.handlers.exceptions_handlers import app_exception_handler, http_exception_handler
 from pomodoro.database.cache.accesor import (
     create_redis_connection,
 )
@@ -63,6 +63,7 @@ app = FastAPI(
 
 # Register custom application exception handler globally
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
 
 # Connect routers. Prefixes are specified here
 # (handlers don't specify prefixes)

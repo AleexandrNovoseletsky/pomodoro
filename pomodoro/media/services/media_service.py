@@ -41,7 +41,7 @@ from pomodoro.user.repositories.user import UserRepository
 settings = Settings()
 
 
-class MediaService(CRUDService):
+class MediaService(CRUDService[ResponseFileSchema]):
     """Media file management service.
 
     Provides comprehensive file operations including upload, processing,

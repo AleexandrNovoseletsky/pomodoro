@@ -7,32 +7,18 @@ access patterns.
 """
 
 from datetime import UTC, datetime
-from typing import Any, Protocol, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.orm import Mapped
+
+from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
+
+ORMModel = TypeVar("ORMModel")
 
 
-class HasId(Protocol):
-    """Protocol for ORM models with id and updated_at fields.
-
-    Defines the minimum interface required for CRUD operations, ensuring
-    models have primary key and timestamp tracking capabilities.
-
-    Attributes:     id: Primary key identifier for the model
-    updated_at: Timestamp tracking for last modification
-    """
-
-    id: Mapped[int]
-    updated_at: Mapped[datetime]
-
-
-T = TypeVar("T", bound=HasId)
-
-
-class CRUDRepository[T]:
+class CRUDRepository(Generic[ORMModel]):
     """Asynchronous CRUD repository with generic type support.
 
     Provides standard Create, Read, Update, Delete operations for
@@ -43,7 +29,9 @@ class CRUDRepository[T]:
     operations     orm_model: SQLAlchemy model class for ORM operations
     """
 
-    def __init__(self, sessionmaker: async_sessionmaker, orm_model: type[Any]):
+    def __init__(
+            self, sessionmaker: async_sessionmaker, orm_model: type[ORMModel]
+    ):
         """Initialize repository with database session.
 
         Args:     sessionmaker: Async session factory for database
@@ -53,7 +41,7 @@ class CRUDRepository[T]:
         self.sessionmaker = sessionmaker
         self.orm_model = orm_model
 
-    async def create_object(self, data: BaseModel) -> T:
+    async def create_object(self, data: BaseModel) -> ORMModel:
         """Create a new model instance in the database.
 
         Persists a new entity using provided Pydantic schema data within
@@ -76,25 +64,47 @@ class CRUDRepository[T]:
             await session.refresh(obj)
             return obj
 
-    async def get_object(self, object_id: int) -> T | None:
+    async def get_object(self, object_id: int) -> ORMModel | None:
         """Retrieve a single model instance by primary key.
 
-        Args:     object_id: Primary key identifier of the target object
+        Args:
+            object_id: Primary key identifier of the target object
 
-        Returns:     Model instance if found, None if no object exists
-        with given ID
+        Returns:
+            Model instance if found, None if no object exists
+            with given ID
 
-        Note:     Uses scalar_one_or_none() to safely handle missing
-        objects     without raising exceptions for non-existent IDs
+        Note:
+             Uses scalar_one_or_none() to safely handle missing
+             objects without raising exceptions for non-existent IDs
         """
         async with self.sessionmaker() as session:
+            # External users from suppliers may not have digital ID.
             pk_attr: Any = self.orm_model.id
+
             result = await session.execute(
                 select(self.orm_model).where(pk_attr == object_id)
             )
             return result.scalar_one_or_none()
 
-    async def get_all_objects(self) -> list[T]:
+    async def get_one_object_or_raise(self, object_id: int) -> ORMModel:
+        """Retrieve a single model or raise.
+
+        Args:
+            object_id: Primary key identifier of the target object
+
+        Returns:
+            Model instance if found
+
+        Raises:
+            ObjectNotFoundError: If no object exists
+        """
+        obj = await self.get_object(object_id=object_id)
+        if obj is None:
+            raise ObjectNotFoundError(object_id=object_id)
+        return obj
+
+    async def get_all_objects(self) -> list[ORMModel]:
         """Retrieve all model instances from the database table.
 
         Returns:     List containing all model instances in the table
@@ -107,7 +117,7 @@ class CRUDRepository[T]:
 
     async def update_object(
         self, object_id: int, update_data: BaseModel
-    ) -> T | None:
+    ) -> ORMModel | None:
         """Update an existing model instance with partial data.
 
         Modifies specified fields of an existing entity while preserving
@@ -127,11 +137,13 @@ class CRUDRepository[T]:
         """
         async with self.sessionmaker() as session:
             async with session.begin():
+                # External users from suppliers may not have digital ID.
                 pk_attr: Any = self.orm_model.id
+
                 result = await session.execute(
                     select(self.orm_model).where(pk_attr == object_id)
                 )
-                obj = result.scalar_one_or_none()
+                obj = result.scalars().one_or_none()
                 if obj is None:
                     return None
 
@@ -160,7 +172,9 @@ class CRUDRepository[T]:
         flag for data preservation.
         """
         async with self.sessionmaker() as session:
+            # External users from suppliers may not have digital ID.
             pk_attr: Any = self.orm_model.id
+
             async with session.begin():
                 result = await session.execute(
                     delete(self.orm_model).where(pk_attr == object_id)

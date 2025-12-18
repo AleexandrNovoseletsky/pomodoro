@@ -242,6 +242,22 @@ frozenlist = ">=1.1.0"
 typing-extensions = {version = ">=4.2", markers = "python_version < \"3.13\""}
 
 [[package]]
+name = "aiosmtplib"
+version = "5.0.0"
+description = "asyncio SMTP client"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "aiosmtplib-5.0.0-py3-none-any.whl", hash = "sha256:95eb0f81189780845363ab0627e7f130bca2d0060d46cd3eeb459f066eb7df32"},
+    {file = "aiosmtplib-5.0.0.tar.gz", hash = "sha256:514ac11c31cb767c764077eb3c2eb2ae48df6f63f1e847aeb36119c4fc42b52d"},
+]
+
+[package.extras]
+docs = ["furo (>=2023.9.10)", "sphinx (>=7.0.0)", "sphinx-autodoc-typehints (>=1.24.0)", "sphinx-copybutton (>=0.5.0)"]
+uvloop = ["uvloop (>=0.18)"]
+
+[[package]]
 name = "alembic"
 version = "1.16.5"
 description = "A database migration tool for SQLAlchemy."
@@ -520,14 +536,14 @@ crt = ["awscrt (==0.27.6)"]
 
 [[package]]
 name = "certifi"
-version = "2025.10.5"
+version = "2025.11.12"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "certifi-2025.10.5-py3-none-any.whl", hash = "sha256:0f212c2744a9bb6de0c56639a6f68afe01ecd92d91f14ae897c4fe7bbeeef0de"},
-    {file = "certifi-2025.10.5.tar.gz", hash = "sha256:47c09d31ccf2acf0be3f701ea53595ee7e0b8fa08801c6624be771df09ae7b43"},
+    {file = "certifi-2025.11.12-py3-none-any.whl", hash = "sha256:97de8790030bbd5c2d96b7ec782fc2f7820ef8dba6db909ccf95449f2d062d4b"},
+    {file = "certifi-2025.11.12.tar.gz", hash = "sha256:d8ab5478f2ecd78af242878415affce761ca6bc54a22a27e026d7c25357c3316"},
 ]
 
 [[package]]
@@ -2686,4 +2702,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "c74ecbdae968d7a083bc772fcadff75182041b21342fd355a2ef3a036bf8e69f"
+content-hash = "7961d2c6b0f44b588e01642bb0b0cd8c8f90dacad85f0abde1da36645ff74f20"

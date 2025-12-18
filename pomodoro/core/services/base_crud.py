@@ -2,6 +2,7 @@
 
 CRUD operations.
 """
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -10,8 +11,12 @@ from pomodoro.core.exceptions.integrity import IntegrityDBError
 from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 from pomodoro.core.repositories.base_crud import CRUDRepository
 
+ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
 
-class CRUDService:
+
+class CRUDService(
+    Generic[ResponseSchema]
+):
     """Base service class providing CRUD operations.
 
     Serves as the foundation for all domain-specific services, handling
@@ -24,7 +29,7 @@ class CRUDService:
     """
 
     def __init__(
-        self, repository: CRUDRepository, response_schema: type[BaseModel]
+        self, repository: CRUDRepository, response_schema: type[ResponseSchema]
     ):
         """Initialize base service with repository and response schema.
 
@@ -35,7 +40,7 @@ class CRUDService:
         self.repository = repository
         self.response_schema = response_schema
 
-    async def get_one_object(self, object_id: int) -> BaseModel:
+    async def get_one_object(self, object_id: int) -> ResponseSchema:
         """Retrieve a single object by identifier with validation.
 
         Args:     object_id: Unique identifier of the object to retrieve
@@ -53,7 +58,7 @@ class CRUDService:
             raise ObjectNotFoundError(object_id=object_id)
         return self.response_schema.model_validate(obj=db_object)
 
-    async def get_all_objects(self) -> list[BaseModel]:
+    async def get_all_objects(self) -> list[ResponseSchema]:
         """Retrieve all objects with schema validation.
 
         Returns:     List of validated Pydantic response schema
@@ -68,7 +73,7 @@ class CRUDService:
         ]
         return object_schema
 
-    async def create_object(self, object_data: BaseModel) -> BaseModel:
+    async def create_object(self, object_data: BaseModel) -> ResponseSchema:
         """Create a new object with data validation.
 
         Args:     object_data: Pydantic schema containing creation data
@@ -87,7 +92,7 @@ class CRUDService:
 
     async def update_object(
         self, object_id: int, update_data: BaseModel
-    ) -> BaseModel:
+    ) -> ResponseSchema:
         """Update an existing object with partial data and validation.
 
         Args:     object_id: Unique identifier of the object to update

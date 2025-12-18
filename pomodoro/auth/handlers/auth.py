@@ -49,7 +49,8 @@ async def register_user(
 ) -> ResponseUserProfileSchema:
     """User Registration.
 
-    Returns:     The scheme of the new user.
+    Returns:
+        The scheme of the new user.
     """
     return await user_service.create_user(user_data=body)
 
@@ -67,11 +68,14 @@ async def login_user(
 ) -> AccessTokenSchema:
     """User Login.
 
-    Returns:     {     "access_token": access_token,     "token_type":
-    bearer     }
+    Returns:
+        {
+        "access_token": access_token,
+        "token_type": bearer
+        }
     """
     return await auth_service.login(
-        phone=form_data.phone, password=form_data.password
+        phone=form_data.username, password=form_data.password
     )
 
 

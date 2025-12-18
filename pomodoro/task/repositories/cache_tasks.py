@@ -28,8 +28,9 @@ class TaskCacheRepository:
     def __init__(self, cache_session: Redis) -> None:
         """Initialize repository with Redis cache session.
 
-        Args:     cache_session: Authenticated Redis client for cache
-        operations
+        Args:
+            cache_session: Authenticated Redis client for cache
+                            operations
         """
         self.cache_session = cache_session
 

@@ -18,16 +18,20 @@ from pomodoro.task.schemas.task import (
 )
 from pomodoro.task.services.task_service import TaskService
 from pomodoro.user.dependencies.user import get_current_user
-from pomodoro.user.models.users import UserProfile
+from pomodoro.user.models.users import UserProfile, UserRole
 
 # User who made the request
 current_user_annotated = Annotated[UserProfile, Depends(get_current_user)]
+
 # Check if user is resource owner or has admin roles
+root = UserRole.ROOT
+admin = UserRole.ADMIN
 owner_or_admin_depends = Depends(
     dependency=require_owner_or_roles(
-        resource_getter=get_task_resource, allowed_roles=("root", "admin")
+        resource_getter=get_task_resource, allowed_roles=(root, admin)
     )
 )
+
 # Annotated dependency for task service injection
 task_service_annotated = Annotated[
     TaskService, Depends(dependency=get_task_service)

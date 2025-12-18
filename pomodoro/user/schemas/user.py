@@ -16,7 +16,7 @@ from pomodoro.user.models.users import UserRole
 
 settings = Settings()
 
-# Field length constraints for user names
+# Field length constraints for usernames
 name_field_params: dict = {
     "min_length": settings.MIN_USER_NAME_LENGTH,
     "max_length": settings.MAX_USER_NAME_LENGTH,
@@ -80,8 +80,9 @@ class CreateUserProfileORM(BaseUserProfileSchema):
     storage. Used internally for database operations after password
     hashing.
 
-    Attributes:     hashed_password: Securely hashed password for
-    database storage
+    Attributes:
+        hashed_password: Securely hashed password for
+        database storage
     """
 
     hashed_password: str
@@ -124,8 +125,66 @@ class UpdateUserProfileSchema(BaseUserProfileSchema):
     Extends base schema with optional email verification field for
     administrative updates. All fields are optional for partial updates.
 
-    Attributes:     email_verified: Optional email verification status
-    update
+    Attributes:
+        email_verified: Optional email verification status update
     """
 
     email_verified: bool | None = None
+
+
+class SetPasswordSchema(BaseModel):
+    """Schema for set or set user password.
+
+    Attributes:
+        new_password: New user password
+    """
+    new_password: str
+
+
+class ChangePasswordSchema(SetPasswordSchema):
+    """Schema for change user password.
+
+    Attributes:
+        old_password: Old user password
+    """
+    old_password: str
+
+class UpdatePasswordORMSchema(BaseModel):
+    """Schemas for update password in BD.
+
+    Attributes:
+        hashed_password: Securely hashed password for
+        database storage
+    """
+    hashed_password: str
+
+
+class ResetPasswordSchema(BaseModel):
+    """Schema for reset password.
+
+    Attributes:
+        phone: user phone
+    """
+    phone: str
+
+
+class CheckRecoveryCodeSchema(BaseModel):
+    """Schema for check recovery password code.
+
+    Attributes:
+        recovery_id: ID recovery session
+        recovery_code: Password reset code sent to the user
+
+    """
+    recovery_id: str
+    recovery_code: int
+
+
+class ConfirmResetPasswordSchema(SetPasswordSchema):
+    """Schema for confirm reset password via recovery token.
+
+    Attributes:
+        token: Password recovery token
+        new_password: New user password
+    """
+    token: str

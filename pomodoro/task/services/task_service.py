@@ -14,25 +14,21 @@ from pomodoro.media.models.files import OwnerType
 from pomodoro.media.services.media_service import MediaService
 from pomodoro.task.repositories.cache_tasks import TaskCacheRepository
 from pomodoro.task.repositories.task import TaskRepository
-from pomodoro.task.schemas.task import ResponseTaskSchema
-
-# Type hints for base CRUDService class
-# Indicates that create and update schemas inherit from base class
-TCreate = TypeVar("TCreate", bound=BaseModel)
-TUpdate = TypeVar("TUpdate", bound=BaseModel)
+from pomodoro.task.schemas.task import ResponseTaskSchema, UpdateTaskSchema
 
 
-class TaskService(CRUDService):
+class TaskService(CRUDService[ResponseTaskSchema]):
     """Task service inheriting from base CRUD service.
 
     Extends base CRUD operations with task-specific business logic
     including Redis caching, media file management, and cache
     invalidation.
 
-    Attributes:     media_service: Media service instance for file
-    operations     cache_repo: Cache repository for Redis operations
-    task_repo: Task repository for data access     response_schema:
-    Response schema for data serialization
+    Attributes:
+        media_service: Media service instance for file operations
+        cache_repo: Cache repository for Redis operations
+        task_repo: Task repository for data access
+        response_schema: Response schema for data serialization
     """
 
     def __init__(
@@ -48,11 +44,11 @@ class TaskService(CRUDService):
         media_service: Media service for file management
         """
         self.media_service = media_service
+        self.cache_repo = cache_repo
+        self.task_repo = task_repo
         super().__init__(
             repository=task_repo, response_schema=ResponseTaskSchema
         )
-        self.cache_repo = cache_repo
-        self.task_repo = task_repo
 
     async def get_all_objects(self) -> list[ResponseTaskSchema]:
         """Retrieve all tasks with cache fallback strategy.
@@ -97,7 +93,7 @@ class TaskService(CRUDService):
     async def update_object(
         self,
         object_id: int,
-        update_data: TUpdate,
+        update_data: UpdateTaskSchema,
     ) -> ResponseTaskSchema:
         """Update task and refresh cache for data consistency.
 

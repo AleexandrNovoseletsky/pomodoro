@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     CACHE_PORT: int = int(os.getenv("CACHE_PORT", default=6379))
     CACHE_DB_NAME: int = int(os.getenv("CACHE_DB_NAME", default=0))
     CACHE_LIFESPAN: int = 600  # seconds
+    RECOVERY_PASSWORD_CODE_LIFESPAN: int = 180 # seconds
 
     # --- S3 storage
     S3_ENDPOINT: str = os.getenv("S3_ENDPOINT", default="http://minio:9000")
@@ -78,6 +79,13 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 5 * 1024 * 1024
     SMALL_WIDTH: int = 1024
     THUMB_WIDTH: int = 256
+
+    # --- Email ---
+    SMTP_HOST: str = os.getenv("SMTP_HOST", default="smtp.yandex.ru")
+    SMTP_PORT: int = 465
+    SMTP_USER: str = os.getenv("SMTP_USER", default="email_user")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", default="password")
+    EMAIL_FROM: str = SMTP_USER
 
     # --- Yandex OAuth ---
     YANDEX_CLIENT_ID: str = os.getenv(

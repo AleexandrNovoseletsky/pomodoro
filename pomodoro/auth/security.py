@@ -8,6 +8,7 @@ hashing and JOSE for JWT operations.
 from datetime import UTC, datetime
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from jose import jwt
 
 from pomodoro.core.settings import Settings
@@ -36,13 +37,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
     Note:     Uses constant-time comparison to prevent timing attacks
     """
-    return password_hasher.verify(
-        hash=hashed_password, password=plain_password
-    )
+    try:
+        return password_hasher.verify(
+            hash=hashed_password, password=plain_password
+        )
+    except VerifyMismatchError:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    """Generate secure password hash using Argon2id algorithm.
+    """Generate secure password hash.
 
     Creates a cryptographically secure hash of the password suitable for
     long-term storage. Includes salt and security parameters.
@@ -50,9 +54,6 @@ def get_password_hash(password: str) -> str:
     Args:     password: Plain text password to hash
 
     Returns:     Securely hashed password string for database storage
-
-    Note:     Uses Argon2id, the winner of Password Hashing Competition
-    (PHC)     with resistance to GPU cracking and side-channel attacks
     """
     return password_hasher.hash(password=password)
 
