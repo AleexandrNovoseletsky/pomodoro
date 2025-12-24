@@ -19,10 +19,12 @@ settings = Settings()
 def name_field(default: Any):
     """Field constraints for task name length validation.
 
-    Args:     default: Default value for the field
+    Args:
+        default: Default value for the field
 
-    Returns:     Field configuration with length constraints and
-    description
+    Returns:
+        Field configuration with length constraints and
+        description
     """
     return Field(
         default,
@@ -35,10 +37,12 @@ def name_field(default: Any):
 def pomodoro_count_field(default: Any):
     """Field constraints for pomodoro count duration validation.
 
-    Args:     default: Default value for the field
+    Args:
+        default: Default value for the field
 
-    Returns:     Field configuration with minimum and maximum value
-    constraints
+    Returns:
+        Field configuration with minimum and maximum value
+        constraints
     """
     return Field(
         default, ge=settings.MIN_POMODORO_COUNT, le=settings.MAX_POMODORO_COUNT
@@ -50,10 +54,12 @@ class CreateTaskSchema(BaseModel):
 
     Validates and sanitizes input data when creating new tasks via API.
 
-    Attributes:     name: Task name with length validation
-    pomodoro_count: Number of pomodoro intervals with range validation
-    category_id: Associated category identifier     is_active: Optional
-    active status flag
+    Attributes:
+        name: Task name with length validation
+        pomodoro_count: Number of pomodoro intervals
+                        with range validation
+        category_id: Associated category identifier
+        is_active: Optional active status flag
     """
 
     name: str = name_field(...)
@@ -68,8 +74,9 @@ class CreateTaskORM(CreateTaskSchema):
     Extends creation schema with system-generated author identifier for
     internal database operations.
 
-    Attributes:     author_id: System-provided identifier of task
-    creator
+    Attributes:
+        author_id: System-provided identifier of task
+                    creator
     """
 
     author_id: int
@@ -81,10 +88,12 @@ class ResponseTaskSchema(CreateTaskSchema):
     Extends creation schema with system-generated fields for complete
     task representation in API responses.
 
-    Attributes:     id: System-generated task identifier     author_id:
-    Identifier of task creator     is_active: Current active status
-    created_at: Timestamp of task creation     updated_at: Timestamp of
-    last task modification
+    Attributes:
+         id: System-generated task identifier
+         author_id: Identifier of task creator
+         is_active: Current active status
+        created_at: Timestamp of task creation
+        updated_at: Timestamp of last task modification
     """
 
     id: int
@@ -103,9 +112,11 @@ class UpdateTaskSchema(BaseModel):
     Used for PATCH operations where only specific fields need
     modification.
 
-    Attributes:     name: Optional task name update     pomodoro_count:
-    Optional pomodoro count update     category_id: Optional category
-    reassignment     is_active: Optional active status update
+    Attributes:
+        name: Optional task name update
+        pomodoro_count: Optional pomodoro count update
+        category_id: Optional category reassignment
+        is_active: Optional active status update
     """
 
     name: str | None = name_field(None)
