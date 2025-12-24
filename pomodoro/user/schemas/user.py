@@ -5,23 +5,35 @@ API communication. Includes schemas for creation, database operations,
 response, and update operations with proper field constraints and
 validation rules for user profile management.
 """
-
+import re
 from datetime import date, datetime
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from pomodoro.core.settings import Settings
-from pomodoro.task.schemas.task import name_field
+from pomodoro.core.validators.password import password_field_validator
 from pomodoro.user.models.users import UserRole
 
 settings = Settings()
 
-# Field length constraints for usernames
-name_field_params: dict = {
-    "min_length": settings.MIN_USER_NAME_LENGTH,
-    "max_length": settings.MAX_USER_NAME_LENGTH,
-    "description": "User first name, last name, or patronymic",
-}
+
+def name_field(default: Any):
+    """Field constraints for user's name length validation.
+
+    Args:
+        default: Default value for the field
+
+    Returns:
+        Field configuration with length constraints and
+        description
+    """
+    return Field(
+        default,
+        min_length=settings.MIN_USER_NAME_LENGTH,
+        max_length=settings.MAX_USER_NAME_LENGTH,
+        description="User first name, last name or middle name",
+    )
 
 
 class BaseUserProfileSchema(BaseModel):
@@ -30,12 +42,16 @@ class BaseUserProfileSchema(BaseModel):
     Defines common user profile fields with validation constraints used
     across multiple operation types.
 
-    Attributes:     phone: Normalized phone number in +7 format
-    first_name: User's first name with length validation     last_name:
-    User's last name with length validation     patronymic: User's
-    patronymic/middle name with length validation     birthday: User's
-    date of birth     email: User's email address with length validation
-    about: User biography or description with length validation
+    Attributes:
+        phone: Normalized phone number in +7 format
+        first_name: User's first name with length validation
+        last_name: User's last name with length validation
+        patronymic: User's patronymic/middle name
+                    with length validation
+        birthday: User's date of birth
+        email: User's email address with length validation
+        about: User biography or description
+               with length validation
     """
 
     phone: str | None = Field(
@@ -43,12 +59,7 @@ class BaseUserProfileSchema(BaseModel):
     )
     first_name: str | None = name_field(None)
     last_name: str | None = name_field(None)
-    patronymic: str | None = Field(
-        None,
-        min_length=settings.MIN_USER_NAME_LENGTH,
-        max_length=settings.MAX_USER_NAME_LENGTH,
-        description="Patronymic",
-    )
+    patronymic: str | None = name_field(None)
 
     birthday: date | None = None
     email: str | None = Field(None, max_length=settings.MAX_EMAIL_LENGTH)
@@ -66,11 +77,14 @@ class CreateUserProfileSchema(BaseUserProfileSchema):
     Extends base schema with password field for initial user
     registration.
 
-    Attributes:     password: Plain text password for initial
-    authentication setup
+    Attributes:
+        password: Plain text password for initial
+                  authentication setup
     """
 
     password: str | None = Field(None, min_length=settings.MIN_PASSWORD_LENGTH)
+
+    _validate_password = password_field_validator("password")
 
 
 class CreateUserProfileORM(BaseUserProfileSchema):
@@ -139,6 +153,8 @@ class SetPasswordSchema(BaseModel):
         new_password: New user password
     """
     new_password: str
+
+    _validate_password = password_field_validator("new_password")
 
 
 class ChangePasswordSchema(SetPasswordSchema):
