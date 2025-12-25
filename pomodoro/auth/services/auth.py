@@ -61,15 +61,23 @@ class AuthService:
         status validation, and password verification before issuing
         access token.
 
-        Args:     phone: User's phone number used as login identifier
-        password: Plain text password for authentication
+        Args:
+            phone:
+                User's phone number used as login identifier
+            password:
+                Plain text password for authentication
 
-        Returns:     AccessTokenSchema containing JWT token for API
-        authorization
+        Returns:
+            AccessTokenSchema containing JWT token for API
+            authorization
 
-        Raises:     UserNotFoundError: If no active user exists with the
-        provided phone     PasswordVerifyError: If provided password
-        doesn't match stored hash
+        Raises:
+            UserNotFoundError:
+                If no active user exists
+                with the provided phone
+            PasswordVerifyError:
+                If provided password doesn't match
+                stored hash
         """
         user_or_none = await self.user_repo.get_by_phone(user_phone=phone)
         if user_or_none.hashed_password is None:
@@ -92,8 +100,9 @@ class AuthService:
     async def get_yandex_redirect_url(self) -> str:
         """Generate Yandex OAuth authorization URL.
 
-        Returns:     Pre-configured redirect URL for Yandex OAuth
-        authorization flow
+        Returns:
+            Pre-configured redirect URL for Yandex OAuth
+            authorization flow
         """
         return self.settings.get_yandex_redirect_url
 
@@ -105,11 +114,13 @@ class AuthService:
         creation - Profile data enrichment for existing users - Access
         token generation
 
-        Args:     code: Authorization code received from Yandex OAuth
-        redirect
+        Args:
+            code: Authorization code received from Yandex OAuth
+                  redirect
 
-        Returns:     AccessTokenSchema containing JWT token for API
-        authorization
+        Returns:
+            AccessTokenSchema containing JWT token for API
+            authorization
         """
         # Retrieve user profile data from Yandex OAuth API
         user_data = await self.client.get_user_info(code=code)
