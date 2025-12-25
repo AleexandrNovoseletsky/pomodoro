@@ -35,10 +35,12 @@ async def get_file_url(
 ):
     """Get a temporary link to the file.
 
-    Args:     file_id: The ID of the file we are linking to.
-    media_service: Depends on media service.
+    Args:
+        file_id: The ID of the file we are linking to.
+        media_service: Depends on media service.
 
-    Returns:     Dict {"url": url}
+    Returns:
+        Dict {"url": url}
     """
     url = await media_service.get_presigned_url(file_id=file_id)
     return {"url": url}
@@ -56,10 +58,12 @@ async def get_file(
 ):
     """Getting a file by ID.
 
-    Args:     file_id: ID of the file you are looking for.
-    media_service: Depends on media service.
+    Args:
+        file_id: ID of the file you are looking for.
+        media_service: Depends on media service.
 
-    Returns:     Response file schemes validated by Pydantic.
+    Returns:
+        Response file schemes validated by Pydantic.
     """
     return await media_service.get_one_object(object_id=file_id)
 
@@ -77,11 +81,13 @@ async def get_files_by_owner(
 ):
     """Getting all the resource files.
 
-    Args:     domain: Owner type. Example Task.     owner_id: Resource
-    ID. Example Task where id = 10.     media_service: Depends on media
-    service.
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
 
-    Returns:     List of response file schemes validated by Pydantic.
+    Returns:
+        List of response file schemes validated by Pydantic.
     """
     return await media_service.get_by_owner(domain=domain, owner_id=owner_id)
 
@@ -101,14 +107,15 @@ async def upload_file(
 ):
     """Uploading a file to the storage and saving it to the database.
 
-    Args:     domain: Owner type. Example Task.     owner_id: Resource
-    ID. Example Task where id = 10.     media_service: Depends on media
-    service.     current_user: The user who made the request.
-    file:
-    upload file.
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
+        current_user: The user who made the request.
+        file: uploaded file.
 
     Returns:
-    Response file schemes validated by Pydantic.
+        Response file schemes validated by Pydantic.
     """
     return await media_service.upload_file(
         file=file, domain=domain, owner_id=owner_id, current_user=current_user
@@ -130,12 +137,15 @@ async def upload_files(
 ):
     """Multiple file uploads.
 
-    Args:     domain: Owner type. Example Task.     owner_id: Resource
-    ID. Example Task where id = 10.     media_service: Depends on media
-    service.     current_user: The user who made the request.     files:
-    upload files.
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
+        current_user: The user who made the request.
+        files: uploaded files.
 
-    Returns:     List of response file schemes validated by Pydantic.
+    Returns:
+        List of response file schemes validated by Pydantic.
     """
     semaphore = asyncio.Semaphore(5)  # Maximum of 5 parallel uploads
 
@@ -172,12 +182,15 @@ async def upload_image(
 ):
     """Uploading a file to the storage and saving it to the database.
 
-    Args:     domain: Owner type. Example Task.     owner_id: Resource
-    ID. Example Task where id = 10.     media_service: Depends on media
-    service.     current_user: The user who made the request.     image:
-    upload image.
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
+        current_user: The user who made the request.
+        image: uploaded image.
 
-    Returns:     Response file schemes validated by Pydantic.
+    Returns:
+        Response file schemes validated by Pydantic.
     """
     return await media_service.upload_image(
         image=image,
@@ -185,6 +198,51 @@ async def upload_image(
         owner_id=owner_id,
         current_user=current_user,
     )
+
+
+@router.post(
+    path="/{domain}/{owner_id}/upload/image/multiple",
+    response_model=list[list[ResponseFileSchema]],
+    status_code=status.HTTP_201_CREATED,
+    summary="Загрузка нескольких изображений.",
+    description="Создаётся три варианта каждого изображения: "
+    "ORIGINAL (Оригинальный размер), "
+    "SMALL (Сжатое изображение), "
+    "THUMB. (Сильно сжатое изображение)",
+)
+async def upload_image(
+    domain: OwnerType,
+    owner_id: int,
+    media_service: media_service_annotated,
+    current_user: current_user_annotated,
+    images: Annotated[list[UploadFile], File(...)],
+):
+    """Uploading a file to the storage and saving it to the database.
+
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
+        current_user: The user who made the request.
+        images: uploaded images.
+
+    Returns:
+        Response file schemes validated by Pydantic.
+    """
+    semaphore = asyncio.Semaphore(5)  # Maximum of 5 parallel uploads
+
+    async def sem_upload(image):
+        async with semaphore:
+            return await media_service.upload_image(
+                image=image,
+                domain=domain,
+                owner_id=owner_id,
+                current_user=current_user,
+            )
+
+    tasks = [sem_upload(f) for f in images]
+    images_to_schema = await asyncio.gather(*tasks)
+    return images_to_schema
 
 
 @router.patch(

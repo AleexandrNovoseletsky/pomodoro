@@ -28,12 +28,14 @@ class ObjectNotFoundError(AppException):
     def __init__(self, object_id: int):
         """Initialize object not found exception.
 
-        Args:     object_id: Unique identifier of the resource that
-        could not be found
+        Args:
+            object_id: Unique identifier of the resource that
+                        could not be found
 
-        Note:     Includes the specific object ID in the error message
-        to help     clients identify which resource was not found while
-        maintaining     consistent error response structure
+        Note:
+            Includes the specific object ID in the error message
+            to help clients identify which resource was not found while
+            maintaining consistent error response structure
         """
         super().__init__(
             detail=f"Object with id={object_id} was not found in the database."
