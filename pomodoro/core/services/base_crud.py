@@ -61,11 +61,13 @@ class CRUDService(
     async def get_all_objects(self) -> list[ResponseSchema]:
         """Retrieve all objects with schema validation.
 
-        Returns:     List of validated Pydantic response schema
-        instances
+        Returns:
+            List of validated Pydantic response schema
+            instances
 
-        Note:     Returns empty list if no objects exist in the
-        repository
+        Note:
+            Returns empty list if no objects exist in the
+            repository
         """
         db_objects = await self.repository.get_all_objects()
         object_schema = [

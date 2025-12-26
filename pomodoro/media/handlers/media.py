@@ -27,7 +27,7 @@ router = APIRouter()
     path="/{file_id}/url",
     response_model=dict,
     status_code=status.HTTP_200_OK,
-    summary="Получить ссылку на файл.",
+    summary="Получить ссылку на файл",
 )
 async def get_file_url(
     file_id: int,
@@ -72,7 +72,7 @@ async def get_file(
     path="/{domain}/{owner_id}",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_200_OK,
-    summary="Получить все файлы ресурса.",
+    summary="Получить все файлы ресурса",
 )
 async def get_files_by_owner(
     domain: OwnerType,
@@ -96,7 +96,7 @@ async def get_files_by_owner(
     path="/{domain}/{owner_id}/upload",
     response_model=ResponseFileSchema,
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузить один файл.",
+    summary="Загрузить один файл",
 )
 async def upload_file(
     domain: OwnerType,
@@ -126,7 +126,7 @@ async def upload_file(
     path="/{domain}/{owner_id}/upload/multiple",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка нескольких файлов.",
+    summary="Загрузка нескольких файлов",
 )
 async def upload_files(
     domain: OwnerType,
@@ -167,7 +167,7 @@ async def upload_files(
     path="/{domain}/{owner_id}/upload/image",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка одного изображения.",
+    summary="Загрузка одного изображения",
     description="Создаётся три варианта изображения: "
     "ORIGINAL (Оригинальный размер), "
     "SMALL (Сжатое изображение), "
@@ -202,9 +202,9 @@ async def upload_image(
 
 @router.post(
     path="/{domain}/{owner_id}/upload/image/multiple",
-    response_model=list[list[ResponseFileSchema]],
+    response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка нескольких изображений.",
+    summary="Загрузка нескольких изображений",
     description="Создаётся три варианта каждого изображения: "
     "ORIGINAL (Оригинальный размер), "
     "SMALL (Сжатое изображение), "
@@ -242,7 +242,9 @@ async def upload_image(
 
     tasks = [sem_upload(f) for f in images]
     images_to_schema = await asyncio.gather(*tasks)
-    return images_to_schema
+
+    # flatten list[list[ResponseFileSchema]] -> list[ResponseFileSchema]
+    return [image for group in images_to_schema for image in group]
 
 
 @router.patch(
@@ -250,7 +252,7 @@ async def upload_image(
     dependencies=[only_admin],
     response_model=ResponseFileSchema,
     status_code=status.HTTP_200_OK,
-    summary="Установить файл как главный (primary) у ресурса.",
+    summary="Установить файл как главный (primary) у ресурса",
 )
 async def make_primary(
     file_id: int,
@@ -258,19 +260,46 @@ async def make_primary(
 ):
     """Sets the file as the primary of the resource.
 
-    Args:     file_id: ID of the file that we make the primary.
-    media_service: Depends on media service.
+    Args:
+        file_id: ID of the file that we make the primary.
+        media_service: Depends on media service.
 
-    Returns:     Response file schemes validated by Pydantic.
+    Returns:
+        Response file schemes validated by Pydantic.
     """
     return await media_service.set_primary(file_id=file_id)
+
+
+@router.delete(
+    path="/delete_orphans",
+    status_code=status.HTTP_200_OK,
+    dependencies=[only_admin],
+    summary="Удалить осиротевшие файлы из хранилища и БД",
+    description="Удаляет файлы которые есть в БД, но нет в хранилище. "
+                "И наоборот, файлы которые есть в хранилище но нет в БД."
+)
+async def delete_orphaned_files(media_service: media_service_annotated):
+    """Delete all orphaned files.
+
+    Args:
+        media_service: Depends on media service.
+
+    Returns:
+        Dict {
+            "s3_deleted": 0
+            "DB_deleted": 0
+        }
+    """
+    s3_count = await media_service.delete_orphaned_files_on_storage()
+    db_count = await media_service.delete_orphaned_files_on_db()
+    return {"s3_deleted": s3_count, "DB_deleted": db_count}
 
 
 @router.delete(
     path="/{file_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить один файл.",
+    summary="Удалить один файл",
 )
 async def delete_file(
     file_id: int,
@@ -278,10 +307,12 @@ async def delete_file(
 ):
     """Deleting a file from storage and database.
 
-    Args:     file_id: ID of the file to delete.     media_service:
-    Depends on media service.
+    Args:
+        file_id: ID of the file to delete.
+        media_service: Depends on media service.
 
-    Returns:     ''None''.
+    Returns:
+        ''None''.
     """
     await media_service.delete_file(file_id=file_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -291,7 +322,7 @@ async def delete_file(
     path="/{domain}/{owner_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить все файлы указанного ресурса.",
+    summary="Удалить все файлы указанного ресурса",
 )
 async def delete_files_by_owner(
     domain: OwnerType,
@@ -300,11 +331,13 @@ async def delete_files_by_owner(
 ):
     """Deletes all resource files.
 
-    Args:     domain: Owner type. Example Task.     owner_id: Resource
-    ID. Example Task where id = 10.     media_service: Depends on media
-    service.
+    Args:
+        domain: Owner type. Example Task.
+        owner_id: Resource ID. Example Task where id = 10.
+        media_service: Depends on media service.
 
-    Returns:     ''None''
+    Returns:
+        ''None''
     """
     await media_service.delete_all_by_owner(domain=domain, owner_id=owner_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

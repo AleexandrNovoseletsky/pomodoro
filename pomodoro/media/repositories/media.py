@@ -14,7 +14,8 @@ class MediaRepository(CRUDRepository):
     def __init__(self, sessionmaker: async_sessionmaker):
         """Initializing repository.
 
-        Args:     sessionmaker: Async session maker
+        Args:
+            sessionmaker: Async session maker
         """
         super().__init__(sessionmaker=sessionmaker, orm_model=Files)
 
@@ -23,10 +24,13 @@ class MediaRepository(CRUDRepository):
     ) -> list[Files]:
         """Getting all files by owner_id.
 
-        Args:     domain: CThe domain to which the file belongs. Example
-        Task.     owner_id: The resource ID to which the files belong.
+        Args:
+            domain: CThe domain to which the file belongs.
+                    Example Task.
+            owner_id: The resource ID to which the files belong.
 
-        Returns:     List of files.
+        Returns:
+            List of files.
         """
         async with self.sessionmaker() as session:
             query = select(Files).where(
@@ -41,11 +45,14 @@ class MediaRepository(CRUDRepository):
     ) -> Files:
         """Set one file is primary.
 
-        Args:     file_id: The file ID that is set as is_primary.
-        domain: The domain to which the file belongs. Example Task.
-        owner_id: The resource ID to which the file belongs.
+        Args:
+            file_id: The file ID that is set as is_primary.
+            domain: The domain to which the file belongs.
+                    Example Task.
+            owner_id: The resource ID to which the file belongs.
 
-        Returns:     ORM file object.
+        Returns:
+            ORM file object.
         """
         # Set all is_primary resources to False
         files = await self.get_by_owner(domain=domain, owner_id=owner_id)
@@ -56,3 +63,8 @@ class MediaRepository(CRUDRepository):
         return await super().update_object(
             object_id=file_id, update_data=update_data
         )
+
+    async def get_all_keys(self) -> list[str]:
+        """Get all file storage keys"""
+        files = await super().get_all_objects()
+        return [file.key for file in files]
