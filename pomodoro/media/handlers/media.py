@@ -202,7 +202,7 @@ async def upload_image(
 
 @router.post(
     path="/{domain}/{owner_id}/upload/image/multiple",
-    response_model=list[list[ResponseFileSchema]],
+    response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
     summary="Загрузка нескольких изображений.",
     description="Создаётся три варианта каждого изображения: "
@@ -242,7 +242,9 @@ async def upload_image(
 
     tasks = [sem_upload(f) for f in images]
     images_to_schema = await asyncio.gather(*tasks)
-    return images_to_schema
+
+    # flatten list[list[ResponseFileSchema]] -> list[ResponseFileSchema]
+    return [image for group in images_to_schema for image in group]
 
 
 @router.patch(
