@@ -1,71 +1,135 @@
 """Category schemas.
 
-Defines Pydantic schemas for category data validation, serialization,
-and API communication. Includes schemas for creation, response, and
-update operations with proper field constraints.
+Defines Pydantic schemas for category validation, serialization, and
+API responses. Supports hierarchical (tree-based) category structures
+with parent-child relationships.
+
+This module intentionally separates:
+- CRUD schemas (flat structure)
+- Read-only tree schemas (hierarchical structure)
+
+Tree relationships (children) are computed in the service layer and
+are NOT persisted in the database.
 """
+
+from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from pomodoro.core.settings import Settings
-from pomodoro.task.schemas.task import name_field
 
 settings = Settings()
 
-# Field length constraints for category names
-name_field_params: dict = {
-    "min_length": settings.MIN_CATEGORY_NAME_LENGTH,
-    "max_length": settings.MAX_CATEGORY_NAME_LENGTH,
-    "description": "Category name",
-}
+
+# ---------------------------------------------------------------------
+# Base schemas
+# ---------------------------------------------------------------------
 
 
-class CreateCategorySchema(BaseModel):
-    """Schema for category creation with user-provided data.
+class CategoryBaseSchema(BaseModel):
+    """Base schema for category data.
 
-    Validates and sanitizes input data when creating new categories.
-
-    Attributes:     name: Category name with length validation
-    is_active: Optional active status flag (defaults to True if not
-    provided)
-    """
-
-    name: str = name_field(...)
-    is_active: bool | None = None
-
-
-class ResponseCategorySchema(CreateCategorySchema):
-    """Schema for category response data.
-
-    Extends creation schema with system-generated fields for complete
-    category representation in API responses.
-
-    Attributes:     id: System-generated category identifier
-    is_active: Current active status (always included in response)
-    created_at: Timestamp of category creation     updated_at: Timestamp
-    of last category modification
+    Contains fields shared across all category schemas.
     """
 
     id: int
+    name: str = Field(
+        ...,
+        min_length=settings.MIN_CATEGORY_NAME_LENGTH,
+        max_length=settings.MAX_CATEGORY_NAME_LENGTH,
+        description="Category name",
+    )
     is_active: bool
-    created_at: datetime
-    updated_at: datetime
 
     model_config = {"from_attributes": True}
 
 
-class UpdateCategorySchema(BaseModel):
-    """Schema for category updates with partial data support.
+# ---------------------------------------------------------------------
+# Create / Update schemas
+# ---------------------------------------------------------------------
 
-    Allows partial updates of category properties with all fields
-    optional. Used for PATCH operations where only specific fields need
-    modification.
 
-    Attributes:     name: Optional category name update     is_active:
-    Optional active status update
+class CreateCategorySchema(BaseModel):
+    """Schema for category creation.
+
+    Used when creating a new category. Supports optional parent
+    assignment to build category hierarchy.
     """
 
-    name: str | None = name_field(None)
-    is_active: bool | None = None
+    name: str = Field(
+        ...,
+        min_length=settings.MIN_CATEGORY_NAME_LENGTH,
+        max_length=settings.MAX_CATEGORY_NAME_LENGTH,
+        description="Category name",
+    )
+    parent_id: int | None = Field(
+        default=None,
+        description="Parent category ID (for nested categories)",
+    )
+    is_active: bool | None = Field(
+        default=True,
+        description="Category active status",
+    )
+
+
+class UpdateCategorySchema(BaseModel):
+    """Schema for partial category updates.
+
+    All fields are optional to support PATCH semantics.
+    """
+
+    name: str | None = Field(
+        default=None,
+        min_length=settings.MIN_CATEGORY_NAME_LENGTH,
+        max_length=settings.MAX_CATEGORY_NAME_LENGTH,
+        description="Updated category name",
+    )
+    parent_id: int | None = Field(
+        default=None,
+        description="Updated parent category ID",
+    )
+    is_active: bool | None = Field(
+        default=None,
+        description="Updated active status",
+    )
+
+
+# ---------------------------------------------------------------------
+# Flat response schema (single category)
+# ---------------------------------------------------------------------
+
+
+class ResponseCategorySchema(CategoryBaseSchema):
+    """Schema for single category response.
+
+    Used for:
+    - get-by-id
+    - create
+    - update responses
+
+    Does NOT include children.
+    """
+
+    parent_id: int | None
+    created_at: datetime
+    updated_at: datetime
+
+
+# ---------------------------------------------------------------------
+# Tree response schema
+# ---------------------------------------------------------------------
+
+
+class CategoryTreeSchema(CategoryBaseSchema):
+    """Schema for hierarchical category tree.
+
+    Represents a category node with all nested children.
+    This schema is read-only and built dynamically in the service layer.
+    """
+
+    children: list[CategoryTreeSchema] = Field(
+        default_factory=list,
+        description="Nested child categories",
+    )

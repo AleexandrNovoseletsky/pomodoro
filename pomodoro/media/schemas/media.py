@@ -25,6 +25,8 @@ class CreateFileSchema(BaseModel):
     size: int = Field(..., le=settings.MAX_FILE_SIZE)
     bucket: str | None = settings.S3_BUCKET
     variant: Variants | None = None
+    width: int | None = None
+    height: int | None = None
 
 
 class ResponseFileSchema(CreateFileSchema):

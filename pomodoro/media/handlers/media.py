@@ -299,7 +299,7 @@ async def delete_orphaned_files(media_service: media_service_annotated):
     path="/{file_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить один файл",
+    summary="Удалить один файл по ID",
 )
 async def delete_file(
     file_id: int,

@@ -9,7 +9,7 @@ from fastapi import UploadFile
 from PIL import Image
 from pydantic import ValidationError
 
-from pomodoro.core.exceptions.validation import (
+from pomodoro.core.exceptions.file import (
     InvalidCreateFileData,
 )
 from pomodoro.core.settings import Settings
