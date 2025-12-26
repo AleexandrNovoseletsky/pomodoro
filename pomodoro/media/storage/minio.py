@@ -6,6 +6,7 @@ and URL generation with proper error handling and resource management.
 """
 
 import io
+from collections.abc import AsyncIterator
 
 import aioboto3
 from botocore.exceptions import ClientError
@@ -146,3 +147,44 @@ class S3Storage:
                 Params={"Bucket": self.bucket, "Key": key},
                 ExpiresIn=expires_in,
             )
+
+    async def iter_keys(
+        self,
+        prefix: str | None = None,
+    ) -> AsyncIterator[str]:
+        """Iterate over all object keys in the bucket.
+
+        Args:
+            prefix: Optional key prefix to limit iteration
+
+        Yields:
+            Object keys stored in S3 bucket
+
+        Notes:
+            Uses list_objects_v2 with pagination.
+            Safe for large buckets.
+        """
+        async with await self._get_client() as client:
+            continuation_token: str | None = None
+
+            while True:
+                kwargs: dict[str, object] = {
+                    "Bucket": self.bucket,
+                    "MaxKeys": 1000,
+                }
+
+                if prefix:
+                    kwargs["Prefix"] = prefix
+
+                if continuation_token:
+                    kwargs["ContinuationToken"] = continuation_token
+
+                response = await client.list_objects_v2(**kwargs)
+
+                for item in response.get("Contents", []):
+                    yield item["Key"]
+
+                if not response.get("IsTruncated"):
+                    break
+
+                continuation_token = response.get("NextContinuationToken")

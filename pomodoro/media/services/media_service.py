@@ -54,8 +54,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
     def __init__(self, media_repo: MediaRepository):
         """Initialize media service with repository and storage.
 
-        Args:     media_repo: Media repository instance for database
-        operations
+        Args:
+            media_repo: Media repository instance for database
+                        operations
         """
         self.storage = S3Storage()
         self.repository = media_repo
@@ -66,14 +67,17 @@ class MediaService(CRUDService[ResponseFileSchema]):
     async def get_presigned_url(self, file_id: int) -> str:
         """Generate presigned URL for temporary file access.
 
-        Args:     file_id: The identifier of the file to generate URL
-        for
+        Args:
+            file_id: The identifier of the file to generate URL
+                     for
 
-        Returns:     Temporary presigned URL with limited access
-        duration
+        Returns:
+            Temporary presigned URL with limited access
+            duration
 
-        Raises:     ObjectNotFoundError: If file with given ID doesn't
-        exist
+        Raises:
+            ObjectNotFoundError: If file with given ID doesn't
+            exist
         """
         file = await super().get_one_object(object_id=file_id)
         return await self.storage.generate_presigned_url(key=file.key)
@@ -83,13 +87,17 @@ class MediaService(CRUDService[ResponseFileSchema]):
     ) -> list[ResponseFileSchema]:
         """Retrieve all files belonging to a specific resource.
 
-        Args:     domain: The domain type to which files belong (Task,
-        User, Category)     owner_id: The resource ID to which files
-        belong
+        Args:
+            domain: The domain type to which files belong (Task,
+                    User, Category)
+            owner_id: The resource ID to which files
+                      belong
 
-        Returns:     List of validated file response schemas
+        Returns:
+            List of validated file response schemas
 
-        Note:     Returns empty list if no files found for the owner
+        Note:
+            Returns empty list if no files found for the owner
         """
         files = await self.repository.get_by_owner(
             domain=domain, owner_id=owner_id
@@ -162,15 +170,20 @@ class MediaService(CRUDService[ResponseFileSchema]):
         format - SMALL: Medium resolution for general display - THUMB:
         Highly compressed for thumbnails and previews
 
-        Args:     image: Uploaded image file     current_user: User who
-        initiated the upload     domain: Domain type the image belongs
-        to     owner_id: Resource ID the image belongs to
+        Args:
+            image: Uploaded image file
+            current_user: User who initiated the upload
+            domain: Domain type the image belongs to
+            owner_id: Resource ID the image belongs to
 
-        Returns:     List of three file response schemas [ORIGINAL,
-        SMALL, THUMB]
+        Returns:
+            List of three file response schemas [ORIGINAL,
+            SMALL, THUMB]
 
-        Raises:     ObjectNotFoundError: If owner resource doesn't exist
-        Exception: Rolls back all uploads if database operation fails
+        Raises:
+            ObjectNotFoundError: If owner resource doesn't exist
+        Exception:
+        Rolls back all uploads if database operation fails
         """
         # Extract filename without extension for variant naming
         filename = Path(image.filename).stem
@@ -252,11 +265,14 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Marks the specified file as the primary/default file for the
         owner resource, demoting any previously set primary file.
 
-        Args:     file_id: The file ID to set as primary
+        Args:
+            file_id: The file ID to set as primary
 
-        Returns:     Updated file response schema with primary status
+        Returns:
+            Updated file response schema with primary status
 
-        Raises:     ObjectNotFoundError: If file doesn't exist
+        Raises:
+            ObjectNotFoundError: If file doesn't exist
         """
         file: ResponseFileSchema = await super().get_one_object(
             object_id=file_id
@@ -276,9 +292,11 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Performs complete file removal including: - Physical file
         deletion from S3 storage - Metadata removal from database
 
-        Args:     file_id: ID of the file to delete
+        Args:
+            file_id: ID of the file to delete
 
-        Raises:     ObjectNotFoundError: If file doesn't exist
+        Raises:
+            ObjectNotFoundError: If file doesn't exist
         """
         # Retrieve file metadata from database
         file = await super().get_one_object(object_id=file_id)
@@ -297,11 +315,13 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Performs bulk deletion of all files associated with an owner
         using concurrent operations for efficiency.
 
-        Args:     domain: Domain type to delete files for     owner_id:
-        Resource ID to delete files for
+        Args:
+            domain: Domain type to delete files for
+            owner_id: Resource ID to delete files for
 
-        Note:     Uses semaphore to limit concurrent storage operations
-        to prevent resource exhaustion
+        Note:
+            Uses semaphore to limit concurrent storage operations
+            to prevent resource exhaustion
         """
         files = await self.repository.get_by_owner(
             domain=domain, owner_id=owner_id
@@ -315,6 +335,44 @@ class MediaService(CRUDService[ResponseFileSchema]):
 
         await asyncio.gather(*[_del(f) for f in files])
 
+    async def delete_orphaned_files_on_storage(
+            self,
+            prefix: str | None = None,
+    ) -> int:
+        """Delete files that exist in storage but not in database.
+
+        Args:
+            prefix: Optional key prefix to limit cleanup
+
+        Returns:
+            Number of deleted objects
+        """
+        db_keys = await self.repository.get_all_keys()
+
+        deleted = 0
+
+        async for key in self.storage.iter_keys(prefix=prefix):
+            if key not in db_keys:
+                await self.storage.delete(key)
+                deleted += 1
+
+        return deleted
+
+    async def delete_orphaned_files_on_db(self) -> int:
+        """Delete files that exist in database but not in storage.
+
+        Returns:
+            Number of deleted objects
+        """
+        deleted = 0
+        all_files = await super().get_all_objects()
+        for schema in all_files:
+            file = schema.model_dump()
+            if not await self.storage.exists(key=file.get("key")):
+                await super().delete_object(object_id=file.get("id"))
+                deleted += 1
+        return deleted
+
     async def _verify_owner_exists(
         self, owner_type: str, owner_id: int
     ) -> None:
@@ -323,10 +381,13 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Checks the appropriate repository based on owner type to ensure
         the referenced resource exists before file operations.
 
-        Args:     owner_type: Type of owner resource (Task, Category,
-        User)     owner_id: ID of owner resource to verify
+        Args:
+            owner_type: Type of owner resource
+            (Task, Category, User)
+        owner_id: ID of owner resource to verify
 
-        Raises:     ObjectNotFoundError: If owner resource doesn't exist
+        Raises:
+            ObjectNotFoundError: If owner resource doesn't exist
         """
         owner_type_enum = OwnerType(owner_type)
 
@@ -352,8 +413,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
     ) -> None:
         """Upload multiple file variants to storage.
 
-        Args:     files: Dictionary mapping storage keys to file buffers
-        mime: MIME type for all uploaded variants
+        Args:
+            files: Dictionary mapping storage keys to file buffers
+            mime: MIME type for all uploaded variants
         """
         for key, file in files.items():
             await self.storage.upload(key=key, file=file, mime=mime)
@@ -362,9 +424,11 @@ class MediaService(CRUDService[ResponseFileSchema]):
     async def _get_owner_and_owner_id_by_key(key: str) -> tuple[str, int]:
         """Extract owner type and ID from storage key.
 
-        Args:     key: Storage key in format "domain/owner_id/filename"
+        Args:
+            key: Storage key in format "domain/owner_id/filename"
 
-        Returns:     Tuple of (owner_type, owner_id)
+        Returns:
+            Tuple of (owner_type, owner_id)
         """
         split_key = key.split(sep="/")
         return split_key[0], int(split_key[1])
@@ -401,11 +465,14 @@ class MediaService(CRUDService[ResponseFileSchema]):
     ) -> str:
         """Generate storage key for file.
 
-        Args:     domain: Owner domain type     owner_id: Owner resource
-        ID     filename: Original filename
+        Args:
+            domain: Owner domain type
+            owner_id: Owner resource ID
+            filename: Original filename
 
-        Returns:     Unique storage key with UUID for collision
-        avoidance
+        Returns:
+            Unique storage key with UUID for collision
+            avoidance
         """
         return f"{domain}/{owner_id}/{uuid.uuid4()}-{filename}.webp"
 
@@ -417,11 +484,14 @@ class MediaService(CRUDService[ResponseFileSchema]):
     ) -> list[str]:
         """Generate storage keys for all image variants.
 
-        Args:     domain: Owner domain type     owner_id: Owner resource
-        ID     filename: Original filename
+        Args:
+            domain: Owner domain type
+            owner_id: Owner resource ID
+            filename: Original filename
 
-        Returns:     List of three unique storage keys for [ORIGINAL,
-        SMALL, THUMB]
+        Returns:
+            List of three unique storage keys for [ORIGINAL,
+            SMALL, THUMB]
         """
         return [
             f"{domain}/{owner_id}/{uuid.uuid4()}-{Variants.ORIGINAL}-{filename}.webp",

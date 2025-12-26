@@ -22,9 +22,11 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
     relationship to tasks. Includes automatic timestamp tracking and
     active/inactive status management.
 
-    Attributes:     id: Primary key identifier     name: Unique category
-    name with configurable maximum length     tasks: Relationship to
-    associated Task objects with cascade deletion
+    Attributes:
+        id: Primary key identifier
+        name: Unique category name with configurable maximum length
+        tasks: Relationship to associated Task objects
+               with cascade deletion
     """
 
     __tablename__ = "categories"
