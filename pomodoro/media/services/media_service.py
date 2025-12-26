@@ -13,11 +13,12 @@ import uuid
 from pathlib import Path
 
 import magic
+from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
 from pydantic import ValidationError
 
 from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
-from pomodoro.core.exceptions.validation import InvalidCreateFileData
+from pomodoro.core.exceptions.file import InvalidCreateFileData, InvalidImageFile
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.core.settings import Settings
 from pomodoro.media.converters.image_converters import (
@@ -198,6 +199,15 @@ class MediaService(CRUDService[ResponseFileSchema]):
 
         # Process image and create variants
         original_image_bytes: bytes = await image.read()
+
+        # Get image width, height and ratio
+        original_width, original_height = await self._get_image_size(
+            image_bytes=original_image_bytes, filename=image.filename
+        )
+        ratio: float = original_width / original_height
+        small_height: int = int(settings.SMALL_WIDTH / ratio)
+        thumb_height: int = int(settings.THUMB_WIDTH / ratio)
+
         files: list[io.BytesIO] = []
         files.append(await convert_to_webp(image=original_image_bytes))
         files.append(
@@ -230,18 +240,24 @@ class MediaService(CRUDService[ResponseFileSchema]):
                     size=sys.getsizeof(files[0]),
                     key=keys[0],
                     variant=Variants.ORIGINAL,
+                    width=original_width,
+                    height=original_height,
                 ),
                 CreateFileSchema(
                     **schemas_data,
                     size=sys.getsizeof(files[1]),
                     key=keys[1],
                     variant=Variants.SMALL,
+                    width=settings.SMALL_WIDTH,
+                    height=small_height,
                 ),
                 CreateFileSchema(
                     **schemas_data,
                     size=sys.getsizeof(files[2]),
                     key=keys[2],
                     variant=Variants.THUMB,
+                    width=settings.THUMB_WIDTH,
+                    height=thumb_height,
                 ),
             ]
 
@@ -392,7 +408,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
         owner_type_enum = OwnerType(owner_type)
 
         if owner_type_enum == OwnerType.TASK:
-            repo = TaskRepository(sessionmaker=self.repository.sessionmaker)
+            repo = TaskRepository(
+                sessionmaker=self.repository.sessionmaker
+            )
             if await repo.get_object(owner_id) is None:
                 raise ObjectNotFoundError(owner_id)
 
@@ -404,7 +422,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
                 raise ObjectNotFoundError(owner_id)
 
         elif owner_type_enum == OwnerType.USER:
-            repo = UserRepository(sessionmaker=self.repository.sessionmaker)
+            repo = UserRepository(
+                sessionmaker=self.repository.sessionmaker
+            )
             if await repo.get_object(owner_id) is None:
                 raise ObjectNotFoundError(owner_id)
 
@@ -494,7 +514,30 @@ class MediaService(CRUDService[ResponseFileSchema]):
             SMALL, THUMB]
         """
         return [
-            f"{domain}/{owner_id}/{uuid.uuid4()}-{Variants.ORIGINAL}-{filename}.webp",
-            f"{domain}/{owner_id}/{uuid.uuid4()}-{Variants.SMALL}-{filename}.webp",
-            f"{domain}/{owner_id}/{uuid.uuid4()}-{Variants.THUMB}-{filename}.webp",
+            (f"{domain}/{owner_id}/{uuid.uuid4()}-"
+            f"{Variants.ORIGINAL}-{filename}.webp"),
+            (f"{domain}/{owner_id}/{uuid.uuid4()}-"
+             f"{Variants.SMALL}-{filename}.webp"),
+            (f"{domain}/{owner_id}/{uuid.uuid4()}-"
+             f"{Variants.THUMB}-{filename}.webp"),
         ]
+
+    @staticmethod
+    async def _get_image_size(
+            image_bytes: bytes, filename: str
+    ) -> tuple[int, int]:
+        """Return (width, height) without full image decode.
+
+        Args:
+            image_bytes: Image on bytes
+            filename: Filename for detail raise
+
+        Raises:
+            InvalidImageFile: If the transferred file
+                              is not an image or is damaged.
+        """
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as img:
+                return img.width, img.height
+        except UnidentifiedImageError as exc:
+            raise InvalidImageFile(filename=filename) from exc

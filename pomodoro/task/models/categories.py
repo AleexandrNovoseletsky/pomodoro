@@ -4,7 +4,7 @@ Defines database models for category management with relationships to
 tasks. Includes timestamp tracking and active status functionality.
 """
 
-from sqlalchemy import String
+from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from pomodoro.core.mixins.active_flag import ActiveFlagMixin
@@ -38,8 +38,21 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
         unique=True,
         nullable=False,
     )
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey(column="categories.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    parent = relationship(
+        argument="Category",
+        remote_side=[id],
+        back_populates="children",
+    )
+    children = relationship(
+        argument="Category",
+        back_populates="parent",
+        cascade="all",
+    )
     tasks = relationship(
         argument="Task",
         back_populates="category",
-        cascade="all, delete-orphan",
     )

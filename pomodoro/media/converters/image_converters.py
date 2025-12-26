@@ -39,11 +39,15 @@ async def resize_image(
 ) -> io.BytesIO:
     """Returns a resized copy of this image with the same proportions.
 
-    Args:     image: Image in bytes.     width: Width output image.
-    height: Height output image.     quality: Compression quality
-    (0-100).     method: The number of passes during compression (0-6).
+    Args:
+        image: Image in bytes.
+        width: Width output image.
+        height: Height output image.
+        quality: Compression quality (0-100).
+        method: The number of passes during compression (0-6).
 
-    Returns:     Compressed image in bytes.
+    Returns:
+        Compressed image in bytes.
     """
     output_buffer: io.BytesIO = io.BytesIO()
     with Image.open(image) as img:

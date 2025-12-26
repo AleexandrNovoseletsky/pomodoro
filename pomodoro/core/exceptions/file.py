@@ -70,3 +70,26 @@ class InvalidCreateFileData(AppException):
             messages.append(f"Error in field '{field}': {msg}")
 
         return "; ".join(messages)
+
+class InvalidImageFile(AppException):
+    """Exception raised when uploaded file is not a valid image.
+
+    Used when file content cannot be identified as an image or when
+    image decoding fails at early validation stages.
+    """
+
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    error_type = "InvalidImageFile"
+
+    def __init__(self, filename: str | None = None) -> None:
+        """Initialize invalid image exception.
+
+        Args:
+            filename: Optional original filename for better diagnostics
+        """
+        detail = (
+            f"Файл '{filename}' не является допустимым изображением"
+            if filename
+            else "Переданный файл не является допустимым изображением"
+        )
+        super().__init__(detail=detail)
