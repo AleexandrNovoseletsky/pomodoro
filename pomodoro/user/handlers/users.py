@@ -196,7 +196,7 @@ async def check_recovery_code(
 
 
 @router.patch(
-    path="confirm_reset_password",
+    path="/confirm_reset_password",
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
     response_model=ResponseUserProfileSchema,

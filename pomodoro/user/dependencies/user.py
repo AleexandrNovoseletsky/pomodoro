@@ -31,12 +31,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 async def get_user_repository() -> UserRepository:
     """Create and return user repository instance.
 
-    Returns:     UserRepository: Repository instance configured with
-    database session maker     for performing user database operations.
+    Returns:
+        UserRepository:
+        Repository instance configured with
+        database session maker
+        for performing user database operations.
 
-    Note:     Uses application-wide async session maker for consistent
-    database connectivity.     Repository is created per request for
-    proper connection lifecycle management.
+    Note:
+        Uses application-wide async session maker
+        for consistent database connectivity.
+        Repository is created per request for
+        proper connection lifecycle management.
     """
     return UserRepository(sessionmaker=async_session_maker)
 
@@ -51,7 +56,8 @@ async def get_cache_user_repository() -> UserCacheRepository | None:
 
     Note:
         Uses async generator pattern to properly manage Redis
-        connection lifecycle. Returns None if cache is unavailable to
+        connection lifecycle.
+        Returns None if cache is unavailable to
         allow graceful degradation.
     """
     async for cache_session in get_cache_session():
@@ -79,7 +85,8 @@ async def get_user_service(
 
     Returns:
         UserProfileService: Fully configured service instance
-        for handling user business logic, profile management, and media
+        for handling user business logic,
+        profile management, and media
         operations.
     """
     return UserProfileService(
@@ -96,20 +103,25 @@ async def get_current_user(
 ) -> UserProfile:
     """Retrieve current authenticated user from JWT token.
 
-    Validates JWT token, extracts user ID, and retrieves complete user
-    profile from database. Used as dependency in protected endpoints.
+    Validates JWT token, extracts user ID,
+    and retrieves complete user
+    profile from database. Used as dependency
+    in protected endpoints.
 
     Args:
-        repository: Injected user repository for get user ORM object
+        repository: Injected user repository
+                    for get user ORM object
         token: JWT token from Authorization header
 
-    Returns:     UserPro
-    file:
-    Complete user profile of authenticated user
+    Returns:
+        UserProfile:
+            Complete user profile of authenticated user
 
     Raises:
-    HTTPException: 401 Unauthorized for invalid, expired, or malformed tokens
-    or if user no longer exists in database
+        HTTPException:
+            401 Unauthorized for invalid, expired,
+            or malformed tokens,
+            or if user no longer exists in database
 
     Note:
     Implements proper JWT validation with comprehensive error handling
@@ -129,11 +141,13 @@ async def get_current_user(
             algorithms=[settings.JWT_ALGORITHM],
         )
         user_id = int(payload["sub"])
-    except (JWTError, ExpiredSignatureError, ValueError, KeyError) as err:
+    except (
+            JWTError, ExpiredSignatureError, ValueError, KeyError
+    ) as err:
         raise credentials_exception from err
 
     # Retrieve user profile from database
-    current_user: UserProfile = await repository.get_object(object_id=user_id)
-    if current_user is None:
-        raise credentials_exception
+    current_user: UserProfile = await (
+        repository.get_one_object_or_raise(object_id=user_id)
+    )
     return current_user

@@ -105,4 +105,4 @@ async def get_task_resource(
         specific task context.
         Performs existence validation automatically.
     """
-    return await task_repo.get_object(object_id=task_id)
+    return await task_repo.get_one_object_or_raise(object_id=task_id)

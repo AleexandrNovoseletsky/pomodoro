@@ -8,7 +8,6 @@ integration with S3-compatible storage.
 
 import asyncio
 import io
-import sys
 import uuid
 from pathlib import Path
 
@@ -17,7 +16,6 @@ from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
 from pydantic import ValidationError
 
-from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 from pomodoro.core.exceptions.file import InvalidCreateFileData, InvalidImageFile
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.core.settings import Settings
@@ -31,13 +29,11 @@ from pomodoro.media.models.files import (
     OwnerType,
     Variants,
 )
+from pomodoro.media.owners.registry import OWNER_REPOSITORY_REGISTRY
 from pomodoro.media.repositories.media import MediaRepository
 from pomodoro.media.schemas.media import CreateFileSchema, ResponseFileSchema
 from pomodoro.media.storage.minio import S3Storage
-from pomodoro.task.repositories.category import CategoryRepository
-from pomodoro.task.repositories.task import TaskRepository
 from pomodoro.user.models.users import UserProfile
-from pomodoro.user.repositories.user import UserRepository
 
 settings = Settings()
 
@@ -100,6 +96,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Note:
             Returns empty list if no files found for the owner
         """
+        await self._verify_owner_exists(owner_type=domain, owner_id=owner_id)
         files = await self.repository.get_by_owner(
             domain=domain, owner_id=owner_id
         )
@@ -237,7 +234,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
             schemas: list[CreateFileSchema] = [
                 CreateFileSchema(
                     **schemas_data,
-                    size=sys.getsizeof(files[0]),
+                    size=files[0].getbuffer().nbytes,
                     key=keys[0],
                     variant=Variants.ORIGINAL,
                     width=original_width,
@@ -245,7 +242,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
                 ),
                 CreateFileSchema(
                     **schemas_data,
-                    size=sys.getsizeof(files[1]),
+                    size=files[0].getbuffer().nbytes,
                     key=keys[1],
                     variant=Variants.SMALL,
                     width=settings.SMALL_WIDTH,
@@ -253,7 +250,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
                 ),
                 CreateFileSchema(
                     **schemas_data,
-                    size=sys.getsizeof(files[2]),
+                    size=files[0].getbuffer().nbytes,
                     key=keys[2],
                     variant=Variants.THUMB,
                     width=settings.THUMB_WIDTH,
@@ -390,7 +387,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
         return deleted
 
     async def _verify_owner_exists(
-        self, owner_type: str, owner_id: int
+        self, owner_type: OwnerType, owner_id: int
     ) -> None:
         """Verify that owner resource exists in the system.
 
@@ -403,30 +400,18 @@ class MediaService(CRUDService[ResponseFileSchema]):
         owner_id: ID of owner resource to verify
 
         Raises:
+            ValueError: If owner doesn't registry
             ObjectNotFoundError: If owner resource doesn't exist
         """
-        owner_type_enum = OwnerType(owner_type)
+        try:
+            repo_factory = OWNER_REPOSITORY_REGISTRY[owner_type]
+        except KeyError as exc:
+            raise InvalidCreateFileData(
+                exc=None, detail=f"Unsupported owner type: {owner_type}"
+            ) from exc
 
-        if owner_type_enum == OwnerType.TASK:
-            repo = TaskRepository(
-                sessionmaker=self.repository.sessionmaker
-            )
-            if await repo.get_object(owner_id) is None:
-                raise ObjectNotFoundError(owner_id)
-
-        elif owner_type_enum == OwnerType.CATEGORY:
-            repo = CategoryRepository(
-                sessionmaker=self.repository.sessionmaker
-            )
-            if await repo.get_object(owner_id) is None:
-                raise ObjectNotFoundError(owner_id)
-
-        elif owner_type_enum == OwnerType.USER:
-            repo = UserRepository(
-                sessionmaker=self.repository.sessionmaker
-            )
-            if await repo.get_object(owner_id) is None:
-                raise ObjectNotFoundError(owner_id)
+        repo = repo_factory(self.repository.sessionmaker)
+        await repo.get_one_object_or_raise(object_id=owner_id)
 
     async def _upload_variants(
         self, files: dict[str, io.BytesIO], mime: AllowedMimeTypes
