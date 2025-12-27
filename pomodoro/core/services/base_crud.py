@@ -53,9 +53,7 @@ class CRUDService(
         Note:     Automatically converts ORM objects to Pydantic schemas
         for consistent API response formatting
         """
-        db_object = await self.repository.get_object(object_id=object_id)
-        if db_object is None:
-            raise ObjectNotFoundError(object_id=object_id)
+        db_object = await self.repository.get_one_object_or_raise(object_id=object_id)
         return self.response_schema.model_validate(obj=db_object)
 
     async def get_all_objects(self) -> list[ResponseSchema]:

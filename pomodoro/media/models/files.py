@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from pomodoro.core.mixins.timestamp import TimestampMixin
 from pomodoro.core.utils.db_constraints import make_check_in
 from pomodoro.database.database import Base
+from pomodoro.media.owners.registry import OwnerType
 from pomodoro.user.models.users import UserProfile
 
 
@@ -20,14 +21,6 @@ class AllowedMimeTypes(enum.StrEnum):
     PDF = "application/pdf"
     TEXT_PLAIN = "text/plain"
     TEXT_RTF = "text/rtf"
-
-
-class OwnerType(enum.StrEnum):
-    """Which model the file belongs to."""
-
-    USER = "user"
-    TASK = "task"
-    CATEGORY = "category"
 
 
 class Variants(enum.StrEnum):
