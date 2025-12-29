@@ -8,7 +8,7 @@ from pomodoro.media.models.files import Files, OwnerType
 from pomodoro.media.schemas.media import SetPrimarySchema
 
 
-class MediaRepository(CRUDRepository):
+class MediaRepository(CRUDRepository[Files]):
     """Media repository."""
 
     def __init__(self, sessionmaker: async_sessionmaker):
@@ -65,6 +65,6 @@ class MediaRepository(CRUDRepository):
         )
 
     async def get_all_keys(self) -> list[str]:
-        """Get all file storage keys"""
+        """Get all file storage keys."""
         files = await super().get_all_objects()
         return [file.key for file in files]

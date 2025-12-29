@@ -21,10 +21,13 @@ from pomodoro.user.permisiions import check_update_permissions
 from pomodoro.user.repositories.cache_user import UserCacheRepository
 from pomodoro.user.repositories.user import UserRepository
 from pomodoro.user.schemas.user import (
+    ChangePasswordSchema,
     CreateUserProfileORM,
     CreateUserProfileSchema,
     ResponseUserProfileSchema,
-    UpdateUserProfileSchema, SetPasswordSchema, ChangePasswordSchema, UpdatePasswordORMSchema,
+    SetPasswordSchema,
+    UpdatePasswordORMSchema,
+    UpdateUserProfileSchema,
 )
 
 # Role constants for permission management
@@ -191,10 +194,6 @@ class UserProfileService(
         Raises:
             PasswordVerifyError: If the current password is incorrect.
         """
-        if schema.new_password == schema.old_password:
-            raise PasswordVerifyError(
-                detail="Укажите пароль отличный от действующего."
-            )
         current_user: UserProfile = await (
             self.repository.get_one_object_or_raise(
             object_id=current_user_id
@@ -204,7 +203,9 @@ class UserProfileService(
             plain_password=schema.old_password,
             hashed_password=current_user.hashed_password
         ):
-            raise PasswordVerifyError(detail="Действующий пароль указан не верно.")
+            raise PasswordVerifyError(
+                detail="Действующий пароль указан не верно."
+            )
         return await self._update_user_password(
             user_id=current_user_id, plain_password=schema.new_password
         )
@@ -287,7 +288,8 @@ class UserProfileService(
 
         if hashed_code is None or user_id is None:
             raise PasswordVerifyError(
-                detail="Проверочный код некорректен либо истёк. Попробуйте снова."
+                detail="Проверочный код некорректен либо истёк. "
+                "Попробуйте снова."
             )
 
         if not verify_password(
@@ -295,7 +297,8 @@ class UserProfileService(
                 hashed_password=hashed_code,
         ):
             raise PasswordVerifyError(
-                detail="Проверочный код некорректен либо истёк. Попробуйте снова."
+                detail="Проверочный код некорректен либо истёк. "
+                "Попробуйте снова."
             )
 
         # Invalidate recovery session

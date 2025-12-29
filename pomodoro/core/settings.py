@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     MIN_CATEGORY_NAME_LENGTH: int = 1
     MAX_CATEGORY_NAME_LENGTH: int = 30
 
+    # --- Tags ---
+    MAX_TAG_NAME_LENGTH: int = 30
+
     # --- Tasks ---
     MIN_TASK_NAME_LENGTH: int = 1
     MAX_TASK_NAME_LENGTH: int = 30

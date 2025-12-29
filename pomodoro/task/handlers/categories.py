@@ -5,19 +5,22 @@ Routes are protected with role-based dependencies where necessary.
 Includes CRUD operations with appropriate authorization checks.
 """
 
-from typing import Annotated, Any, Coroutine
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
 from pomodoro.auth.dependencies.auth import require_roles
 from pomodoro.task.dependencies.category import get_category_service
 from pomodoro.task.schemas.category import (
+    CategoryTreeSchema,
+    CreateCategoryORM,
     CreateCategorySchema,
     ResponseCategorySchema,
-    UpdateCategorySchema, CategoryTreeSchema,
+    UpdateCategorySchema,
 )
 from pomodoro.task.services.category_service import CategoryService
-from pomodoro.user.models.users import UserRole
+from pomodoro.user.dependencies.user import get_current_user
+from pomodoro.user.models.users import UserProfile, UserRole
 
 # Dependency annotations for consistent type checking and IDE support
 category_service_annotated = Annotated[
@@ -30,6 +33,10 @@ only_admin = Depends(
         allowed_roles=(UserRole.ROOT, UserRole.ADMIN)
     )
 )
+
+current_user_annotated = Annotated[
+    UserProfile, Depends(get_current_user)
+]
 
 router = APIRouter()
 
@@ -79,7 +86,7 @@ async def get_category_tree(
 async def get_category_subtree(
     category_id: int,
     category_service: category_service_annotated,
-) -> ResponseCategorySchema:
+) -> CategoryTreeSchema:
     """Get category subtree.
 
     Returns the specified category with all nested child categories.
@@ -99,9 +106,16 @@ async def get_category_subtree(
 async def create_category(
     body: CreateCategorySchema,
     category_service: category_service_annotated,
+    current_user: current_user_annotated,
 ) -> ResponseCategorySchema:
     """Create category. Available to administrators only."""
-    return await category_service.create_object(object_data=body)
+    create_category_orm = CreateCategoryORM(
+        **body.model_dump(),
+        author_id=current_user.id
+    )
+    return await category_service.create_object(
+        object_data=create_category_orm
+    )
 
 
 @router.patch(

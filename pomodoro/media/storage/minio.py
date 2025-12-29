@@ -5,7 +5,6 @@ compatible storage. Handles file uploads, deletions, existence checks,
 and URL generation with proper error handling and resource management.
 """
 
-import io
 from collections.abc import AsyncIterator
 from typing import BinaryIO
 

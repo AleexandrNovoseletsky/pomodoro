@@ -5,12 +5,12 @@ API communication. Includes schemas for creation, database operations,
 response, and update operations with proper field constraints and
 validation rules for user profile management.
 """
-import re
 from datetime import date, datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 
+from pomodoro.auth.exceptions.password_incorrect import PasswordVerifyError
 from pomodoro.core.settings import Settings
 from pomodoro.core.validators.password import password_field_validator
 from pomodoro.user.models.users import UserRole
@@ -108,14 +108,18 @@ class ResponseUserProfileSchema(BaseUserProfileSchema):
     Extends base schema with system-generated fields and verification
     status for complete user representation in API responses.
 
-    Attributes:     id: System-generated user identifier
-    phone_verified: Current phone number verification status
-    patronymic: User's patronymic/middle name     birthday: User's date
-    of birth     created_at: Timestamp of user registration
-    updated_at: Timestamp of last profile modification     email: User's
-    email address     email_verified: Current email verification status
-    about: User biography or description     is_active: Current account
-    active status     role: User role for access control
+    Attributes:
+        id: System-generated user identifier
+        phone_verified: Current phone number verification status
+        patronymic: User's patronymic/middle name
+        birthday: User's date of birth
+        created_at: Timestamp of user registration
+        updated_at: Timestamp of last profile modification
+        email: User's email address
+        email_verified: Current email verification status
+        about: User biography or description
+        is_active: Current account active status
+        role: User role for access control
     """
 
     id: int
@@ -154,7 +158,9 @@ class SetPasswordSchema(BaseModel):
     """
     new_password: str
 
-    _validate_password = password_field_validator("new_password")
+    _validate_password = password_field_validator(
+        field_name="new_password"
+    )
 
 
 class ChangePasswordSchema(SetPasswordSchema):
@@ -164,6 +170,15 @@ class ChangePasswordSchema(SetPasswordSchema):
         old_password: Old user password
     """
     old_password: str
+
+    @model_validator(mode='after')
+    def check_passwords_differ(self) -> 'ChangePasswordSchema':
+        """Validate that new password differs from old password."""
+        if self.new_password == self.old_password:
+            raise PasswordVerifyError(
+                detail='Новый пароль должен отличаться от старого'
+            )
+        return self
 
 class UpdatePasswordORMSchema(BaseModel):
     """Schemas for update password in BD.

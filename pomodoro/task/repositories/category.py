@@ -11,7 +11,7 @@ from pomodoro.core.repositories.base_crud import CRUDRepository
 from pomodoro.task.models.categories import Category
 
 
-class CategoryRepository(CRUDRepository):
+class CategoryRepository(CRUDRepository[Category]):
     """Category repository inheriting from base CRUD repository.
 
     Provides data access operations for Category entities with full CRUD

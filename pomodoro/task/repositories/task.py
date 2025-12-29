@@ -11,21 +11,24 @@ from pomodoro.core.repositories.base_crud import CRUDRepository
 from pomodoro.task.models.tasks import Task
 
 
-class TaskRepository(CRUDRepository):
+class TaskRepository(CRUDRepository[Task]):
     """Task repository inheriting from base CRUD repository.
 
     Provides data access operations for Task entities with full CRUD
     functionality. Inherits all base operations from CRUDRepository with
     Task-specific configuration.
 
-    Attributes:     sessionmaker: Async session factory for database
-    operations     orm_model: Task model class for ORM operations
+    Attributes:
+        sessionmaker: Async session factory for database
+                      operations
+        orm_model: Task model class for ORM operations
     """
 
     def __init__(self, sessionmaker: async_sessionmaker):
         """Initialize task repository with database session.
 
-        Args:     sessionmaker: Async session factory for database
-        connectivity
+        Args:
+            sessionmaker: Async session factory for database
+                          connectivity
         """
         super().__init__(sessionmaker=sessionmaker, orm_model=Task)

@@ -1,1 +1,1 @@
-"""Core validators"""
+"""Core validators."""

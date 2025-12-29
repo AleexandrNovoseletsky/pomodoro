@@ -1,1 +1,1 @@
-"""Core dependencies"""
+"""Core dependencies."""

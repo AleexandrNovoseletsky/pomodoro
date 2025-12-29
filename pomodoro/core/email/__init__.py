@@ -1,1 +1,1 @@
-"""Package for working with email"""
+"""Package for working with email."""

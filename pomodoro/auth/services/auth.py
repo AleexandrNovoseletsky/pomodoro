@@ -81,7 +81,9 @@ class AuthService:
         """
         user_or_none = await self.user_repo.get_by_phone(user_phone=phone)
         if user_or_none.hashed_password is None:
-            raise PasswordVerifyError(detail="Этот аккаунт создан через OAuth.")
+            raise PasswordVerifyError(
+                detail="Этот аккаунт создан через OAuth."
+            )
         if user_or_none is None:
             raise UserNotFoundError(phone=phone)
         if not user_or_none.is_active:

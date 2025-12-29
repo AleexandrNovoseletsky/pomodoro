@@ -10,17 +10,24 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi_limiter import FastAPILimiter
 
+# Import routers
 from pomodoro.auth.handlers.auth import router as auth_router
 from pomodoro.core.exceptions.base import AppException
-from pomodoro.core.handlers.exceptions_handlers import app_exception_handler, http_exception_handler
+from pomodoro.core.handlers.exceptions_handlers import (
+    app_exception_handler,
+    http_exception_handler,
+)
 from pomodoro.database.cache.accesor import (
     create_redis_connection,
 )
 from pomodoro.media.handlers.media import router as media_router
 from pomodoro.task.handlers.categories import router as category_router
+from pomodoro.task.handlers.tags import router as tag_router
 from pomodoro.task.handlers.tasks import router as task_router
 from pomodoro.user.handlers.users import router as user_router
 
+# Logging configuration
+# Logging configuration
 # Configure basic logging at INFO level so all module-level
 # `logger.info(...)` messages (including timing marks [TIMING])
 # are output to stdout/stderr and included in log files during redirection.
@@ -30,6 +37,7 @@ logging.basicConfig(
 )
 
 
+# Application lifespan management
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     """Application lifespan manager for startup and shutdown events.
@@ -53,6 +61,7 @@ async def lifespan(application: FastAPI):
     logging.info("✅ Rate limiter closed")
 
 
+# FastAPI application configuration
 app = FastAPI(
     title="Pomodoro API",
     description=("Pomodoro technique task management API "
@@ -61,16 +70,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Register custom application exception handler globally
+# Exception handlers registration
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(HTTPException, http_exception_handler)
 
-# Connect routers. Prefixes are specified here
-# (handlers don't specify prefixes)
+# Router registration
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(media_router, prefix="/media", tags=["Media Management"])
 app.include_router(task_router, prefix="/tasks", tags=["Task Management"])
 app.include_router(
     category_router, prefix="/categories", tags=["Category Management"]
 )
+app.include_router(tag_router, prefix="/tags", tags=["Tag Management"])
+
+# Health check endpoint
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint for monitoring and load balancers."""
+    return {"status": "healthy", "service": "pomodoro-api"}
 app.include_router(user_router, prefix="/users", tags=["User Management"])

@@ -15,7 +15,9 @@ from pomodoro.media.dependencies.media import get_media_service
 from pomodoro.media.services.media_service import MediaService
 from pomodoro.task.models.tasks import Task
 from pomodoro.task.repositories.cache_tasks import TaskCacheRepository
+from pomodoro.task.repositories.tag import TagRepository
 from pomodoro.task.repositories.task import TaskRepository
+from pomodoro.task.services.tag_service import TagService
 from pomodoro.task.services.task_service import TaskService
 
 
@@ -50,7 +52,31 @@ async def get_cache_task_repository() -> TaskCacheRepository | None:
     """
     async for cache_session in get_cache_session():
         return TaskCacheRepository(cache_session=cache_session)
-    return None
+async def get_tag_repository() -> TagRepository:
+    """Create and return tag repository instance.
+
+    Returns:
+        TagRepository: Repository instance configured with
+                        database session maker for performing
+                        tag database operations.
+    """
+    return TagRepository(sessionmaker=async_session_maker)
+
+
+async def get_tag_service(
+    tag_repo: Annotated[TagRepository, Depends(get_tag_repository)],
+    media_service: Annotated[MediaService, Depends(get_media_service)],
+) -> TagService:
+    """Create and return tag service instance.
+
+    Args:
+        tag_repo: Injected tag repository
+        media_service: Injected media service
+
+    Returns:
+        TagService: Configured tag service instance
+    """
+    return TagService(tag_repo=tag_repo, media_service=media_service)
 
 
 async def get_task_service(
@@ -61,6 +87,7 @@ async def get_task_service(
         TaskCacheRepository, Depends(dependency=get_cache_task_repository)
     ],
     media_service: Annotated[MediaService, Depends(get_media_service)],
+    tag_service: Annotated[TagService, Depends(get_tag_service)],
 ) -> TaskService:
     """Create and return task service instance with all dependencies.
 
@@ -68,6 +95,7 @@ async def get_task_service(
         task_repo: Injected task repository for database operations
         cache_repo: Injected cache repository for Redis operations
         media_service: Injected media service for file management
+        tag_service: Injected tag service for tag operations
 
     Returns:
         TaskService:
@@ -80,7 +108,10 @@ async def get_task_service(
         degradation when cache is unavailable.
     """
     return TaskService(
-        task_repo=task_repo, cache_repo=cache_repo, media_service=media_service
+        task_repo=task_repo,
+        cache_repo=cache_repo,
+        media_service=media_service,
+        tag_service=tag_service,
     )
 
 

@@ -74,6 +74,19 @@ class CreateCategorySchema(BaseModel):
     )
 
 
+class CreateCategoryORM(CreateCategorySchema):
+    """Schema for category creation in database operations.
+
+    Extends creation schema with system-generated author identifier for
+    internal database operations.
+
+    Attributes:
+        author_id: System-provided identifier of category
+                   creator
+    """
+    author_id: int
+
+
 class UpdateCategorySchema(BaseModel):
     """Schema for partial category updates.
 
@@ -115,6 +128,7 @@ class ResponseCategorySchema(CategoryBaseSchema):
     parent_id: int | None
     created_at: datetime
     updated_at: datetime
+    author_id: int | None
 
 
 # ---------------------------------------------------------------------
