@@ -43,8 +43,8 @@ router = APIRouter()
 @router.get(
     path="/",
     response_model=list[ResponseTagSchema],
-    summary="Получить все теги",
-    description="Получить список всех доступных тегов. Открытый доступ."
+    summary="Get all tags",
+    description="Get list of all available tags. Public access."
 )
 async def get_tags(
     tag_service: tag_service_annotated,
@@ -58,8 +58,8 @@ async def get_tags(
     response_model=ResponseTagSchema,
     status_code=status.HTTP_201_CREATED,
     dependencies=[only_admin],
-    summary="Создать тег",
-    description="Создание нового тега. Требуются права администратора."
+    summary="Create tag",
+    description="Create new tag. Administrator privileges required."
 )
 async def create_tag(
     body: CreateTagSchema,
@@ -77,9 +77,9 @@ async def create_tag(
     path="/{tag_id}",
     response_model=ResponseTagSchema,
     dependencies=[only_admin],
-    summary="Обновить тег",
-    description=("Обновление существующего тега. "
-                 "Требуются права администратора.")
+    summary="Update tag",
+    description=("Update an existing tag. "
+                 "Administrator rights required.")
 )
 async def update_category(
     tag_id: int,
@@ -96,8 +96,8 @@ async def update_category(
     path="/{tag_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить тег",
-    description="Необратимо удаляет тег. Требуются права администратора"
+    summary="Delete tag",
+    description="Permanently deletes a tag. Administrator rights required"
 )
 async def delete_tag(
     tag_id: int,

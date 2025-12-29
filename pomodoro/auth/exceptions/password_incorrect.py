@@ -41,4 +41,4 @@ class PasswordVerifyError(AppException):
             prevent user enumeration attacks that could determine which
             usernames exist in the system.
         """
-        super().__init__(detail or "Неверный логин или пароль.")
+        super().__init__(detail or "Invalid login or password.")

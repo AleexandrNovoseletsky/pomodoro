@@ -174,8 +174,8 @@ class UserProfileService(
         )
         if current_user.hashed_password is not None:
             raise PasswordAlreadySetError(
-                detail=("Нельзя установить пароль, когда он уже установлен. "
-                        "Вы можете только изменить пароль.")
+                detail=("Cannot set password when it is already set. "
+                        "You can only change the password.")
             )
         return await self._update_user_password(
             user_id=current_user_id, plain_password=schema.new_password
@@ -204,7 +204,7 @@ class UserProfileService(
             hashed_password=current_user.hashed_password
         ):
             raise PasswordVerifyError(
-                detail="Действующий пароль указан не верно."
+                detail="Current password is incorrect."
             )
         return await self._update_user_password(
             user_id=current_user_id, plain_password=schema.new_password
@@ -288,8 +288,8 @@ class UserProfileService(
 
         if hashed_code is None or user_id is None:
             raise PasswordVerifyError(
-                detail="Проверочный код некорректен либо истёк. "
-                "Попробуйте снова."
+                detail="Verification code is invalid or expired. "
+                "Please try again."
             )
 
         if not verify_password(
@@ -297,8 +297,8 @@ class UserProfileService(
                 hashed_password=hashed_code,
         ):
             raise PasswordVerifyError(
-                detail="Проверочный код некорректен либо истёк. "
-                "Попробуйте снова."
+                detail="Verification code is invalid or expired. "
+                "Please try again."
             )
 
         # Invalidate recovery session

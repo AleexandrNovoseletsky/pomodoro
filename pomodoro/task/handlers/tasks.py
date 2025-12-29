@@ -45,9 +45,9 @@ router = APIRouter()
 @router.get(
     path="/",
     response_model=list[ResponseTaskSchema],
-    summary="Получить все задачи",
-    description=("Возвращает список всех задач в системе. "
-                 "Доступно всем пользователям."),
+    summary="Get all tasks",
+    description=("Returns a list of all tasks in the system. "
+                 "Available to all users."),
 )
 async def get_tasks(
     task_service: task_service_annotated,
@@ -70,9 +70,9 @@ async def get_tasks(
     path="/",
     response_model=ResponseTaskSchema,
     status_code=status.HTTP_201_CREATED,
-    summary="Создать задачу",
-    description=("Создание новой задачи в системе. "
-                 "Доступно авторизованным пользователям."),
+    summary="Create task",
+    description=("Creating a new task in the system. "
+                 "Available to authorized users."),
 )
 async def create_task(
     body: CreateTaskSchema,
@@ -102,9 +102,9 @@ async def create_task(
     path="/{task_id}",
     response_model=ResponseTaskSchema,
     dependencies=[owner_or_admin_depends],
-    summary="Обновить задачу",
-    description=("Изменение существующей задачи. "
-                 "Доступно владельцу задачи и администраторам.")
+    summary="Update task",
+    description=("Modifying an existing task. "
+                 "Available to the task owner and administrators.")
 )
 async def update_task(
     task_id: int, body: UpdateTaskSchema, task_service: task_service_annotated
@@ -135,9 +135,9 @@ async def update_task(
     path="/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[owner_or_admin_depends],
-    summary="Удалить задачу",
-    description=("Удаление задачи из системы. "
-                 "Доступно владельцу задачи и администраторам.")
+    summary="Delete task",
+    description=("Deleting a task from the system. "
+                 "Available to the task owner and administrators.")
 )
 async def delete_task(
     task_id: int, task_service: task_service_annotated

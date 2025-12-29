@@ -27,7 +27,7 @@ router = APIRouter()
     path="/{file_id}/url",
     response_model=dict,
     status_code=status.HTTP_200_OK,
-    summary="Получить ссылку на файл",
+    summary="Get file URL",
 )
 async def get_file_url(
     file_id: int,
@@ -50,7 +50,7 @@ async def get_file_url(
     path="/{file_id}",
     response_model=ResponseFileSchema,
     status_code=status.HTTP_200_OK,
-    summary="Получить файл по ID.",
+    summary="Get file by ID.",
 )
 async def get_file(
     file_id: int,
@@ -72,7 +72,7 @@ async def get_file(
     path="/{domain}/{owner_id}",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_200_OK,
-    summary="Получить все файлы ресурса",
+    summary="Get all files for resource",
 )
 async def get_files_by_owner(
     domain: OwnerType,
@@ -96,7 +96,7 @@ async def get_files_by_owner(
     path="/{domain}/{owner_id}/upload",
     response_model=ResponseFileSchema,
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузить один файл",
+    summary="Upload single file",
 )
 async def upload_file(
     domain: OwnerType,
@@ -126,7 +126,7 @@ async def upload_file(
     path="/{domain}/{owner_id}/upload/multiple",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка нескольких файлов",
+    summary="Upload multiple files",
 )
 async def upload_files(
     domain: OwnerType,
@@ -167,11 +167,11 @@ async def upload_files(
     path="/{domain}/{owner_id}/upload/image",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка одного изображения",
-    description="Создаётся три варианта изображения: "
-    "ORIGINAL (Оригинальный размер), "
-    "SMALL (Сжатое изображение), "
-    "THUMB. (Сильно сжатое изображение)",
+    summary="Upload single image",
+    description="Creates three image variants: "
+    "ORIGINAL (Original size), "
+    "SMALL (Compressed image), "
+    "THUMB (Highly compressed image)",
 )
 async def upload_image(
     domain: OwnerType,
@@ -204,11 +204,11 @@ async def upload_image(
     path="/{domain}/{owner_id}/upload/image/multiple",
     response_model=list[ResponseFileSchema],
     status_code=status.HTTP_201_CREATED,
-    summary="Загрузка нескольких изображений",
-    description="Создаётся три варианта каждого изображения: "
-    "ORIGINAL (Оригинальный размер), "
-    "SMALL (Сжатое изображение), "
-    "THUMB. (Сильно сжатое изображение)",
+    summary="Upload multiple images",
+    description="Creates three variants of each image: "
+    "ORIGINAL (Original size), "
+    "SMALL (Compressed image), "
+    "THUMB (Highly compressed image)",
 )
 async def upload_images(
     domain: OwnerType,
@@ -252,7 +252,7 @@ async def upload_images(
     dependencies=[only_admin],
     response_model=ResponseFileSchema,
     status_code=status.HTTP_200_OK,
-    summary="Установить файл как главный (primary) у ресурса",
+    summary="Set file as primary for resource",
 )
 async def make_primary(
     file_id: int,
@@ -274,9 +274,8 @@ async def make_primary(
     path="/delete_orphans",
     status_code=status.HTTP_200_OK,
     dependencies=[only_admin],
-    summary="Удалить осиротевшие файлы из хранилища и БД",
-    description="Удаляет файлы которые есть в БД, но нет в хранилище. "
-                "И наоборот, файлы которые есть в хранилище но нет в БД."
+    summary="Delete orphaned files from storage and database",
+    description="Deletes orphaned files between storage and database."
 )
 async def delete_orphaned_files(media_service: media_service_annotated):
     """Delete all orphaned files.
@@ -299,7 +298,7 @@ async def delete_orphaned_files(media_service: media_service_annotated):
     path="/{file_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить один файл по ID",
+    summary="Delete single file by ID",
 )
 async def delete_file(
     file_id: int,
@@ -322,7 +321,7 @@ async def delete_file(
     path="/{domain}/{owner_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить все файлы указанного ресурса",
+    summary="Delete all files of specified resource",
 )
 async def delete_files_by_owner(
     domain: OwnerType,

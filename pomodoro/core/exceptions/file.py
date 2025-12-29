@@ -71,6 +71,7 @@ class InvalidCreateFileData(AppException):
 
         return "; ".join(messages)
 
+
 class InvalidImageFile(AppException):
     """Exception raised when uploaded file is not a valid image.
 
@@ -88,8 +89,8 @@ class InvalidImageFile(AppException):
             filename: Optional original filename for better diagnostics
         """
         detail = (
-            f"Файл '{filename}' не является допустимым изображением"
+            f"File '{filename}' is not a valid image"
             if filename
-            else "Переданный файл не является допустимым изображением"
+            else "The uploaded file is not a valid image"
         )
         super().__init__(detail=detail)

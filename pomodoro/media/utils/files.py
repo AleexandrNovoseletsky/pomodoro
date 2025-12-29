@@ -74,7 +74,7 @@ class FileChecker:
             raise InvalidCreateFileData(
                 exc=exc,
                 detail=(
-                    f"Файл '{self.file.filename}': "
+                    f"File '{self.file.filename}': "
                     f"{InvalidCreateFileData.format_errors(exc)}"
                 ),
             ) from exc
@@ -96,8 +96,8 @@ class FileChecker:
             raise InvalidCreateFileData(
                 exc=None,
                 detail=(
-                    f"Файл '{self.file.filename}' "
-                    f"не является изображением (mime={mime})"
+                    f"File '{self.file.filename}' "
+                    f"is not an image (mime={mime})"
                 ),
             )
 
@@ -156,8 +156,8 @@ class FileChecker:
             raise InvalidCreateFileData(
                 exc=None,
                 detail=(
-                           f"Минимальное разрешение {min_w}x{min_h}, "
-                            f"получено {width}x{height}"
+                           f"Minimum resolution {min_w}x{min_h}, "
+                            f"received {width}x{height}"
                 ),
             )
 
@@ -180,8 +180,8 @@ class FileChecker:
             raise InvalidCreateFileData(
                 exc=None,
                 detail=(
-                    f"Ожидается соотношение {ratio[0]}:{ratio[1]}, "
-                    f"получено {width}:{height}"
+                    f"Expected ratio {ratio[0]}:{ratio[1]}, "
+                    f"received {width}:{height}"
                 ),
             )
 

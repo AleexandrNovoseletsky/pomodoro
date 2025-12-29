@@ -29,7 +29,7 @@ class EmailService:
         message = EmailMessage()
         message["From"] = settings.EMAIL_FROM
         message["To"] = recipient_email
-        message["Subject"] = "Восстановление пароля"
+        message["Subject"] = "Password Recovery"
         message.set_content(password_recovery_email(recovery_code))
 
         await self.smtp_client.send_message(message)

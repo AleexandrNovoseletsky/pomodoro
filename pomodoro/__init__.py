@@ -1,1 +1,1 @@
-"""Главный пакет приложения Pomodoro."""
+"""Main package of the Pomodoro application."""
