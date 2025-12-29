@@ -13,6 +13,11 @@ class EmailService:
     """Service responsible for sending application emails."""
 
     def __init__(self, smtp_client: SMTPClient):
+        """Initialize email service with SMTP client.
+
+        Args:
+            smtp_client: SMTP client for sending emails.
+        """
         self.smtp_client = smtp_client
 
     async def send_password_recovery_email(

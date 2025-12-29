@@ -2,7 +2,7 @@
 
 CRUD operations.
 """
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -14,18 +14,18 @@ from pomodoro.core.repositories.base_crud import CRUDRepository
 ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
 
 
-class CRUDService(
-    Generic[ResponseSchema]
-):
+class CRUDService[ResponseSchema]:
     """Base service class providing CRUD operations.
 
     Serves as the foundation for all domain-specific services, handling
     data transformation between ORM objects and Pydantic schemas with
     consistent error handling and business logic encapsulation.
 
-    Attributes:     repository: CRUD repository instance for data access
-    operations     response_schema: Pydantic model class for response
-    data serialization
+    Attributes:
+        repository: CRUD repository instance for data access
+                    operations
+        response_schema: Pydantic model class for response
+                         data serialization
     """
 
     def __init__(
@@ -33,9 +33,11 @@ class CRUDService(
     ):
         """Initialize base service with repository and response schema.
 
-        Args:     repository: Domain-specific repository for data
-        operations     response_schema: Pydantic model class for
-        response serialization
+        Args:
+            repository: Domain-specific repository for data
+                        operations
+            response_schema: Pydantic model class for
+                             response serialization
         """
         self.repository = repository
         self.response_schema = response_schema
@@ -43,17 +45,23 @@ class CRUDService(
     async def get_one_object(self, object_id: int) -> ResponseSchema:
         """Retrieve a single object by identifier with validation.
 
-        Args:     object_id: Unique identifier of the object to retrieve
+        Args:
+            object_id: Unique identifier of the object to retrieve
 
-        Returns:     Validated Pydantic response schema instance
+        Returns:
+            Validated Pydantic response schema instance
 
-        Raises:     ObjectNotFoundError: If no object exists with the
-        specified ID
+        Raises:
+            ObjectNotFoundError: If no object exists with the
+            specified ID
 
-        Note:     Automatically converts ORM objects to Pydantic schemas
-        for consistent API response formatting
+        Note:
+            Automatically converts ORM objects to Pydantic schemas
+            for consistent API response formatting
         """
-        db_object = await self.repository.get_one_object_or_raise(object_id=object_id)
+        db_object = await self.repository.get_one_object_or_raise(
+            object_id=object_id
+        )
         return self.response_schema.model_validate(obj=db_object)
 
     async def get_all_objects(self) -> list[ResponseSchema]:
@@ -76,13 +84,16 @@ class CRUDService(
     async def create_object(self, object_data: BaseModel) -> ResponseSchema:
         """Create a new object with data validation.
 
-        Args:     object_data: Pydantic schema containing creation data
+        Args:
+            object_data: Pydantic schema containing creation data
 
-        Returns:     Validated Pydantic response schema of the created
-        object
+        Returns:
+            Validated Pydantic response schema of the created
+            object
 
-        Raises:     IntegrityDBError: If database constraints are
-        violated     during object creation
+        Raises:
+            IntegrityDBError: If database constraints are
+            violated during object creation
         """
         try:
             new_object = await self.repository.create_object(data=object_data)
@@ -95,15 +106,19 @@ class CRUDService(
     ) -> ResponseSchema:
         """Update an existing object with partial data and validation.
 
-        Args:     object_id: Unique identifier of the object to update
-        update_data: Pydantic schema containing update data
+        Args:
+            object_id: Unique identifier of the object to update
+            update_data: Pydantic schema containing update data
 
-        Returns:     Validated Pydantic response schema of the updated
-        object
+        Returns:
+            Validated Pydantic response schema of the updated
+            object
 
-        Raises:     IntegrityDBError: If database constraints are
-        violated     ObjectNotFoundError: If no object exists with the
-        specified ID
+        Raises:
+            IntegrityDBError: If database constraints are
+                              violated
+            ObjectNotFoundError: If no object exists with the
+                                 specified ID
         """
         try:
             updated_object_or_none = await self.repository.update_object(
@@ -118,14 +133,17 @@ class CRUDService(
     async def delete_object(self, object_id: int) -> None:
         """Delete an object by identifier with existence validation.
 
-        Args:     object_id: Unique identifier of the object to delete
+        Args:
+            object_id: Unique identifier of the object to delete
 
-        Raises:     ObjectNotFoundError: If no object exists with the
-        specified ID
+        Raises:
+            ObjectNotFoundError: If no object exists with the
+                                 specified ID
 
-        Note:     Returns None on successful deletion to indicate
-        operation completion     without returning data for deleted
-        resources
+        Note:
+            Returns None on successful deletion to indicate
+            operation completion without returning data for deleted
+            resources
         """
         deleted = await self.repository.delete_object(object_id=object_id)
         if not deleted:

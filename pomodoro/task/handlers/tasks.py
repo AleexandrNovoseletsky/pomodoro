@@ -21,7 +21,9 @@ from pomodoro.user.dependencies.user import get_current_user
 from pomodoro.user.models.users import UserProfile, UserRole
 
 # User who made the request
-current_user_annotated = Annotated[UserProfile, Depends(get_current_user)]
+current_user_annotated = Annotated[
+    UserProfile, Depends(get_current_user)
+]
 
 # Check if user is resource owner or has admin roles
 root = UserRole.ROOT

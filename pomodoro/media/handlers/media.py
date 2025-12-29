@@ -210,7 +210,7 @@ async def upload_image(
     "SMALL (Сжатое изображение), "
     "THUMB. (Сильно сжатое изображение)",
 )
-async def upload_image(
+async def upload_images(
     domain: OwnerType,
     owner_id: int,
     media_service: media_service_annotated,

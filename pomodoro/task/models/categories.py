@@ -1,16 +1,18 @@
 """Category models.
 
 Defines database models for category management with relationships to
-tasks. Includes timestamp tracking and active status functionality.
+tasks.
+Includes timestamp tracking and active status functionality.
 """
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from pomodoro.core.mixins.active_flag import ActiveFlagMixin
 from pomodoro.core.mixins.timestamp import TimestampMixin
 from pomodoro.core.settings import Settings
 from pomodoro.database.database import Base
+from pomodoro.user.models.users import UserProfile
 
 settings = Settings()
 
@@ -56,3 +58,7 @@ class Category(TimestampMixin, ActiveFlagMixin, Base):
         argument="Task",
         back_populates="category",
     )
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey(UserProfile.id, ondelete="SET NULL"), nullable=True
+    )
+    author = relationship("UserProfile", back_populates="categories")

@@ -34,7 +34,6 @@ dependencies = [
     "pillow (>=12.0.0,<13.0.0)",
     "fastapi-limiter (>=0.1.6,<0.2.0)",
     "black (>=25.11.0,<26.0.0)",
-    "pydocstringformatter (>=0.7.5,<0.8.0)",
     "aiosmtplib (>=5.0.0,<6.0.0)",
     "certifi (>=2025.11.12,<2026.0.0)",
 ]
@@ -105,14 +104,6 @@ convention = "google"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 
-
-[tool.pydocstringformatter]
-write = true
-max-line-length = 72
-linewrap-full-docstring = true
-split-summary-body = false
-strip-whitespaces = true
-style = ["pep257"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

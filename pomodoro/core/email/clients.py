@@ -1,9 +1,9 @@
 """SMTP email client."""
 import ssl
-import certifi
 from email.message import EmailMessage
 
 import aiosmtplib
+import certifi
 
 from pomodoro.core.settings import Settings
 

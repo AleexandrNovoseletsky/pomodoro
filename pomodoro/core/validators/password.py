@@ -1,3 +1,5 @@
+"""Password validation utilities for Pydantic models."""
+
 from pydantic import field_validator
 
 from pomodoro.core.security.password_policy import PasswordPolicy

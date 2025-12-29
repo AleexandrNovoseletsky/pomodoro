@@ -1,6 +1,9 @@
+"""Invalid reset token exception."""
+
 from fastapi import status
 
 from pomodoro.core.exceptions.base import AppException
+
 
 class InvalidResetToken(AppException):
     """Invalid reset password token."""

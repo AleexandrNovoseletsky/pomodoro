@@ -10,6 +10,7 @@ from pomodoro.core.settings import Settings
 from pomodoro.database.database import Base
 from pomodoro.task.models.categories import Category  # noqa: F401
 from pomodoro.media.models.files import Files  # noqa: F401
+from pomodoro.task.models.tags import Tag  # noqa: F401
 from pomodoro.task.models.tasks import Task  # noqa: F401
 from pomodoro.user.models.users import UserProfile  # noqa: F401
 

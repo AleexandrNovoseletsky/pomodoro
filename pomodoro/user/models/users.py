@@ -80,15 +80,21 @@ class UserProfile(ActiveFlagMixin, TimestampMixin, Base):
     role: Mapped[UserRole] = mapped_column(
         String(50), nullable=False, default=UserRole.USER.value
     )
+    categories = relationship(
+        argument="Category",
+        back_populates="author",
+    )
     tasks = relationship(
         argument="Task",
         back_populates="author",
-        cascade="all, delete-orphan",
+    )
+    tags = relationship(
+        argument="Tag",
+        back_populates="author",
     )
     oauth_accounts = relationship(
         argument="OAuthAccount",
         back_populates="user",
-        cascade="all, delete-orphan",
     )
 
     __table_args__ = (make_check_in(enum_cls=UserRole, column_name="role"),)

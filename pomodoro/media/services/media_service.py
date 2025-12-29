@@ -12,11 +12,14 @@ import uuid
 from pathlib import Path
 
 import magic
-from PIL import Image, UnidentifiedImageError
 from fastapi import UploadFile
+from PIL import Image, UnidentifiedImageError
 from pydantic import ValidationError
 
-from pomodoro.core.exceptions.file import InvalidCreateFileData, InvalidImageFile
+from pomodoro.core.exceptions.file import (
+    InvalidCreateFileData,
+    InvalidImageFile,
+)
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.core.settings import Settings
 from pomodoro.media.converters.image_converters import (
@@ -181,7 +184,7 @@ class MediaService(CRUDService[ResponseFileSchema]):
         Raises:
             ObjectNotFoundError: If owner resource doesn't exist
         Exception:
-        Rolls back all uploads if database operation fails
+            Rolls back all uploads if database operation fails
         """
         # Extract filename without extension for variant naming
         filename = Path(image.filename).stem
@@ -206,7 +209,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
         thumb_height: int = int(settings.THUMB_WIDTH / ratio)
 
         files: list[io.BytesIO] = []
-        files.append(await convert_to_webp(image=original_image_bytes))
+        files.append(
+            await convert_to_webp(image=original_image_bytes)
+        )
         files.append(
             await resize_image(image=files[0], width=settings.SMALL_WIDTH)
         )
@@ -395,9 +400,8 @@ class MediaService(CRUDService[ResponseFileSchema]):
         the referenced resource exists before file operations.
 
         Args:
-            owner_type: Type of owner resource
-            (Task, Category, User)
-        owner_id: ID of owner resource to verify
+            owner_type: Type of owner resource (Task, Category, User).
+            owner_id: ID of owner resource to verify.
 
         Raises:
             ValueError: If owner doesn't registry
@@ -426,7 +430,9 @@ class MediaService(CRUDService[ResponseFileSchema]):
             await self.storage.upload(key=key, file=file, mime=mime)
 
     @staticmethod
-    async def _get_owner_and_owner_id_by_key(key: str) -> tuple[str, int]:
+    async def _get_owner_and_owner_id_by_key(
+        key: str
+    ) -> tuple[OwnerType, int]:
         """Extract owner type and ID from storage key.
 
         Args:
@@ -436,7 +442,15 @@ class MediaService(CRUDService[ResponseFileSchema]):
             Tuple of (owner_type, owner_id)
         """
         split_key = key.split(sep="/")
-        return split_key[0], int(split_key[1])
+        try:
+            owner_type = OwnerType(split_key[0])
+            owner_id = int(split_key[1])
+        except (IndexError, ValueError) as exc:
+            raise InvalidCreateFileData(
+                exc=None,
+                detail=f"Invalid storage key format: {key}"
+            ) from exc
+        return owner_type, owner_id
 
     @staticmethod
     async def _get_real_mime(file: UploadFile) -> AllowedMimeTypes:

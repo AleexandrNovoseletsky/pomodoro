@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from pomodoro.core.settings import Settings
+from pomodoro.task.schemas.tag import ResponseTagSchema
 
 settings = Settings()
 
@@ -65,6 +66,7 @@ class CreateTaskSchema(BaseModel):
     name: str = name_field(...)
     pomodoro_count: int = pomodoro_count_field(...)
     category_id: int
+    tags: list[int] | None = Field(default_factory=list)
     is_active: bool | None = None
 
 
@@ -76,7 +78,7 @@ class CreateTaskORM(CreateTaskSchema):
 
     Attributes:
         author_id: System-provided identifier of task
-                    creator
+                   creator
     """
 
     author_id: int
@@ -97,11 +99,11 @@ class ResponseTaskSchema(CreateTaskSchema):
     """
 
     id: int
-    author_id: int
+    author_id: int | None
     is_active: bool
     created_at: datetime
     updated_at: datetime
-
+    tags: list[ResponseTagSchema] = []
     model_config = {"from_attributes": True}
 
 
@@ -122,4 +124,5 @@ class UpdateTaskSchema(BaseModel):
     name: str | None = name_field(None)
     pomodoro_count: int | None = pomodoro_count_field(None)
     category_id: int | None = None
+    tag_ids: list[int] | None = None
     is_active: bool | None = None

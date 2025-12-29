@@ -1,4 +1,8 @@
+"""Password policy validation utilities."""
+
 import re
+
+from pomodoro.auth.exceptions.password_incorrect import PasswordVerifyError
 
 
 class PasswordPolicy:
@@ -12,21 +16,25 @@ class PasswordPolicy:
             ValueError: If password does not meet complexity requirements
         """
         if not re.search(r"[a-z]", value):
-            raise ValueError(
-                "Password must contain at least one lowercase letter"
+            raise PasswordVerifyError(
+                detail=("Password must contain at "
+                        "least one lowercase letter")
             )
 
         if not re.search(r"[A-Z]", value):
-            raise ValueError(
-                "Password must contain at least one uppercase letter"
+            raise PasswordVerifyError(
+                detail=("Password must contain at "
+                 "least one uppercase letter")
             )
 
         if not re.search(r"\d", value):
-            raise ValueError(
-                "Password must contain at least one digit"
+            raise PasswordVerifyError(
+                detail=("Password must contain "
+                        "at least one digit")
             )
 
         if not re.search(r"[^\w\s]", value):
-            raise ValueError(
-                "Password must contain at least one special character"
+            raise PasswordVerifyError(
+                detail=("Password must contain at "
+                        "least one special character")
             )

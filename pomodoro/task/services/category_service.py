@@ -11,8 +11,9 @@ media services, and API schemas.
 """
 
 from collections import defaultdict
-from typing import Iterable
+from collections.abc import Iterable
 
+from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.media.models.files import OwnerType
 from pomodoro.media.services.media_service import MediaService
@@ -21,7 +22,6 @@ from pomodoro.task.schemas.category import (
     CategoryTreeSchema,
     ResponseCategorySchema,
 )
-from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 
 
 class CategoryService(CRUDService[ResponseCategorySchema]):

@@ -9,16 +9,18 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 from fastapi_limiter.depends import RateLimiter
-from sqlalchemy.util import await_only
 
 from pomodoro.auth.dependencies.auth import require_roles
-from pomodoro.core.dependencies.core import get_email_service
 from pomodoro.user.dependencies.user import get_current_user, get_user_service
 from pomodoro.user.models.users import UserProfile, UserRole
 from pomodoro.user.schemas.user import (
-    ResponseUserProfileSchema,
-    UpdateUserProfileSchema, SetPasswordSchema, ChangePasswordSchema, ResetPasswordSchema, CheckRecoveryCodeSchema,
+    ChangePasswordSchema,
+    CheckRecoveryCodeSchema,
     ConfirmResetPasswordSchema,
+    ResetPasswordSchema,
+    ResponseUserProfileSchema,
+    SetPasswordSchema,
+    UpdateUserProfileSchema,
 )
 from pomodoro.user.services.user_service import UserProfileService
 
@@ -135,6 +137,7 @@ async def set_password(
         current_user_id=current_user.id, schema=body
     )
 
+
 @router.patch(
     path="/me/change_password",
     status_code=status.HTTP_200_OK,
@@ -156,6 +159,7 @@ async def change_password(
         current_user_id=current_user.id, schema=body
     )
 
+
 @router.post(
     path="/reset_password_via_email",
     status_code=status.HTTP_200_OK,
@@ -167,12 +171,22 @@ async def reset_password_via_email(
         body: ResetPasswordSchema,
         user_service: user_service_annotated,
 ):
+    """Send password recovery code via email.
+
+    Args:
+        body: Request body with user phone.
+        user_service: User service dependency.
+
+    Returns:
+        Recovery session ID.
+    """
     recovery_id = await user_service.send_recovery_code_via_email(
         user_phone=body.phone
     )
     return {
         "recovery_id": recovery_id,
     }
+
 
 @router.post(
     path="/check_recovery_code",
@@ -186,6 +200,15 @@ async def check_recovery_code(
         body: CheckRecoveryCodeSchema,
         user_service: user_service_annotated
 ):
+    """Check recovery code and return reset token.
+
+    Args:
+        body: Request body with recovery ID and code.
+        user_service: User service dependency.
+
+    Returns:
+        Reset token for password change.
+    """
     token = await user_service.check_recovery_code(
         recovery_id=body.recovery_id,
         input_code=body.recovery_code
@@ -206,9 +229,19 @@ async def confirm_reset_password(
         body: ConfirmResetPasswordSchema,
         user_service: user_service_annotated
 ):
+    """Reset user password using recovery token.
+
+    Args:
+        body: Request body with reset token and new password.
+        user_service: User service dependency.
+
+    Returns:
+        Updated user profile.
+    """
     return await user_service.reset_password_via_token(
         token=body.token, new_password=body.new_password
     )
+
 
 @router.delete(
     path="/delete/{user_id}",

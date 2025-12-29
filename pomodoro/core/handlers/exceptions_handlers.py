@@ -5,8 +5,7 @@ exceptions. Returns structured JSON responses for AppException and its
 subclasses with consistent error formatting and appropriate HTTP status
 codes.
 """
-from fastapi import status
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -47,33 +46,7 @@ async def http_exception_handler(
     to understand exception structure and rate limiting behavior.
     Will be simplified for production use.
     """
-    # Comprehensive debug output
-    print("\n" + "═" * 70)
-    print("🚨 HTTP EXCEPTION DEBUG INFO 🚨")
-    print("═" * 70)
-
-    # Exception attributes
-    print(f"\n📋 Exception Object:")
-    print(f"  Type: {type(exc).__name__}")
-    print(f"  Status: {exc.status_code}")
-    print(f"  Detail: {exc.detail}")
-
-    # Headers analysis
-    print(f"\n📋 Headers Analysis:")
-    print(f"  Exception headers: {dict(exc.headers)}")
-    print(f"  Request headers keys: {list(request.headers.keys())}")
-
-    # Rate limiting specific
-    if exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-        print(f"\n⚠️  RATE LIMITING DETECTED:")
-        all_retry_sources = {
-            "exc.headers": exc.headers.get("retry-after"),
-            "request.headers": request.headers.get("retry-after"),
-        }
-        for source, value in all_retry_sources.items():
-            print(f"  {source}: {value} (type: {type(value)})")
-
-    print("═" * 70 + "\n")
+    # Debug output removed for production
 
     # Rate limiting handling (corrected - use exc.headers)
     if exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:

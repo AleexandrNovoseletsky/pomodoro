@@ -7,7 +7,7 @@ access patterns.
 """
 
 from datetime import UTC, datetime
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 from sqlalchemy import delete, select
@@ -18,7 +18,7 @@ from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 ORMModel = TypeVar("ORMModel")
 
 
-class CRUDRepository(Generic[ORMModel]):
+class CRUDRepository[ORMModel]:
     """Asynchronous CRUD repository with generic type support.
 
     Provides standard Create, Read, Update, Delete operations for
