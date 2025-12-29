@@ -176,7 +176,7 @@ class ChangePasswordSchema(SetPasswordSchema):
         """Validate that new password differs from old password."""
         if self.new_password == self.old_password:
             raise PasswordVerifyError(
-                detail='Новый пароль должен отличаться от старого'
+                detail='New password must be different from the old one'
             )
         return self
 

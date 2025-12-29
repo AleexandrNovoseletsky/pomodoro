@@ -39,9 +39,9 @@ router = APIRouter()
     response_model=ResponseUserProfileSchema,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(RateLimiter(times=3, hours=24))],
-    summary="Регистрация нового пользователя",
-    description=("Создание новой учетной записи пользователя. "
-                 "Ограничение: не более трёх регистраций в сутки."),
+    summary="Register new user",
+    description=("Create a new user account. "
+                 "Limit: no more than three registrations per day."),
 )
 async def register_user(
     body: CreateUserProfileSchema,
@@ -58,9 +58,9 @@ async def register_user(
 @router.post(
     path="/login",
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
-    summary="Вход пользователя по логину и паролю",
-    description=("Аутентификация пользователя по номеру телефона и паролю. "
-                 "Ограничение: пять попыток в минуту."),
+    summary="User login by username and password",
+    description=("User authentication by phone number and password. "
+                 "Limit: five attempts per minute."),
 )
 async def login_user(
     auth_service: auth_service_annotated,
@@ -82,9 +82,9 @@ async def login_user(
 @router.get(
     path="/login/yandex",
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
-    summary="Вход с помощью Яндекс ID",
-    description=("Перенаправление на страницу аутентификации Яндекс OAuth. "
-                 "Ограничение: пять попыток в минуту."),
+    summary="Login with Yandex ID",
+    description=("Redirect to Yandex OAuth authentication page. "
+                 "Limit: five attempts per minute."),
 )
 async def yandex_login(auth_service: auth_service_annotated):
     """User Login via Yandex ID.
@@ -97,10 +97,10 @@ async def yandex_login(auth_service: auth_service_annotated):
 
 @router.get(
     path="/yandex",
-    summary="Получение токена доступа через Яндекс",
-    description=("Эндпоинт обратного вызова (callback) "
-                 "для обработки ответа от Яндекс OAuth "
-                 "и получения токена доступа."),
+    summary="Get access token via Yandex",
+    description=("Callback endpoint "
+                 "for processing response from Yandex OAuth "
+                 "and obtaining access token."),
 )
 async def yandex_auth(
     code: str, auth_service: auth_service_annotated

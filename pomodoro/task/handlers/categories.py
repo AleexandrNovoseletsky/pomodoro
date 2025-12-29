@@ -44,8 +44,8 @@ router = APIRouter()
 @router.get(
     path="/",
     response_model=list[ResponseCategorySchema],
-    summary="Получить все категории",
-    description="Получить список всех доступных категорий. Открытый доступ."
+    summary="Get all categories",
+    description="Get a list of all available categories. Open access."
 )
 async def get_categories(
     category_service: category_service_annotated,
@@ -57,10 +57,10 @@ async def get_categories(
 @router.get(
     path="/tree",
     response_model=list[CategoryTreeSchema],
-    summary="Получить дерево категорий",
+    summary="Get category tree",
     description=(
-        "Возвращает иерархическое дерево всех категорий "
-        "с вложенными подкатегориями."
+        "Returns hierarchical tree of all categories "
+        "with nested subcategories."
     ),
 )
 async def get_category_tree(
@@ -77,10 +77,10 @@ async def get_category_tree(
 @router.get(
     path="/{category_id}/tree",
     response_model=CategoryTreeSchema,
-    summary="Получить поддерево категории",
+    summary="Get category subtree",
     description=(
-        "Возвращает указанную категорию и все её вложенные подкатегории "
-        "в виде дерева."
+        "Returns the specified category and all its nested subcategories "
+        "as a tree."
     ),
 )
 async def get_category_subtree(
@@ -100,8 +100,8 @@ async def get_category_subtree(
     response_model=ResponseCategorySchema,
     status_code=status.HTTP_201_CREATED,
     dependencies=[only_admin],
-    summary="Создать категорию",
-    description="Создание новой категории. Требуются права администратора."
+    summary="Create category",
+    description="Creating a new category. Administrator rights required."
 )
 async def create_category(
     body: CreateCategorySchema,
@@ -122,9 +122,9 @@ async def create_category(
     path="/{category_id}",
     response_model=ResponseCategorySchema,
     dependencies=[only_admin],
-    summary="Обновить категорию",
-    description=("Обновление существующей категории. "
-                 "Требуются права администратора.")
+    summary="Update category",
+    description=("Update an existing category. "
+                 "Administrator rights required.")
 )
 async def update_category(
     category_id: int,
@@ -141,8 +141,8 @@ async def update_category(
     path="/{category_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[only_admin],
-    summary="Удалить категорию",
-    description="Необратимо удаляет категорию. Требуются права администратора"
+    summary="Delete category",
+    description="Permanently deletes a category. Administrator rights required"
 )
 async def delete_category(
     category_id: int,

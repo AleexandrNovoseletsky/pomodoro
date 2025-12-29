@@ -44,9 +44,9 @@ router = APIRouter()
 @router.get(
     path="/",
     response_model=list[ResponseUserProfileSchema],
-    summary="Получить всех пользователей",
-    description=("Возвращает список всех пользователей в системе. "
-                 "Требуются права администратора."),
+    summary="Get all users",
+    description=("Returns a list of all users in the system. "
+                 "Administrator privileges required."),
 )
 async def get_users(
     user_service: user_service_annotated,
@@ -59,9 +59,9 @@ async def get_users(
     path="/me",
     status_code=status.HTTP_200_OK,
     response_model=ResponseUserProfileSchema,
-    summary="Получить информацию о текущем пользователе",
-    description=("Возвращает профиль пользователя, сделавшего запрос. "
-                 "Доступно всем авторизованным пользователям."),
+    summary="Get current user information",
+    description=("Returns the profile of the user who made the request. "
+                 "Available to all authenticated users."),
 )
 async def get_me(
     current_user: current_user_annotated,
@@ -74,9 +74,9 @@ async def get_me(
     path="/me",
     status_code=status.HTTP_200_OK,
     response_model=ResponseUserProfileSchema,
-    summary="Обновить данные текущего пользователя",
-    description=("Обновление профиля пользователя, сделавшего запрос. "
-                 "Доступно всем авторизованным пользователям."),
+    summary="Update current user data",
+    description=("Update the profile of the user who made the request. "
+                 "Available to all authenticated users."),
 )
 async def update_me(
     body: UpdateUserProfileSchema,
@@ -96,9 +96,9 @@ async def update_me(
     dependencies=[
         Depends(dependency=require_roles(allowed_roles=(root, admin))),
     ],
-    summary="Обновить данные пользователя",
-    description=("Обновление профиля любого пользователя в системе. "
-                 "Требуются права администратора или root."),
+    summary="Update user data",
+    description=("Update the profile of any user in the system. "
+                 "Administrator or root privileges required."),
 )
 async def update_user(
     user_id: int,
@@ -119,10 +119,10 @@ async def update_user(
     path="/me/set_password",
     status_code=status.HTTP_200_OK,
     response_model=ResponseUserProfileSchema,
-    summary="Установить пароль пользователя",
-    description=("Устанавливает пароль пользователю, "
-                 "если пароль до этого не был установлен. "
-                 "Например при авторизации через внешнего провайдера.")
+    summary="Set user password",
+    description=("Sets a password for the user "
+                 "if the password was not previously set. "
+                 "For example, when logging in through an external provider.")
 )
 async def set_password(
         body: SetPasswordSchema,
@@ -143,8 +143,8 @@ async def set_password(
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
     response_model=ResponseUserProfileSchema,
-    summary="Смена пароля пользователя",
-    description="Заменяет действующий пароль пользователя на новый."
+    summary="Change user password",
+    description="Replaces the user's current password with a new one."
 )
 async def change_password(
         body: ChangePasswordSchema,
@@ -164,8 +164,8 @@ async def change_password(
     path="/reset_password_via_email",
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
-    summary="Запрос на сброс пароля через email",
-    description="Отправляет код для сброса пароля на почту пользователя."
+    summary="Password reset request via email",
+    description="Sends a password reset code to the user's email."
 )
 async def reset_password_via_email(
         body: ResetPasswordSchema,
@@ -192,9 +192,9 @@ async def reset_password_via_email(
     path="/check_recovery_code",
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
-    summary="Проверка кода восстановления пароля",
-    description=("Проверяет код восстановления пароля. "
-                "При успехе переадресовывает на страницу сброса пароля.")
+    summary="Verify password recovery code",
+    description=("Verifies the password recovery code. "
+                "On success, redirects to the password reset page.")
 )
 async def check_recovery_code(
         body: CheckRecoveryCodeSchema,
@@ -223,7 +223,7 @@ async def check_recovery_code(
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(RateLimiter(times=5, minutes=1))],
     response_model=ResponseUserProfileSchema,
-    summary="Меняет пароль пользователю в обмен на токен"
+    summary="Changes user password in exchange for token"
 )
 async def confirm_reset_password(
         body: ConfirmResetPasswordSchema,
@@ -247,9 +247,9 @@ async def confirm_reset_password(
     path="/delete/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(dependency=require_roles(allowed_roles=(root,)))],
-    summary="Удалить пользователя",
-    description=("Полное удаление пользователя из системы. "
-                 "Требуются права root-пользователя.")
+    summary="Delete user",
+    description=("Complete removal of user from the system. "
+                 "Root user privileges required.")
 )
 async def delete_user(
     user_id: int,

@@ -56,10 +56,10 @@ async def http_exception_handler(
             content={
                 "error": "TooManyRequests",
                 "detail": (
-                    f"Превышено количество попыток. "
-                    f"Повторите через {retry_after} секунд."
+                    f"Exceeded number of attempts. "
+                    f"Retry in {retry_after} seconds."
                     if retry_after
-                    else "Превышено количество попыток. Повторите позже."
+                    else "Exceeded number of attempts. Retry later."
                 ),
             },
             headers=exc.headers,

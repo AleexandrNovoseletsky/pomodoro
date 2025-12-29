@@ -55,9 +55,9 @@ async def resize_image(
         original_height: int = img.height
         if width is None and height is None:
             raise ValueError(
-                "Нужно передать хотя бы один из параметров: "
-                "width (ширина (в пикселях) файла на выходе), "
-                "или height (высота (в пикселях) файла на выходе)"
+                "At least one of the parameters must be provided: "
+                "width (output file width in pixels), "
+                "or height (output file height in pixels)"
             )
         if width is None:
             ratio: float = height / original_height

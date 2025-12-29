@@ -3,8 +3,8 @@
 def password_recovery_email(code: int) -> str:
     """Generate password recovery email body."""
     return (
-        "Вы запросили восстановление пароля.\n\n"
-        f"Код восстановления: {code}\n\n"
-        "Если вы не запрашивали восстановление — просто "
-        "проигнорируйте это письмо.\n"
+        "You have requested password recovery.\n\n"
+        f"Recovery code: {code}\n\n"
+        "If you did not request recovery — simply "
+        "ignore this email.\n"
     )
