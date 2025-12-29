@@ -1,5 +1,5 @@
 {
-  "start_ts": "2025-12-29T00:34:42.742741+00:00",
+  "start_ts": "2025-12-29T00:52:58.761653+00:00",
   "success": true,
   "error": null,
   "error_traceback": null,
@@ -8,7 +8,7 @@
   "created_task_ids": [],
   "steps": [
     {
-      "timestamp": "2025-12-29T00:34:42.743532+00:00",
+      "timestamp": "2025-12-29T00:52:58.762432+00:00",
       "success": true,
       "message": "Setting up test users in database...",
       "details": null,
@@ -16,7 +16,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:42.969576+00:00",
+      "timestamp": "2025-12-29T00:52:59.056337+00:00",
       "success": true,
       "message": "Testing health check endpoint...",
       "details": null,
@@ -24,7 +24,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:42.981947+00:00",
+      "timestamp": "2025-12-29T00:52:59.064319+00:00",
       "success": true,
       "message": "Health check passed",
       "details": null,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:42.981985+00:00",
+      "timestamp": "2025-12-29T00:52:59.064336+00:00",
       "success": true,
       "message": "Testing user authentication...",
       "details": null,
@@ -42,7 +42,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.154259+00:00",
+      "timestamp": "2025-12-29T00:53:02.325320+00:00",
       "success": true,
       "message": "All users logged in successfully",
       "details": null,
@@ -50,7 +50,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.154303+00:00",
+      "timestamp": "2025-12-29T00:53:02.325345+00:00",
       "success": true,
       "message": "Testing invalid login credentials...",
       "details": null,
@@ -58,7 +58,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.196581+00:00",
+      "timestamp": "2025-12-29T00:53:02.367048+00:00",
       "success": true,
       "message": "Invalid login correctly rejected",
       "details": null,
@@ -68,7 +68,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.196604+00:00",
+      "timestamp": "2025-12-29T00:53:02.367074+00:00",
       "success": true,
       "message": "Testing user registration...",
       "details": null,
@@ -76,18 +76,18 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.199271+00:00",
+      "timestamp": "2025-12-29T00:53:02.370037+00:00",
       "success": false,
       "message": "User registration failed",
       "details": null,
       "request": null,
       "response": {
         "status_code": 429,
-        "text": "{\"error\":\"TooManyRequests\",\"detail\":\"Превышено количество попыток. Повторите через 77096 секунд.\"}"
+        "text": "{\"error\":\"TooManyRequests\",\"detail\":\"Превышено количество попыток. Повторите через 75999 секунд.\"}"
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.199288+00:00",
+      "timestamp": "2025-12-29T00:53:02.370055+00:00",
       "success": true,
       "message": "Testing get current user profile...",
       "details": null,
@@ -95,7 +95,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.206106+00:00",
+      "timestamp": "2025-12-29T00:53:02.377755+00:00",
       "success": true,
       "message": "User profile retrieved successfully",
       "details": null,
@@ -105,7 +105,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.206125+00:00",
+      "timestamp": "2025-12-29T00:53:02.377776+00:00",
       "success": true,
       "message": "Testing category creation...",
       "details": null,
@@ -113,7 +113,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.207062+00:00",
+      "timestamp": "2025-12-29T00:53:02.378775+00:00",
       "success": false,
       "message": "Category creation failed",
       "details": null,
@@ -124,7 +124,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.207074+00:00",
+      "timestamp": "2025-12-29T00:53:02.378795+00:00",
       "success": true,
       "message": "Testing get categories...",
       "details": null,
@@ -132,7 +132,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.207792+00:00",
+      "timestamp": "2025-12-29T00:53:02.379619+00:00",
       "success": false,
       "message": "Categories retrieval failed",
       "details": null,
@@ -143,7 +143,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.207802+00:00",
+      "timestamp": "2025-12-29T00:53:02.379632+00:00",
       "success": true,
       "message": "Testing tag creation...",
       "details": null,
@@ -151,7 +151,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.208771+00:00",
+      "timestamp": "2025-12-29T00:53:02.380500+00:00",
       "success": false,
       "message": "Tag creation failed",
       "details": null,
@@ -162,7 +162,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.208789+00:00",
+      "timestamp": "2025-12-29T00:53:02.380518+00:00",
       "success": true,
       "message": "Testing get tags...",
       "details": null,
@@ -170,7 +170,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.209620+00:00",
+      "timestamp": "2025-12-29T00:53:02.381341+00:00",
       "success": false,
       "message": "Tags retrieval failed",
       "details": null,
@@ -181,7 +181,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.209632+00:00",
+      "timestamp": "2025-12-29T00:53:02.381355+00:00",
       "success": true,
       "message": "Testing task creation with tags...",
       "details": null,
@@ -189,7 +189,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.210489+00:00",
+      "timestamp": "2025-12-29T00:53:02.382162+00:00",
       "success": false,
       "message": "Task creation failed",
       "details": null,
@@ -200,7 +200,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.210500+00:00",
+      "timestamp": "2025-12-29T00:53:02.382172+00:00",
       "success": true,
       "message": "Testing get tasks...",
       "details": null,
@@ -208,7 +208,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.211334+00:00",
+      "timestamp": "2025-12-29T00:53:02.383042+00:00",
       "success": false,
       "message": "Tasks retrieval failed",
       "details": null,
@@ -219,7 +219,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:46.211351+00:00",
+      "timestamp": "2025-12-29T00:53:02.383059+00:00",
       "success": true,
       "message": "Testing media upload...",
       "details": null,
@@ -227,7 +227,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.211358+00:00",
+      "timestamp": "2025-12-29T00:53:02.383066+00:00",
       "success": true,
       "message": "Media upload test skipped (no tasks created)",
       "details": null,
@@ -235,7 +235,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:46.211364+00:00",
+      "timestamp": "2025-12-29T00:53:02.383074+00:00",
       "success": true,
       "message": "Testing password reset request...",
       "details": null,
@@ -243,7 +243,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:51.235690+00:00",
+      "timestamp": "2025-12-29T00:53:07.336850+00:00",
       "success": false,
       "message": "Password reset request failed",
       "details": null,
@@ -254,7 +254,7 @@
       }
     },
     {
-      "timestamp": "2025-12-29T00:34:51.235716+00:00",
+      "timestamp": "2025-12-29T00:53:07.336876+00:00",
       "success": true,
       "message": "Testing admin-only endpoints...",
       "details": null,
@@ -262,7 +262,7 @@
       "response": null
     },
     {
-      "timestamp": "2025-12-29T00:34:51.747362+00:00",
+      "timestamp": "2025-12-29T00:53:07.848830+00:00",
       "success": true,
       "message": "Access control test completed",
       "details": {
@@ -278,5 +278,5 @@
   "cleanup_human": [
     "Ошибка очистки: name 'cleanup_db' is not defined"
   ],
-  "end_ts": "2025-12-29T00:34:51.748964+00:00"
+  "end_ts": "2025-12-29T00:53:07.849839+00:00"
 }

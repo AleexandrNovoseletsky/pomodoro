@@ -9,9 +9,11 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 # Import dependencies
+from pomodoro.core.exceptions.object_not_found import ObjectNotFoundError
 from pomodoro.core.services.base_crud import CRUDService
 from pomodoro.media.models.files import OwnerType
 from pomodoro.media.services.media_service import MediaService
+from pomodoro.task.models.tags import Tag
 from pomodoro.task.repositories.cache_tasks import TaskCacheRepository
 from pomodoro.task.repositories.task import TaskRepository
 from pomodoro.task.schemas.task import ResponseTaskSchema, UpdateTaskSchema
@@ -88,13 +90,9 @@ class TaskService(CRUDService[ResponseTaskSchema]):
                 )
                 task = result.scalars().one_or_none()
                 if not task:
-                    from pomodoro.core.exceptions.object_not_found import (
-                        ObjectNotFoundError,
-                    )
                     raise ObjectNotFoundError(task_id)
 
                 # Get tag objects
-                from pomodoro.task.models.tags import Tag
                 result = await session.execute(
                     select(Tag).where(Tag.id.in_(tag_ids))
                 )
